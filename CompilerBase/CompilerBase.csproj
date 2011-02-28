@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{2DB78F4E-A20B-40E7-ADCE-F005F5031A43}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Purity.Compiler</RootNamespace>
+    <AssemblyName>Purity.CompilerBase</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Constants.cs" />
+    <Compile Include="Data\Cl.cs" />
+    <Compile Include="Data\Cr.cs" />
+    <Compile Include="Data\Uncurried.cs" />
+    <Compile Include="Data\Curried.cs" />
+    <Compile Include="Data\Out.cs" />
+    <Compile Include="Data\In.cs" />
+    <Compile Include="Interfaces\ITypedExpressionVisitor.cs" />
+    <Compile Include="Interfaces\ITypedExpression.cs" />
+    <Compile Include="Modules\ProgramElement.cs" />
+    <Compile Include="Modules\ProgramElementType.cs" />
+    <Compile Include="TypedExpressions\Ana.cs" />
+    <Compile Include="TypedExpressions\Application.cs" />
+    <Compile Include="TypedExpressions\Case.cs" />
+    <Compile Include="TypedExpressions\Cata.cs" />
+    <Compile Include="TypedExpressions\Composition.cs" />
+    <Compile Include="TypedExpressions\Const.cs" />
+    <Compile Include="TypedExpressions\Cl.cs" />
+    <Compile Include="TypedExpressions\Cr.cs" />
+    <Compile Include="TypedExpressions\Curried.cs" />
+    <Compile Include="TypedExpressions\Identity.cs" />
+    <Compile Include="TypedExpressions\In.cs" />
+    <Compile Include="TypedExpressions\Inl.cs" />
+    <Compile Include="TypedExpressions\Inr.cs" />
+    <Compile Include="TypedExpressions\Out.cs" />
+    <Compile Include="TypedExpressions\Outl.cs" />
+    <Compile Include="TypedExpressions\Outr.cs" />
+    <Compile Include="TypedExpressions\Split.cs" />
+    <Compile Include="Modules\DataDeclaration.cs" />
+    <Compile Include="Exceptions\CompilerException.cs" />
+    <Compile Include="Functors\ArrowFunctor.cs" />
+    <Compile Include="Functors\ConstantFunctor.cs" />
+    <Compile Include="Functors\FunctorSynonym.cs" />
+    <Compile Include="Functors\IdentityFunctor.cs" />
+    <Compile Include="Functors\ProductFunctor.cs" />
+    <Compile Include="Functors\SumFunctor.cs" />
+    <Compile Include="Interfaces\IData.cs" />
+    <Compile Include="Interfaces\IDataVisitor.cs" />
+    <Compile Include="Interfaces\IFunctor.cs" />
+    <Compile Include="Interfaces\IFunctorVisitor.cs" />
+    <Compile Include="Interfaces\IType.cs" />
+    <Compile Include="Interfaces\ITypeVisitor.cs" />
+    <Compile Include="Keywords.cs" />
+    <Compile Include="Modules\Module.cs" />
+    <Compile Include="Modules\Named.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TypedExpressions\Uncurried.cs" />
+    <Compile Include="Types\ArrowType.cs" />
+    <Compile Include="Types\FunctorAppType.cs" />
+    <Compile Include="Types\GFixType.cs" />
+    <Compile Include="Types\LFixType.cs" />
+    <Compile Include="Types\ProductType.cs" />
+    <Compile Include="Types\SumType.cs" />
+    <Compile Include="Types\TypeSynonym.cs" />
+    <Compile Include="Data\Ana.cs" />
+    <Compile Include="Data\Application.cs" />
+    <Compile Include="Data\Case.cs" />
+    <Compile Include="Data\Cata.cs" />
+    <Compile Include="Data\Composition.cs" />
+    <Compile Include="Data\Const.cs" />
+    <Compile Include="Data\DataSynonym.cs" />
+    <Compile Include="Data\Identity.cs" />
+    <Compile Include="Data\Inl.cs" />
+    <Compile Include="Data\Inr.cs" />
+    <Compile Include="Data\Outl.cs" />
+    <Compile Include="Data\Outr.cs" />
+    <Compile Include="Data\Split.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\PurityCore.csproj">
+      <Project>{DF720C6A-063F-451B-ADE9-9D2D9BDCBE72}</Project>
+      <Name>PurityCore</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

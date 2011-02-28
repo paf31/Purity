@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A27F6155-A97B-496C-BDCB-9C65247D42A5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Purity.Compiler.Typechecker</RootNamespace>
+    <AssemblyName>Purity.Compiler.Typechecker</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Constraints\ArrowConstraint.cs" />
+    <Compile Include="Constraints\FixConstraint.cs" />
+    <Compile Include="Constraints\GFixConstraint.cs" />
+    <Compile Include="Constraints\LFixConstraint.cs" />
+    <Compile Include="Constraints\FunctorAppConstraint.cs" />
+    <Compile Include="Constraints\ProductConstraint.cs" />
+    <Compile Include="Data\Cl.cs" />
+    <Compile Include="Data\Cr.cs" />
+    <Compile Include="Data\Uncurried.cs" />
+    <Compile Include="Helpers\ConstraintEnforcer.cs" />
+    <Compile Include="Data\Curried.cs" />
+    <Compile Include="Helpers\FunctorReplacer.cs" />
+    <Compile Include="Helpers\MergeFunctorsVisitor.cs" />
+    <Compile Include="Helpers\MergeTypesVisitor.cs" />
+    <Compile Include="Helpers\PartialFunctorCreator.cs" />
+    <Compile Include="Helpers\PartialFunctorTypeMapper.cs" />
+    <Compile Include="Helpers\PartialTypeCreator.cs" />
+    <Compile Include="Helpers\TableauMerger.cs" />
+    <Compile Include="Helpers\TypeReplacer.cs" />
+    <Compile Include="Interfaces\IConstraint.cs" />
+    <Compile Include="Constraints\SumConstraint.cs" />
+    <Compile Include="Data\Ana.cs" />
+    <Compile Include="Data\Application.cs" />
+    <Compile Include="Data\Case.cs" />
+    <Compile Include="Data\Cata.cs" />
+    <Compile Include="Data\Composition.cs" />
+    <Compile Include="Data\Const.cs" />
+    <Compile Include="Data\In.cs" />
+    <Compile Include="Data\Out.cs" />
+    <Compile Include="Data\Identity.cs" />
+    <Compile Include="Data\Inl.cs" />
+    <Compile Include="Data\Inr.cs" />
+    <Compile Include="Data\Outl.cs" />
+    <Compile Include="Data\Outr.cs" />
+    <Compile Include="Data\Split.cs" />
+    <Compile Include="Functors\ArrowFunctor.cs" />
+    <Compile Include="Functors\ConstantFunctor.cs" />
+    <Compile Include="Functors\IdentityFunctor.cs" />
+    <Compile Include="Functors\ProductFunctor.cs" />
+    <Compile Include="Functors\SumFunctor.cs" />
+    <Compile Include="Functors\UnknownFunctor.cs" />
+    <Compile Include="Helpers\ConstrainedDataCreator.cs" />
+    <Compile Include="Helpers\FunctorConverter.cs" />
+    <Compile Include="Helpers\TypeConverter.cs" />
+    <Compile Include="Helpers\TypedExpressionCreator.cs" />
+    <Compile Include="Interfaces\IConstraintVisitor.cs" />
+    <Compile Include="Interfaces\IPartialFunctor.cs" />
+    <Compile Include="Interfaces\IPartialFunctorVisitor.cs" />
+    <Compile Include="Interfaces\IConstrainedData.cs" />
+    <Compile Include="Interfaces\IConstrainedDataVisitor.cs" />
+    <Compile Include="Interfaces\IPartialType.cs" />
+    <Compile Include="Interfaces\IPartialTypeVisitor.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tableau.cs" />
+    <Compile Include="Checker.cs" />
+    <Compile Include="Types\ArrowType.cs" />
+    <Compile Include="Types\FunctorAppType.cs" />
+    <Compile Include="Types\GFixType.cs" />
+    <Compile Include="Types\LFixType.cs" />
+    <Compile Include="Types\ProductType.cs" />
+    <Compile Include="Types\SumType.cs" />
+    <Compile Include="Types\TypeSynonym.cs" />
+    <Compile Include="Types\UnknownType.cs" />
+    <Compile Include="Utilities\TableauUtilities.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CompilerBase\CompilerBase.csproj">
+      <Project>{2DB78F4E-A20B-40E7-ADCE-F005F5031A43}</Project>
+      <Name>CompilerBase</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\PurityCore.csproj">
+      <Project>{DF720C6A-063F-451B-ADE9-9D2D9BDCBE72}</Project>
+      <Name>PurityCore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Reducer\Reducer.csproj">
+      <Project>{2BF03E62-E8CC-4AB3-9DCF-7D2568EBE2A9}</Project>
+      <Name>Reducer</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
