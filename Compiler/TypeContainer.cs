@@ -29,7 +29,7 @@ namespace Purity.Compiler
 
         public static GFixTypeInfo ResolveGFixType(IFunctor functor)
         {
-            if (!lfixTypes.ContainsKey(functor))
+            if (!gfixTypes.ContainsKey(functor))
             {
                 throw new CompilerException("Unable to resolve greatest fixed point type " + functor.ToString());
             }
