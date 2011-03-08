@@ -24,23 +24,5 @@ namespace Purity.Compiler.Functors
         {
             visitor.VisitProduct(this);
         }
-
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj != null &&
-                obj is ProductFunctor &&
-                (obj as ProductFunctor).Left.Equals(Left) &&
-                (obj as ProductFunctor).Right.Equals(Right);
-        }
-
-        public override string ToString()
-        {
-            return string.Format("P{0}{1}", Left, Right);
-        }
     }
 }

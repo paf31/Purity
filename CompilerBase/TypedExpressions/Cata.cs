@@ -20,17 +20,17 @@ namespace Purity.Compiler.TypedExpressions
             set;
         }
 
-        public IFunctor Functor
+        public IType LFixType
         {
             get;
             set;
         }
 
-        public Cata(ITypedExpression algebra, IType carrierType, IFunctor functor)
+        public Cata(ITypedExpression algebra, IType carrierType, IType lfixType)
         {
             Algebra = algebra;
             CarrierType = carrierType;
-            Functor = functor;
+            LFixType = lfixType;
         }
 
         public void AcceptVisitor(ITypedExpressionVisitor visitor)

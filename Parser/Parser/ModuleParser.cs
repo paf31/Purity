@@ -33,12 +33,14 @@ namespace Purity.Compiler.Parser
 
         static Parser<string, Named<DataDeclaration>> ParseNamedUntypedData = from decl in Parsers.Match(Constants.DataKeyword)
                                                                               from ws1 in Parsers.WSChar.Rep1()
-                                                                              from type in TypeParser.ParseType
-                                                                              from ws2 in Parsers.WSChar.Rep1()
                                                                               from ident in Parsers.Identifier
+                                                                              from ws2 in Parsers.Whitespace
+                                                                              from intro in Parsers.Match(Constants.DataTypeIntroduction)
                                                                               from ws3 in Parsers.Whitespace
-                                                                              from eq in Parsers.Match(Constants.EqualsSymbol)
+                                                                              from type in TypeParser.ParseType
                                                                               from ws4 in Parsers.Whitespace
+                                                                              from eq in Parsers.Match(Constants.EqualsSymbol)
+                                                                              from ws5 in Parsers.Whitespace
                                                                               from data in DataParser.ParseData
                                                                               select new Named<DataDeclaration>(ident, new DataDeclaration(type, data));
 

@@ -28,33 +28,26 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Index, new ArrowType(tableau.Types[c.Left], tableau.Types[c.Right]));
 
-            if (tableau.Types[c.Index] is ArrowType)
-            {
-                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Left, (tableau.Types[c.Index] as ArrowType).Left);
-                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Right, (tableau.Types[c.Index] as ArrowType).Right);
-            }
-        }
+            var current = tableau.Types[c.Index];
 
-        public void VisitFunctorApp(Constraints.FunctorAppConstraint c)
-        {
-            HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Index, new FunctorAppType(tableau.Functors[c.Functor], tableau.Types[c.Argument]));
-
-            if (tableau.Types[c.Index] is FunctorAppType)
+            if (current is ArrowType)
             {
-                HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (tableau.Types[c.Index] as FunctorAppType).Functor);
-                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Argument, (tableau.Types[c.Index] as FunctorAppType).Argument);
+                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Left, (current as ArrowType).Left);
+                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Right, (current as ArrowType).Right);
             }
         }
 
         public void VisitFix(Constraints.FixConstraint c)
         {
-            if (tableau.Types[c.Index] is LFixType)
+            var current = tableau.Types[c.Index];
+
+            if (current is LFixType)
             {
-                HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (tableau.Types[c.Index] as LFixType).Functor);
+                HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (current as LFixType).Functor);
             }
-            else if (tableau.Types[c.Index] is GFixType)
+            else if (current is GFixType)
             {
-                HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (tableau.Types[c.Index] as GFixType).Functor);
+                HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (current as GFixType).Functor);
             }
         }
 
@@ -62,9 +55,11 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Index, new LFixType(tableau.Functors[c.Functor]));
 
-            if (tableau.Types[c.Index] is LFixType)
+            var current = tableau.Types[c.Index];
+
+            if (current is LFixType)
             {
-                HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (tableau.Types[c.Index] as LFixType).Functor);
+                HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (current as LFixType).Functor);
             }
         }
 
@@ -72,9 +67,11 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Index, new GFixType(tableau.Functors[c.Functor]));
 
-            if (tableau.Types[c.Index] is GFixType)
+            var current = tableau.Types[c.Index];
+
+            if (current is GFixType)
             {
-                HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (tableau.Types[c.Index] as GFixType).Functor);
+                HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (current as GFixType).Functor);
             }
         }
 
@@ -82,10 +79,12 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Index, new ProductType(tableau.Types[c.Left], tableau.Types[c.Right]));
 
-            if (tableau.Types[c.Index] is ProductType)
+            var current = tableau.Types[c.Index];
+
+            if (current is ProductType)
             {
-                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Left, (tableau.Types[c.Index] as ProductType).Left);
-                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Right, (tableau.Types[c.Index] as ProductType).Right);
+                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Left, (current as ProductType).Left);
+                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Right, (current as ProductType).Right);
             }
         }
 
@@ -93,10 +92,24 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Index, new SumType(tableau.Types[c.Left], tableau.Types[c.Right]));
 
-            if (tableau.Types[c.Index] is SumType)
+            var current = tableau.Types[c.Index];
+
+            if (current is SumType)
             {
-                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Left, (tableau.Types[c.Index] as SumType).Left);
-                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Right, (tableau.Types[c.Index] as SumType).Right);
+                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Left, (current as SumType).Left);
+                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Right, (current as SumType).Right);
+            }
+        }
+
+        public void VisitSynonym(Constraints.SynonymConstraint c)
+        {
+            var current = tableau.Types[c.Index];
+
+            if (current is TypeSynonym)
+            {
+                var resolved = Container.ResolveType((current as TypeSynonym).Identifier);
+                var converted = new PartialTypeCreator().Convert(resolved);
+                HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Target, converted);
             }
         }
     }

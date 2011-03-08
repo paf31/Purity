@@ -29,7 +29,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public void VisitSynonym(Compiler.Types.TypeSynonym t)
         {
-            throw new CompilerException("Unexpected type synonym.");
+            Result = new Types.TypeSynonym(t.Identifier);
         }
 
         public void VisitProduct(Compiler.Types.ProductType t)
@@ -44,17 +44,16 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public void VisitLFix(Compiler.Types.LFixType t)
         {
-            Result = new Types.LFixType(new PartialFunctorCreator().Convert(t.Functor));
+            var result = new Types.LFixType(new PartialFunctorCreator().Convert(t.Functor));
+            result.Identifier = t.Identifier;
+            Result = result;
         }
 
         public void VisitGFix(Compiler.Types.GFixType t)
         {
-            Result = new Types.GFixType(new PartialFunctorCreator().Convert(t.Functor));
-        }
-
-        public void VisitFunctorApp(Compiler.Types.FunctorAppType t)
-        {
-            Result = new Types.FunctorAppType(new PartialFunctorCreator().Convert(t.Functor), Convert(t.Argument));
+            var result = new Types.GFixType(new PartialFunctorCreator().Convert(t.Functor));
+            result.Identifier = t.Identifier;
+            Result = result;
         }
     }
 }

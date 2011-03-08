@@ -16,8 +16,8 @@ namespace Purity.Compiler.Extensions
     {
         public static MethodBuilder Compile(this IFunctor functor, TypeBuilder utilityClass)
         {
-            var fmap = utilityClass.DefineMethod("FMap", MethodAttributes.Public | MethodAttributes.Static);
-            var fmapParameters = fmap.DefineGenericParameters("A", "B");
+            var fmap = utilityClass.DefineMethod(Constants.FMapMethodName, MethodAttributes.Public | MethodAttributes.Static);
+            var fmapParameters = fmap.DefineGenericParameters(Constants.FMapMethodInputParameterName, Constants.FMapMethodOutputParameterName);
 
             fmap.SetReturnType(typeof(IFunction<,>).MakeGenericType(fmapParameters.Select(t => new FunctorTypeMapper(t).Map(functor)).ToArray()));
 

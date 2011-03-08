@@ -49,17 +49,23 @@ namespace Purity.Compiler.Typechecker.Helpers
             set;
         }
 
+        public IDictionary<int, Tuple<int, int>> KnownFunctorApplications
+        {
+            get;
+            set;
+        }
+
         public ConstrainedDataCreator()
         {
             Constraints = new List<IConstraint>();
             KnownTypes = new Dictionary<int, IType>();
+            KnownFunctorApplications = new Dictionary<int, Tuple<int, int>>();
         }
 
         public IConstrainedData Convert(IData data, out int index)
         {
             data.AcceptVisitor(this);
             index = RootIndex;
-            KnownTypes[index] = data.Type;
             return Result;
         }
 
@@ -70,17 +76,21 @@ namespace Purity.Compiler.Typechecker.Helpers
             int fCarrier = TypeIndex++;
             int gfix = TypeIndex++;
             int ana = TypeIndex++;
+            int boxed = TypeIndex++;
             int functor = FunctorIndex++;
 
             var result = new Purity.Compiler.Typechecker.Data.Ana(Convert(d.Coalgebra, out coalgebra));
             result.CarrierType = new UnknownType(carrier);
             result.Functor = new UnknownFunctor(functor);
+            result.GFixType = new UnknownType(gfix);
             Result = result;
 
             Constraints.Add(new GFixConstraint(functor, gfix));
             Constraints.Add(new ArrowConstraint(carrier, fCarrier, coalgebra));
-            Constraints.Add(new ArrowConstraint(carrier, gfix, ana));
-            Constraints.Add(new FunctorAppConstraint(functor, carrier, fCarrier));
+            Constraints.Add(new ArrowConstraint(carrier, boxed, ana));
+            Constraints.Add(new SynonymConstraint(gfix, boxed));
+
+            KnownFunctorApplications[fCarrier] = Tuple.Create(functor, carrier);
 
             RootIndex = ana;
         }
@@ -134,17 +144,21 @@ namespace Purity.Compiler.Typechecker.Helpers
             int fCarrier = TypeIndex++;
             int lfix = TypeIndex++;
             int cata = TypeIndex++;
+            int boxed = TypeIndex++;
             int functor = FunctorIndex++;
 
             var result = new Purity.Compiler.Typechecker.Data.Cata(Convert(d.Algebra, out algebra));
             result.CarrierType = new UnknownType(carrier);
             result.Functor = new UnknownFunctor(functor);
+            result.LFixType = new UnknownType(lfix);
             Result = result;
 
             Constraints.Add(new LFixConstraint(functor, lfix));
             Constraints.Add(new ArrowConstraint(fCarrier, carrier, algebra));
-            Constraints.Add(new ArrowConstraint(lfix, carrier, cata));
-            Constraints.Add(new FunctorAppConstraint(functor, carrier, fCarrier));
+            Constraints.Add(new ArrowConstraint(boxed, carrier, cata));
+            Constraints.Add(new SynonymConstraint(lfix, boxed));
+
+            KnownFunctorApplications[fCarrier] = Tuple.Create(functor, carrier);
 
             RootIndex = cata;
         }
@@ -189,7 +203,10 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public void VisitSynonym(Compiler.Data.DataSynonym d)
         {
-            throw new CompilerException("Unexpected data synonym.");
+            int index = TypeIndex++;
+            KnownTypes[index] = Container.ResolveValue(d.Identifier).Type;
+            Result = new Purity.Compiler.Typechecker.Data.DataSynonym(d.Identifier);
+            RootIndex = index;
         }
 
         public void VisitIdentity(Compiler.Data.Identity d)
@@ -308,6 +325,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             int fix = TypeIndex++;
             int ffix = TypeIndex++;
             int arrow = TypeIndex++;
+            int boxed = TypeIndex++;
 
             var result = new Purity.Compiler.Typechecker.Data.In();
             result.Source = new UnknownType(fix);
@@ -315,8 +333,10 @@ namespace Purity.Compiler.Typechecker.Helpers
             Result = result;
 
             Constraints.Add(new FixConstraint(functor, fix));
-            Constraints.Add(new FunctorAppConstraint(functor, fix, ffix));
-            Constraints.Add(new ArrowConstraint(fix, ffix, arrow));
+            Constraints.Add(new ArrowConstraint(boxed, ffix, arrow));
+            Constraints.Add(new SynonymConstraint(fix, boxed));
+
+            KnownFunctorApplications[ffix] = Tuple.Create(functor, boxed);
 
             RootIndex = arrow;
         }
@@ -327,6 +347,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             int fix = TypeIndex++;
             int ffix = TypeIndex++;
             int arrow = TypeIndex++;
+            int boxed = TypeIndex++;
 
             var result = new Purity.Compiler.Typechecker.Data.Out();
             result.Target = new UnknownType(fix);
@@ -334,8 +355,10 @@ namespace Purity.Compiler.Typechecker.Helpers
             Result = result;
 
             Constraints.Add(new FixConstraint(functor, fix));
-            Constraints.Add(new FunctorAppConstraint(functor, fix, ffix));
-            Constraints.Add(new ArrowConstraint(ffix, fix, arrow));
+            Constraints.Add(new ArrowConstraint(ffix, boxed, arrow));
+            Constraints.Add(new SynonymConstraint(fix, boxed));
+
+            KnownFunctorApplications[ffix] = Tuple.Create(functor, boxed);
 
             RootIndex = arrow;
         }
@@ -432,6 +455,40 @@ namespace Purity.Compiler.Typechecker.Helpers
             Constraints.Add(new ArrowConstraint(a, b, f1));
             Constraints.Add(new ArrowConstraint(a, c, f2));
             Constraints.Add(new ArrowConstraint(f1, f2, arrow));
+
+            RootIndex = arrow;
+        }
+
+        public void VisitBox(Compiler.Data.Box d)
+        {
+            int target = TypeIndex++;
+            int boxed = TypeIndex++;
+            int arrow = TypeIndex++;
+
+            var result = new Purity.Compiler.Typechecker.Data.Box();
+            result.Type = new UnknownType(boxed);
+            result.Target = new UnknownType(target);
+            Result = result;
+
+            Constraints.Add(new SynonymConstraint(target, boxed));
+            Constraints.Add(new ArrowConstraint(target, boxed, arrow));
+
+            RootIndex = arrow;
+        }
+
+        public void VisitUnbox(Compiler.Data.Unbox d)
+        {
+            int target = TypeIndex++;
+            int boxed = TypeIndex++;
+            int arrow = TypeIndex++;
+
+            var result = new Purity.Compiler.Typechecker.Data.Unbox();
+            result.Type = new UnknownType(boxed);
+            result.Target = new UnknownType(target);
+            Result = result;
+
+            Constraints.Add(new SynonymConstraint(target, boxed));
+            Constraints.Add(new ArrowConstraint(boxed, target, arrow));
 
             RootIndex = arrow;
         }

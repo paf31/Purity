@@ -5,6 +5,8 @@ using System.Text;
 using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Typechecker.Types;
 using Purity.Compiler.Exceptions;
+using Purity.Compiler.Interfaces;
+using Purity.Compiler.Functors;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
@@ -55,9 +57,14 @@ namespace Purity.Compiler.Typechecker.Helpers
             Result = new SumType(Map(type, f.Left), Map(type, f.Right));
         }
 
-        public void VisitUnknown(Functors.UnknownFunctor unknownType)
+        public void VisitSynonym(Functors.FunctorSynonym f)
         {
-            throw new CompilerException("Unable to infer functor type.");
+            new PartialFunctorCreator().Convert(Container.ResolveFunctor(f.Identifier)).AcceptVisitor(this);
+        }
+
+        public void VisitUnknown(Functors.UnknownFunctor f)
+        {
+            throw new CompilerException(ErrorMessages.UnableToInferFunctor);
         }
     }
 }

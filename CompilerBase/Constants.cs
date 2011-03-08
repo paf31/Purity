@@ -14,6 +14,8 @@ namespace Purity.Compiler
         public const char OpeningBracket = '(';
         public const char ClosingBracket = ')';
 
+        public const char DataTypeIntroduction = ':';
+
         public const char OpeningSquareBracket = '[';
         public const char ClosingSquareBracket = ']';
 
@@ -47,6 +49,9 @@ namespace Purity.Compiler
         public const string In = "in";
         public const string Out = "out";
 
+        public const char Box = '&';
+        public const char Unbox = '^';
+
         public const string Curry = "curry";
         public const string Uncurry = "uncurry";
 
@@ -64,5 +69,58 @@ namespace Purity.Compiler
 
         public const string Lfix = "lfix";
         public const string Gfix = "gfix";
+
+        public const string CallMethodName = "Call";
+        
+        public const string MethodsSuffix = "Methods";
+
+        public const string BoxFunctionClassName = "BoxFunction";
+        public const string UnboxFunctionClassName = "UnboxFunction";
+        public const string BoxedTypeValueFieldName = "Value";
+
+        public const string DataClassName = "Data";
+        public const string TypesNamespace = "Types";
+
+        public const string CataMethodName = "Cata";
+        public const string CataMethodGenericParameterName = "T";
+
+        public const string ApplyMethodName = "Apply";
+        public const string ApplyMethodGenericParameterName = "T";
+
+        public const string GFixFunctionClassGenericParameterName = "R";
+
+        public const string AnaMethodName = "Ana";
+        public const string AnaMethodGenericParameterName = "T";
+
+        public const string FMapMethodName = "FMap";
+        public const string FMapMethodInputParameterName = "A";
+        public const string FMapMethodOutputParameterName = "B";
+        
+        public const string OutMethodName = "Out";
+       
+        public const string OutClassName = "Out";
+        public const string OutClassPredFieldName = "pred";
+        
+        public const string CataFunctionClassName = "Cata";
+        public const string CataFunctionClassGenericParameterName = "T";
+        public const string CataFunctionClassSeedFieldName = "seed";
+
+        public const string AnaFunctionClassName = "Ana";
+        public const string AnaFunctionClassGenericParameterName = "T";
+        public const string AnaFunctionClassSeedFieldName = "seed";
+
+        public const string InMethodName = "In";
+
+        public const string OutFunctionClassName = "OutFunction";
+        public const string InFunctionClassName = "InFunction";
+
+        public const string FunctionSuffix = "Function";
+
+        public const string AnaClassName = "AnaClass";
+        public const string AnaClassGenericParameterName = "T";
+        public const string AnaClassSeedFieldName = "seed";
+        public const string AnaClassGeneratorFieldName = "generator";
+
+        public const string InGeneratingFunctionClassName = "InGeneratingFunction";
     }
 }

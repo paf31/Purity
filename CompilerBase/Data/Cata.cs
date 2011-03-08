@@ -23,11 +23,5 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitCata(this);
         }
-
-        public IType Type
-        {
-            get;
-            set;
-        }
     }
 }

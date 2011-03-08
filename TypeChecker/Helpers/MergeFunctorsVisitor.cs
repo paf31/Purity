@@ -53,7 +53,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
             else
             {
-                throw new CompilerException("Type error: expected arrow functor, found " + replacement.GetType().Name);
+                throw new CompilerException(ErrorMessages.ExpectedArrowFunctor);
             }
         }
 
@@ -72,7 +72,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
             else
             {
-                throw new CompilerException("Type error: expected constant functor, found " + replacement.GetType().Name);
+                throw new CompilerException(ErrorMessages.ExpectedConstantFunctor);
             }
         }
 
@@ -88,7 +88,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
             else
             {
-                throw new CompilerException("Type error: expected identity functor, found " + replacement.GetType().Name);
+                throw new CompilerException(ErrorMessages.ExpectedIdentityFunctor);
             }
         }
 
@@ -107,7 +107,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
             else
             {
-                throw new CompilerException("Type error: expected product functor, found " + replacement.GetType().Name);
+                throw new CompilerException(ErrorMessages.ExpectedProductFunctor);
             }
         }
 
@@ -126,17 +126,42 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
             else
             {
-                throw new CompilerException("Type error: expected sum functor, found " + replacement.GetType().Name);
+                throw new CompilerException(ErrorMessages.ExpectedSumFunctor);
             }
         }
 
-        public void VisitUnknown(Functors.UnknownFunctor unknownType)
+        public void VisitUnknown(Functors.UnknownFunctor f)
         {
             Result = replacement;
 
             if (!(replacement is Functors.UnknownFunctor))
             {
                 Changed = true;
+            }
+        }
+
+        public void VisitSynonym(Functors.FunctorSynonym f)
+        {
+            if (replacement is Functors.UnknownFunctor)
+            {
+                Result = f;
+                Changed = false;
+            }
+            else if (replacement is Functors.FunctorSynonym)
+            {
+                if (f.Identifier.Equals((replacement as Functors.FunctorSynonym).Identifier))
+                {
+                    Result = f;
+                    Changed = false;
+                }
+                else
+                {
+                    throw new CompilerException(string.Format(ErrorMessages.Expected, f.Identifier));
+                }
+            }
+            else
+            {
+                throw new CompilerException(string.Format(ErrorMessages.Expected, f.Identifier));
             }
         }
     }

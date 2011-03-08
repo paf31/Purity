@@ -9,8 +9,6 @@ namespace Purity.Compiler.Typechecker.Interfaces
     {
         void VisitArrow(Constraints.ArrowConstraint c);
 
-        void VisitFunctorApp(Constraints.FunctorAppConstraint c);
-
         void VisitFix(Constraints.FixConstraint c);
 
         void VisitLFix(Constraints.LFixConstraint c);
@@ -20,5 +18,7 @@ namespace Purity.Compiler.Typechecker.Interfaces
         void VisitProduct(Constraints.ProductConstraint c);
     
         void VisitSum(Constraints.SumConstraint c);
+
+        void VisitSynonym(Constraints.SynonymConstraint c);
     }
 }

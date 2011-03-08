@@ -20,8 +20,6 @@ namespace Purity.Compiler.Typechecker.Interfaces
 
         void VisitGFix(GFixType t);
 
-        void VisitFunctorApp(FunctorAppType t);
-
         void VisitUnknown(UnknownType t);
     }
 }

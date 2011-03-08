@@ -11,50 +11,57 @@ namespace Purity.Compiler
 {
     public static class TypeContainer
     {
-        private static IDictionary<IFunctor, LFixTypeInfo> lfixTypes =
-            new Dictionary<IFunctor, LFixTypeInfo>();
+        private static IDictionary<string, ITypeInfo> types =
+            new Dictionary<string, ITypeInfo>();
 
-        private static IDictionary<IFunctor, GFixTypeInfo> gfixTypes =
-            new Dictionary<IFunctor, GFixTypeInfo>();
-
-        public static LFixTypeInfo ResolveLFixType(IFunctor functor)
+        public static LFixTypeInfo ResolveLFixType(string name)
         {
-            if (!lfixTypes.ContainsKey(functor))
+            if (!types.ContainsKey(name))
             {
-                throw new CompilerException("Unable to resolve least fixed point type " + functor.ToString()); 
+                throw new CompilerException(string.Format(ErrorMessages.UnableToResolveLFix, name.ToString()));
             }
 
-            return lfixTypes[functor];
+            return (LFixTypeInfo) types[name];
         }
 
-        public static GFixTypeInfo ResolveGFixType(IFunctor functor)
+        public static GFixTypeInfo ResolveGFixType(string name)
         {
-            if (!gfixTypes.ContainsKey(functor))
+            if (!types.ContainsKey(name))
             {
-                throw new CompilerException("Unable to resolve greatest fixed point type " + functor.ToString());
+                throw new CompilerException(string.Format(ErrorMessages.UnableToResolveGFix, name.ToString()));
             }
 
-            return gfixTypes[functor];
+            return (GFixTypeInfo) types[name];
         }
 
-        public static void Add(IFunctor functor, LFixTypeInfo value)
+        public static IFixPointInfo ResolveFixPointType(string name)
         {
-            lfixTypes[functor] = value;
+            if (!types.ContainsKey(name))
+            {
+                throw new CompilerException(string.Format(ErrorMessages.UnableToResolveFix, name.ToString()));
+            }
+
+            return (IFixPointInfo) types[name];
         }
 
-        public static void Add(IFunctor functor, GFixTypeInfo value)
+        public static ITypeInfo ResolveType(string name)
         {
-            gfixTypes[functor] = value;
+            if (!types.ContainsKey(name))
+            {
+                throw new CompilerException(string.Format(ErrorMessages.UnableToResolveType, name.ToString()));
+            }
+
+            return (ITypeInfo) types[name];
         }
 
-        public static bool HasLFixType(IFunctor functor)
+        public static void Add(string name, ITypeInfo value)
         {
-            return lfixTypes.ContainsKey(functor);
-        }
+            if (types.ContainsKey(name))
+            {
+                throw new CompilerException(string.Format(ErrorMessages.NameConflict, name));
+            }
 
-        public static bool HasGFixType(IFunctor functor)
-        {
-            return gfixTypes.ContainsKey(functor);
+            types[name] = value;
         }
     }
 }

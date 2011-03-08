@@ -24,9 +24,9 @@ namespace Purity.Compiler.Typechecker.Helpers
         public void VisitAna(Data.Ana d)
         {
             Result = new Purity.Compiler.TypedExpressions.Ana(
-                Convert(d.Coalgebra), 
-                new TypeConverter().Convert(d.CarrierType), 
-                new FunctorConverter().Convert(d.Functor));
+                Convert(d.Coalgebra),
+                new TypeConverter().Convert(d.CarrierType),
+                new TypeConverter().Convert(d.GFixType));
         }
 
         public void VisitApplication(Data.Application d)
@@ -53,7 +53,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             Result = new Purity.Compiler.TypedExpressions.Cata(
                 Convert(d.Algebra),
                 new TypeConverter().Convert(d.CarrierType),
-                new FunctorConverter().Convert(d.Functor));
+                new TypeConverter().Convert(d.LFixType));
         }
 
         public void VisitComposition(Data.Composition d)
@@ -121,15 +121,13 @@ namespace Purity.Compiler.Typechecker.Helpers
         public void VisitIn(Data.In d)
         {
             Result = new Purity.Compiler.TypedExpressions.In(
-                new TypeConverter().Convert(d.Source),
-                new FunctorConverter().Convert(d.Functor));
+                new TypeConverter().Convert(d.Source));
         }
 
         public void VisitOut(Data.Out d)
         {
             Result = new Purity.Compiler.TypedExpressions.Out(
-                new TypeConverter().Convert(d.Target),
-                new FunctorConverter().Convert(d.Functor));
+                new TypeConverter().Convert(d.Target));
         }
 
         public void VisitCurry(Data.Curried d)
@@ -166,6 +164,25 @@ namespace Purity.Compiler.Typechecker.Helpers
                new TypeConverter().Convert(d.A),
                new TypeConverter().Convert(d.B),
                new TypeConverter().Convert(d.C));
+        }
+
+        public void VisitSynonym(Data.DataSynonym d)
+        {
+            Result = new Purity.Compiler.TypedExpressions.DataSynonym(d.Identifier);
+        }
+
+        public void VisitBox(Data.Box d)
+        {
+            Result = new Purity.Compiler.TypedExpressions.Box(
+                new TypeConverter().Convert(d.Target), 
+                new TypeConverter().Convert(d.Type));
+        }
+
+        public void VisitUnbox(Data.Unbox d)
+        {
+            Result = new Purity.Compiler.TypedExpressions.Unbox(
+                new TypeConverter().Convert(d.Target), 
+                new TypeConverter().Convert(d.Type));
         }
     }
 }

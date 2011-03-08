@@ -6,9 +6,9 @@ using System.Reflection.Emit;
 
 namespace Purity.Compiler.Data
 {
-    public class GFixTypeInfo
+    public class GFixTypeInfo : IFixPointInfo
     {
-        public TypeBuilder GreatestFixedPoint
+        public TypeBuilder Type
         {
             get;
             set;

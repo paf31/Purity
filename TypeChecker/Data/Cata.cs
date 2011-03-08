@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Purity.Compiler.Typechecker.Interfaces;
+using Purity.Compiler.Interfaces;
 
 namespace Purity.Compiler.Typechecker.Data
 {
@@ -21,6 +22,12 @@ namespace Purity.Compiler.Typechecker.Data
         }
 
         public IPartialFunctor Functor
+        {
+            get;
+            set;
+        }
+
+        public IPartialType LFixType
         {
             get;
             set;

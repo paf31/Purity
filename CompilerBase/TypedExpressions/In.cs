@@ -8,21 +8,15 @@ namespace Purity.Compiler.TypedExpressions
 {
     public class In : ITypedExpression
     {
-        public IFunctor Functor
-        {
-            get;
-            set;
-        }
         public IType Source
         {
             get;
             set;
         }
 
-        public In(IType source, IFunctor functor)
+        public In(IType source)
         {
             Source = source;
-            Functor = functor;
         }
 
         public void AcceptVisitor(ITypedExpressionVisitor visitor)

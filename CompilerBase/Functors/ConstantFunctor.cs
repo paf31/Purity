@@ -26,22 +26,5 @@ namespace Purity.Compiler.Functors
         {
             visitor.VisitConstant(this);
         }
-
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj != null &&
-                obj is ConstantFunctor &&
-                (obj as ConstantFunctor).Value.Equals(Value);
-        }
-
-        public override string ToString()
-        {
-            return string.Format("C{0}", Value);
-        }
     }
 }

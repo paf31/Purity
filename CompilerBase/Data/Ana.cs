@@ -23,11 +23,5 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitAna(this);
         }
-
-        public IType Type
-        {
-            get;
-            set;
-        }
     }
 }

@@ -23,11 +23,5 @@ namespace Purity.Compiler.Data
             get;
             set;
         }
-
-        public IType Type
-        {
-            get;
-            set;
-        }
     }
 }

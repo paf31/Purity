@@ -15,6 +15,12 @@ namespace Purity.Compiler.Types
             set;
         }
 
+        public string Identifier
+        {
+            get;
+            set;
+        }
+
         public LFixType(IFunctor functor)
         {
             Functor = functor;
@@ -23,23 +29,6 @@ namespace Purity.Compiler.Types
         public void AcceptVisitor(ITypeVisitor visitor)
         {
             visitor.VisitLFix(this);
-        }
-
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj != null &&
-                obj is LFixType &&
-                (obj as LFixType).Functor.Equals(Functor);
-        }
-
-        public override string ToString()
-        {
-            return string.Format("l{0}", Functor);
         }
     }
 }

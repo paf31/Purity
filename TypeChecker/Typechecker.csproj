@@ -41,14 +41,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constraints\ArrowConstraint.cs" />
+    <Compile Include="Constraints\SynonymConstraint.cs" />
     <Compile Include="Constraints\FixConstraint.cs" />
     <Compile Include="Constraints\GFixConstraint.cs" />
     <Compile Include="Constraints\LFixConstraint.cs" />
-    <Compile Include="Constraints\FunctorAppConstraint.cs" />
     <Compile Include="Constraints\ProductConstraint.cs" />
+    <Compile Include="Data\Box.cs" />
     <Compile Include="Data\Cl.cs" />
+    <Compile Include="Data\Unbox.cs" />
     <Compile Include="Data\Cr.cs" />
+    <Compile Include="Data\DataSynonym.cs" />
     <Compile Include="Data\Uncurried.cs" />
+    <Compile Include="Functors\FunctorSynonym.cs" />
     <Compile Include="Helpers\ConstraintEnforcer.cs" />
     <Compile Include="Data\Curried.cs" />
     <Compile Include="Helpers\FunctorReplacer.cs" />
@@ -96,7 +100,6 @@
     <Compile Include="Tableau.cs" />
     <Compile Include="Checker.cs" />
     <Compile Include="Types\ArrowType.cs" />
-    <Compile Include="Types\FunctorAppType.cs" />
     <Compile Include="Types\GFixType.cs" />
     <Compile Include="Types\LFixType.cs" />
     <Compile Include="Types\ProductType.cs" />
@@ -113,10 +116,6 @@
     <ProjectReference Include="..\Core\PurityCore.csproj">
       <Project>{DF720C6A-063F-451B-ADE9-9D2D9BDCBE72}</Project>
       <Name>PurityCore</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Reducer\Reducer.csproj">
-      <Project>{2BF03E62-E8CC-4AB3-9DCF-7D2568EBE2A9}</Project>
-      <Name>Reducer</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

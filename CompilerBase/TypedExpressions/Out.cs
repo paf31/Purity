@@ -8,22 +8,15 @@ namespace Purity.Compiler.TypedExpressions
 {
     public class Out : ITypedExpression
     {
-        public IFunctor Functor
-        {
-            get;
-            set;
-        }
-
         public IType Target
         {
             get;
             set;
         }
 
-        public Out(IType target, IFunctor functor)
+        public Out(IType target)
         {
             Target = target;
-            Functor = functor;
         }
 
         public void AcceptVisitor(ITypedExpressionVisitor visitor)

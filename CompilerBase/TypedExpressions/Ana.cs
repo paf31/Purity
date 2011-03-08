@@ -20,17 +20,18 @@ namespace Purity.Compiler.TypedExpressions
             set;
         }
 
-        public IFunctor Functor
+
+        public IType GFixType
         {
             get;
             set;
         }
 
-        public Ana(ITypedExpression coalgebra, IType carrierType, IFunctor functor)
+        public Ana(ITypedExpression coalgebra, IType carrierType, IType gfixType)
         {
             Coalgebra = coalgebra;
             CarrierType = carrierType;
-            Functor = functor;
+            GFixType = gfixType;
         }
 
         public void AcceptVisitor(ITypedExpressionVisitor visitor)

@@ -24,10 +24,5 @@ namespace Purity.Compiler.Functors
             return obj != null &&
                 obj is IdentityFunctor;
         }
-
-        public override string ToString()
-        {
-            return "I";
-        }
     }
 }

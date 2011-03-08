@@ -49,7 +49,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public void VisitSynonym(Compiler.Functors.FunctorSynonym f)
         {
-            throw new CompilerException("Unexpected functor synonym.");
+            Result = new Functors.FunctorSynonym(f.Identifier);
         }
     }
 }

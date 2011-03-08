@@ -38,12 +38,16 @@ namespace Purity.Compiler.Interfaces
 
         void VisitOut(Out d);
 
-        void VisitCurry(Curried curried);
+        void VisitCurry(Curried d);
 
-        void VisitUncurry(Uncurried uncurried);
+        void VisitUncurry(Uncurried d);
 
-        void VisitCl(Cl cl);
+        void VisitCl(Cl d);
 
-        void VisitCr(Cr cr);
+        void VisitCr(Cr d);
+
+        void VisitBox(Box d);
+
+        void VisitUnbox(Unbox d);
     }       
 }

@@ -6,6 +6,7 @@ using Purity.Compiler.Interfaces;
 using Purity.Compiler.Extensions;
 using System.Reflection.Emit;
 using Purity.Core;
+using Purity.Core.Functions;
 
 namespace Purity.Compiler.Helpers
 {
@@ -45,6 +46,7 @@ namespace Purity.Compiler.Helpers
 
         public void VisitSynonym(Functors.FunctorSynonym f)
         {
+            Container.ResolveFunctor(f.Identifier).AcceptVisitor(this);
         }
 
         public void VisitIdentity(Functors.IdentityFunctor f)

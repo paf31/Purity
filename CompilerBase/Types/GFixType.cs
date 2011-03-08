@@ -15,6 +15,12 @@ namespace Purity.Compiler.Types
             set;
         }
 
+        public string Identifier
+        {
+            get;
+            set;
+        }
+
         public GFixType(IFunctor functor)
         {
             Functor = functor;
@@ -23,23 +29,6 @@ namespace Purity.Compiler.Types
         public void AcceptVisitor(ITypeVisitor visitor)
         {
             visitor.VisitGFix(this);
-        }
-
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj != null &&
-                obj is GFixType &&
-                (obj as GFixType).Functor.Equals(Functor);
-        }
-
-        public override string ToString()
-        {
-            return string.Format("g{0}", Functor);
         }
     }
 }

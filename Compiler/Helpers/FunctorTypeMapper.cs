@@ -5,6 +5,7 @@ using System.Text;
 using Purity.Compiler.Interfaces;
 using Purity.Compiler.Extensions;
 using Purity.Core;
+using Purity.Core.Types;
 
 namespace Purity.Compiler.Helpers
 {

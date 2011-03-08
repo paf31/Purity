@@ -12,11 +12,5 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitInl(this);
         }
-
-        public IType Type
-        {
-            get;
-            set;
-        }
     }
 }

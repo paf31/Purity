@@ -6,9 +6,9 @@ using System.Reflection.Emit;
 
 namespace Purity.Compiler.Data
 {
-    public class LFixTypeInfo
+    public class LFixTypeInfo : IFixPointInfo
     {
-        public TypeBuilder LeastFixedPoint
+        public TypeBuilder Type
         {
             get;
             set;

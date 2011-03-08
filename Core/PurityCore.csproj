@@ -36,24 +36,24 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArrowFunctorAction.cs" />
-    <Compile Include="Cl.cs" />
-    <Compile Include="CompositeFunction.cs" />
-    <Compile Include="ConstantFunction.cs" />
-    <Compile Include="Cr.cs" />
-    <Compile Include="UncurriedFunction.cs" />
-    <Compile Include="CurriedFunction.cs" />
-    <Compile Include="OutlFunction.cs" />
-    <Compile Include="OutrFunction.cs" />
-    <Compile Include="InrFunction.cs" />
-    <Compile Include="InlFunction.cs" />
-    <Compile Include="Either.cs" />
-    <Compile Include="CaseFunction.cs" />
+    <Compile Include="Functions\ArrowFunctorAction.cs" />
+    <Compile Include="Functions\Cl.cs" />
+    <Compile Include="Functions\CompositeFunction.cs" />
+    <Compile Include="Functions\ConstantFunction.cs" />
+    <Compile Include="Functions\Cr.cs" />
+    <Compile Include="Functions\DelegateFunction.cs" />
+    <Compile Include="Functions\UncurriedFunction.cs" />
+    <Compile Include="Functions\CurriedFunction.cs" />
+    <Compile Include="Functions\OutlFunction.cs" />
+    <Compile Include="Functions\OutrFunction.cs" />
+    <Compile Include="Functions\InrFunction.cs" />
+    <Compile Include="Functions\InlFunction.cs" />
+    <Compile Include="Types\Either.cs" />
+    <Compile Include="Functions\CaseFunction.cs" />
     <Compile Include="IFunction.cs" />
-    <Compile Include="IdentityFunction.cs" />
-    <Compile Include="SplitFunction.cs" />
+    <Compile Include="Functions\IdentityFunction.cs" />
+    <Compile Include="Functions\SplitFunction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Unit.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

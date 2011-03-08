@@ -41,12 +41,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
+    <Compile Include="Container.cs" />
+    <Compile Include="Data\Box.cs" />
     <Compile Include="Data\Cl.cs" />
     <Compile Include="Data\Cr.cs" />
+    <Compile Include="Data\Unbox.cs" />
     <Compile Include="Data\Uncurried.cs" />
     <Compile Include="Data\Curried.cs" />
     <Compile Include="Data\Out.cs" />
     <Compile Include="Data\In.cs" />
+    <Compile Include="ErrorMessages.cs" />
     <Compile Include="Interfaces\ITypedExpressionVisitor.cs" />
     <Compile Include="Interfaces\ITypedExpression.cs" />
     <Compile Include="Modules\ProgramElement.cs" />
@@ -58,8 +62,11 @@
     <Compile Include="TypedExpressions\Composition.cs" />
     <Compile Include="TypedExpressions\Const.cs" />
     <Compile Include="TypedExpressions\Cl.cs" />
+    <Compile Include="TypedExpressions\Box.cs" />
+    <Compile Include="TypedExpressions\Unbox.cs" />
     <Compile Include="TypedExpressions\Cr.cs" />
     <Compile Include="TypedExpressions\Curried.cs" />
+    <Compile Include="TypedExpressions\DataSynonym.cs" />
     <Compile Include="TypedExpressions\Identity.cs" />
     <Compile Include="TypedExpressions\In.cs" />
     <Compile Include="TypedExpressions\Inl.cs" />
@@ -69,7 +76,7 @@
     <Compile Include="TypedExpressions\Outr.cs" />
     <Compile Include="TypedExpressions\Split.cs" />
     <Compile Include="Modules\DataDeclaration.cs" />
-    <Compile Include="Exceptions\CompilerException.cs" />
+    <Compile Include="Functors\Exceptions\CompilerException.cs" />
     <Compile Include="Functors\ArrowFunctor.cs" />
     <Compile Include="Functors\ConstantFunctor.cs" />
     <Compile Include="Functors\FunctorSynonym.cs" />
@@ -88,7 +95,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypedExpressions\Uncurried.cs" />
     <Compile Include="Types\ArrowType.cs" />
-    <Compile Include="Types\FunctorAppType.cs" />
     <Compile Include="Types\GFixType.cs" />
     <Compile Include="Types\LFixType.cs" />
     <Compile Include="Types\ProductType.cs" />

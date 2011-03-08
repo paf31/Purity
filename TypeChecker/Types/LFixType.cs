@@ -16,6 +16,12 @@ namespace Purity.Compiler.Typechecker.Types
             set;
         }
 
+        public string Identifier
+        {
+            get;
+            set;
+        }
+
         public LFixType(IPartialFunctor functor)
         {
             Functor = functor;

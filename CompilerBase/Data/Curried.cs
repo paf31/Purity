@@ -19,11 +19,5 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitCurry(this);
         }
-
-        public IType Type
-        {
-            get;
-            set;
-        }
     }
 }

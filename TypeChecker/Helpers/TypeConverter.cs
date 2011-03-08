@@ -29,7 +29,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public void VisitSynonym(Types.TypeSynonym t)
         {
-            throw new CompilerException("Unexpected type synonym.");
+            Result = new Purity.Compiler.Types.TypeSynonym(t.Identifier);
         }
 
         public void VisitProduct(Types.ProductType t)
@@ -44,22 +44,31 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public void VisitLFix(Types.LFixType t)
         {
-            Result = new Purity.Compiler.Types.LFixType(new FunctorConverter().Convert(t.Functor));
+            if (t.Identifier == null)
+            {
+                throw new CompilerException(ErrorMessages.UnableToInferFunctor);
+            }
+
+            var result = new Purity.Compiler.Types.LFixType(new FunctorConverter().Convert(t.Functor));
+            result.Identifier = t.Identifier;
+            Result = result;
         }
 
         public void VisitGFix(Types.GFixType t)
         {
-            Result = new Purity.Compiler.Types.GFixType(new FunctorConverter().Convert(t.Functor));
-        }
+            if (t.Identifier == null)
+            {
+                throw new CompilerException(ErrorMessages.UnableToInferFunctor);
+            }
 
-        public void VisitFunctorApp(Types.FunctorAppType t)
-        {
-            Result = new Purity.Compiler.Types.FunctorAppType(new FunctorConverter().Convert(t.Functor), Convert(t.Argument));
+            var result = new Purity.Compiler.Types.GFixType(new FunctorConverter().Convert(t.Functor));
+            result.Identifier = t.Identifier;
+            Result = result;
         }
 
         public void VisitUnknown(Types.UnknownType unknownType)
         {
-            throw new CompilerException("Unable to infer type.");
+            throw new CompilerException(ErrorMessages.UnableToInferType);
         }
     }
 }

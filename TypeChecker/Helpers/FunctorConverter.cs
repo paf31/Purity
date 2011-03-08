@@ -47,9 +47,14 @@ namespace Purity.Compiler.Typechecker.Helpers
             Result = new Purity.Compiler.Functors.SumFunctor(Convert(f.Left), Convert(f.Right));
         }
 
-        public void VisitUnknown(Functors.UnknownFunctor unknownType)
+        public void VisitSynonym(Functors.FunctorSynonym f)
         {
-            throw new CompilerException("Unable to infer functor type.");
+            Result = new Purity.Compiler.Functors.FunctorSynonym(f.Identifier);
+        }
+
+        public void VisitUnknown(Functors.UnknownFunctor f)
+        {
+            throw new CompilerException(ErrorMessages.UnableToInferFunctor);
         }
     }
 }

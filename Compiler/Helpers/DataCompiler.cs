@@ -5,8 +5,15 @@ using System.Text;
 using Purity.Compiler.Interfaces;
 using Purity.Compiler.Extensions;
 using System.Reflection.Emit;
-using Purity.Core;
 using Purity.Compiler.Types;
+using Purity.Compiler.Functors;
+using System.Reflection;
+using Purity.Core;
+using Purity.Core.Types;
+using Purity.Core.Functions;
+using Purity.Compiler.Data;
+using Purity.Compiler.Exceptions;
+using Purity.Compiler.Modules;
 
 namespace Purity.Compiler.Helpers
 {
@@ -21,8 +28,15 @@ namespace Purity.Compiler.Helpers
 
         public void VisitAna(TypedExpressions.Ana d)
         {
+            var gfix = d.GFixType as GFixType;
+
+            if (gfix == null)
+            {
+                throw new CompilerException("Expected greatest fixed point type.");
+            }
+
             d.Coalgebra.AcceptVisitor(this);
-            var typeInfo = TypeContainer.ResolveGFixType(d.Functor);
+            var typeInfo = TypeContainer.ResolveGFixType(gfix.Identifier);
             var anaClass = typeInfo.AnaFunction;
             var genericCtor = typeInfo.AnaFunctionConstructor;
             var genericParameter = new TypeConverter().Convert(d.CarrierType);
@@ -32,8 +46,15 @@ namespace Purity.Compiler.Helpers
 
         public void VisitCata(TypedExpressions.Cata d)
         {
+            var lfix = d.LFixType as LFixType;
+
+            if (lfix == null)
+            {
+                throw new CompilerException("Expected least fixed point type.");
+            }
+
             d.Algebra.AcceptVisitor(this);
-            var typeInfo = TypeContainer.ResolveLFixType(d.Functor);
+            var typeInfo = TypeContainer.ResolveLFixType((d.LFixType as LFixType).Identifier);
             var cataClass = typeInfo.CataFunction;
             var genericCtor = typeInfo.CataFunctionConstructor;
             var genericParameter = new TypeConverter().Convert(d.CarrierType);
@@ -43,29 +64,41 @@ namespace Purity.Compiler.Helpers
 
         public void VisitIn(TypedExpressions.In d)
         {
-            if (d.Source is LFixType)
+            var source = d.Source;
+
+            if (source is LFixType)
             {
-                var ctor = TypeContainer.ResolveLFixType(d.Functor).InFunctionConstructor;
+                var ctor = TypeContainer.ResolveFixPointType((source as LFixType).Identifier).InFunctionConstructor;
                 body.Emit(OpCodes.Newobj, ctor);
             }
-            else if (d.Source is GFixType)
+            else if (source is GFixType)
             {
-                var ctor = TypeContainer.ResolveGFixType(d.Functor).InFunctionConstructor;
+                var ctor = TypeContainer.ResolveFixPointType((source as GFixType).Identifier).InFunctionConstructor;
                 body.Emit(OpCodes.Newobj, ctor);
+            }
+            else
+            {
+                throw new CompilerException("Expected fixed point type.");
             }
         }
 
         public void VisitOut(TypedExpressions.Out d)
         {
-            if (d.Target is LFixType)
+            var target = d.Target;
+
+            if (target is LFixType)
             {
-                var ctor = TypeContainer.ResolveLFixType(d.Functor).OutFunctionConstructor;
+                var ctor = TypeContainer.ResolveFixPointType((target as LFixType).Identifier).OutFunctionConstructor;
                 body.Emit(OpCodes.Newobj, ctor);
             }
-            else if (d.Target is GFixType)
+            else if (target is GFixType)
             {
-                var ctor = TypeContainer.ResolveGFixType(d.Functor).OutFunctionConstructor;
+                var ctor = TypeContainer.ResolveFixPointType((target as GFixType).Identifier).OutFunctionConstructor;
                 body.Emit(OpCodes.Newobj, ctor);
+            }
+            else
+            {
+                throw new CompilerException(ErrorMessages.ExpectedFixedPointType);
             }
         }
 
@@ -74,9 +107,8 @@ namespace Purity.Compiler.Helpers
             d.Left.AcceptVisitor(this);
             d.Right.AcceptVisitor(this);
 
-            var dom = new TypeConverter().Convert(d.LeftType);
             var functionType = new TypeConverter().Convert(d.LeftType);
-            var callMethod = typeof(IFunction<,>).GetMethod("Call");
+            var callMethod = typeof(IFunction<,>).GetMethod(Constants.CallMethodName);
 
             body.Emit(OpCodes.Callvirt, TypeBuilder.GetMethod(functionType, callMethod));
         }
@@ -247,6 +279,93 @@ namespace Purity.Compiler.Helpers
             var ctor = TypeBuilder.GetConstructor(typeof(Cr<,,>).MakeGenericType(a, b, c), defCtor);
 
             body.Emit(OpCodes.Newobj, ctor);
+        }
+
+        public void VisitSynonym(TypedExpressions.DataSynonym d)
+        {
+            var method = DataContainer.Resolve(d.Identifier).Method;
+            body.Emit(OpCodes.Call, method);
+        }
+
+        public void VisitBox(TypedExpressions.Box d)
+        {
+            var synonym = d.Type as TypeSynonym;
+
+            if (synonym == null)
+            {
+                throw new CompilerException(ErrorMessages.ExpectedTypeSynonym);
+            }
+
+            var type = (BoxedTypeInfo)TypeContainer.ResolveType(synonym.Identifier);
+            var ctor = type.BoxFunctionConstructor;
+            body.Emit(OpCodes.Newobj, ctor);
+        }
+
+        public void VisitUnbox(TypedExpressions.Unbox d)
+        {
+            var synonym = d.Type as TypeSynonym;
+
+            if (synonym == null)
+            {
+                throw new CompilerException(ErrorMessages.ExpectedTypeSynonym);
+            }
+
+            var type = (BoxedTypeInfo)TypeContainer.ResolveType(synonym.Identifier);
+            var ctor = type.UnboxFunctionConstructor;
+            body.Emit(OpCodes.Newobj, ctor);
+        }
+
+        public static void CompileMethod(string name, TypeBuilder dataClass, ITypedExpression typedExpression,
+            DataDeclaration data)
+        {
+            var converter = new TypeConverter();
+
+            var converted = converter.Convert(data.Type);
+            var method = dataClass.DefineMethod(name,
+                MethodAttributes.Public | MethodAttributes.Static, converted, Type.EmptyTypes);
+            var body = method.GetILGenerator();
+            typedExpression.AcceptVisitor(new DataCompiler(body));
+            body.Emit(OpCodes.Ret);
+
+            Container.Add(name, data);
+
+            var dataInfo = new DataInfo();
+            dataInfo.Method = method;
+            DataContainer.Add(name, dataInfo); 
+            
+            var arguments = new List<IType>();
+            var returnType = data.Type;
+
+            while (returnType is ArrowType)
+            {
+                var arrow = returnType as ArrowType;
+
+                arguments.Add(arrow.Left);
+                returnType = arrow.Right;
+
+                var lastArgument = converter.Convert(arrow.Left);
+                var compiledReturnType = converter.Convert(returnType);
+
+                var curried = dataClass.DefineMethod(name,
+                    MethodAttributes.Public | MethodAttributes.Static,
+                    compiledReturnType,
+                    arguments.Select(converter.Convert).ToArray());
+                var curriedBody = curried.GetILGenerator();
+
+                for (int argIndex = 0; argIndex < arguments.Count - 1; argIndex++)
+                {
+                    curriedBody.Emit(OpCodes.Ldarg, argIndex);
+                }
+
+                curriedBody.Emit(OpCodes.Call, method);
+                curriedBody.Emit(OpCodes.Ldarg, arguments.Count - 1);
+                curriedBody.Emit(OpCodes.Callvirt, TypeBuilder.GetMethod(
+                    typeof(IFunction<,>).MakeGenericType(lastArgument, compiledReturnType),
+                    typeof(IFunction<,>).GetMethod(Constants.CallMethodName)));
+                curriedBody.Emit(OpCodes.Ret);
+
+                method = curried;
+            }
         }
     }
 }

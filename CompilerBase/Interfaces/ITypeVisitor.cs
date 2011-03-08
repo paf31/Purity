@@ -19,7 +19,5 @@ namespace Purity.Compiler.Interfaces
         void VisitLFix(LFixType t);
 
         void VisitGFix(GFixType t);
-
-        void VisitFunctorApp(FunctorAppType t);
     }
 }

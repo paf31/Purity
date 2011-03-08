@@ -6,6 +6,9 @@ using Purity.Compiler.Extensions;
 using Purity.Compiler.Interfaces;
 using Purity.Core;
 using System.Reflection.Emit;
+using Purity.Compiler.Functors;
+using Purity.Compiler.Data;
+using Purity.Core.Types;
 
 namespace Purity.Compiler.Helpers
 {
@@ -40,22 +43,18 @@ namespace Purity.Compiler.Helpers
 
         public void VisitSynonym(Types.TypeSynonym t)
         {
-            Result = Convert(Container.ResolveValue(t.Identifier).Type);
+            ITypeInfo typeInfo = TypeContainer.ResolveType(t.Identifier);
+            Result = typeInfo.Type;
         }
 
         public void VisitLFix(Types.LFixType t)
         {
-            Result = TypeContainer.ResolveLFixType(t.Functor).LeastFixedPoint;
+            Result = TypeContainer.ResolveLFixType(t.Identifier).Type;
         }
 
         public void VisitGFix(Types.GFixType t)
         {
-            Result = TypeContainer.ResolveGFixType(t.Functor).GreatestFixedPoint;
-        }
-
-        public void VisitFunctorApp(Types.FunctorAppType t)
-        {
-            Result = new FunctorTypeMapper(Convert(t.Argument)).Map(t.Functor);
+            Result = TypeContainer.ResolveGFixType(t.Identifier).Type;
         }
     }
 }

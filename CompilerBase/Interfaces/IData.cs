@@ -8,11 +8,5 @@ namespace Purity.Compiler.Interfaces
     public interface IData
     {
         void AcceptVisitor(IDataVisitor visitor);
-
-        IType Type
-        {
-            get;
-            set;
-        }
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Typechecker.Types;
 using Purity.Compiler.Typechecker.Functors;
+using Purity.Compiler.Interfaces;
 
 namespace Purity.Compiler.Typechecker
 {
@@ -22,16 +23,24 @@ namespace Purity.Compiler.Typechecker
             set;
         }
 
+        public IDictionary<int, Tuple<int, int>> FunctorApplications
+        {
+            get;
+            set;
+        }
+
         public Tableau()
         {
             Types = new Dictionary<int, IPartialType>();
             Functors = new Dictionary<int, IPartialFunctor>();
+            FunctorApplications = new Dictionary<int, Tuple<int, int>>();
         }
 
         public Tableau(int types, int functors)
         {
             Types = new Dictionary<int, IPartialType>();
             Functors = new Dictionary<int, IPartialFunctor>();
+            FunctorApplications = new Dictionary<int, Tuple<int, int>>();
 
             for (int i = 0; i < types; i++)
             {

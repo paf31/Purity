@@ -30,11 +30,5 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitApplication(this);
         }
-
-        public IType Type
-        {
-            get;
-            set;
-        }
     }
 }

@@ -19,11 +19,5 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitSynonym(this);
         }
-
-        public IType Type
-        {
-            get;
-            set;
-        }
     }
 }

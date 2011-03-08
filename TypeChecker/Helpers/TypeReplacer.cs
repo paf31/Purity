@@ -46,7 +46,6 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public void VisitSynonym(Types.TypeSynonym t)
         {
-            throw new CompilerException("Unexpected type synonym.");
         }
 
         public void VisitProduct(Types.ProductType t)
@@ -95,18 +94,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             t.Functor.AcceptVisitor(this);
         }
 
-        public void VisitFunctorApp(Types.FunctorAppType t)
-        {
-            if (t.Argument is UnknownType && (t.Argument as UnknownType).Index == index)
-            {
-                HasChanges = !(replacement is UnknownType);
-                t.Argument = replacement;
-            }
-
-            t.Argument.AcceptVisitor(this);
-            t.Functor.AcceptVisitor(this);
-        }
-
         public void VisitUnknown(Types.UnknownType unknownType)
         {
         }
@@ -150,7 +137,11 @@ namespace Purity.Compiler.Typechecker.Helpers
             f.Right.AcceptVisitor(this);
         }
 
-        public void VisitUnknown(Functors.UnknownFunctor unknownType)
+        public void VisitUnknown(Functors.UnknownFunctor f)
+        {
+        }
+
+        public void VisitSynonym(Functors.FunctorSynonym f)
         {
         }
     }

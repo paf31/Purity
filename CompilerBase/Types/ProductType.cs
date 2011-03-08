@@ -22,23 +22,5 @@ namespace Purity.Compiler.Types
         {
             visitor.VisitProduct(this);
         }
-
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj != null &&
-                obj is ProductType &&
-                (obj as ProductType).Left.Equals(Left) &&
-                (obj as ProductType).Right.Equals(Right);
-        }
-
-        public override string ToString()
-        {
-            return string.Format("p{0}{1}", Left, Right);
-        }
     }
 }

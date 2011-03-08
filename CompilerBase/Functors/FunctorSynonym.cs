@@ -21,10 +21,5 @@ namespace Purity.Compiler.Functors
         {
             visitor.VisitSynonym(this);
         }
-
-        public override string ToString()
-        {
-            return Identifier;
-        }
     }
 }

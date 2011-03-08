@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Purity.Compiler.Modules;
-using Purity.Compiler.Extensions;
 using Purity.Compiler.Exceptions;
 using Purity.Compiler.Interfaces;
 using Purity.Compiler.Typechecker.Helpers;
@@ -42,8 +41,13 @@ namespace Purity.Compiler.Typechecker
             {
                 if (type.Value != null)
                 {
-                    Tableau.Types[type.Key] = new PartialTypeCreator().Convert(type.Value.RemoveSynonyms());
+                    Tableau.Types[type.Key] = new PartialTypeCreator().Convert(type.Value);
                 }
+            }
+
+            foreach (var application in visitor.KnownFunctorApplications)
+            {
+                Tableau.FunctorApplications[application.Key] = application.Value;
             }
 
             var enforcer = new ConstraintEnforcer(Tableau);

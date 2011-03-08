@@ -27,7 +27,7 @@ namespace CommandLineCompiler
                 {
                     moduleName = input.Substring(0, input.IndexOf('.'));
                 }
-                else 
+                else
                 {
                     moduleName = input;
                 }

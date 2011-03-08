@@ -19,6 +19,8 @@ namespace Purity.Compiler.Typechecker.Interfaces
 
         void VisitSum(SumFunctor f);
 
-        void VisitUnknown(UnknownFunctor unknownType);
+        void VisitUnknown(UnknownFunctor f);
+
+        void VisitSynonym(FunctorSynonym f);
     }
 }

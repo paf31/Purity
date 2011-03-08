@@ -30,11 +30,5 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitSplit(this);
         }
-
-        public IType Type
-        {
-            get;
-            set;
-        }
     }
 }

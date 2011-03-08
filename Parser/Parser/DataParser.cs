@@ -23,6 +23,10 @@ namespace Purity.Compiler.Parser
 
         static Parser<string, IData> ParseIdentity = Parsers.Match(Constants.Id).Select(o => (IData) new Identity());
 
+        static Parser<string, IData> ParseBox = Parsers.Match(Constants.Box).Select(o => (IData) new Box());
+
+        static Parser<string, IData> ParseUnbox = Parsers.Match(Constants.Unbox).Select(o => (IData) new Unbox());
+
         static Parser<string, IData> ParseDataSynonym = from ident in Parsers.Identifier
                                                         select (IData) new DataSynonym(ident);
 
@@ -96,6 +100,8 @@ namespace Purity.Compiler.Parser
 
         static Parser<string, IData> ParseAtom =
             ParseAna
+            .Or(ParseBox)
+            .Or(ParseUnbox)
             .Or(ParseCata)
             .Or(ParseCase)
             .Or(ParseSplit)

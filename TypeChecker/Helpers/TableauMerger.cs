@@ -34,6 +34,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Data.Ana(Merge(d.Coalgebra));
             result.CarrierType = tableau.Types[(d.CarrierType as UnknownType).Index];
             result.Functor = tableau.Functors[(d.Functor as UnknownFunctor).Index];
+            result.GFixType = tableau.Types[(d.GFixType as UnknownType).Index];
             Result = result;
         }
 
@@ -59,6 +60,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Data.Cata(Merge(d.Algebra));
             result.CarrierType = tableau.Types[(d.CarrierType as UnknownType).Index];
             result.Functor = tableau.Functors[(d.Functor as UnknownFunctor).Index];
+            result.LFixType = tableau.Types[(d.LFixType as UnknownType).Index];
             Result = result;
         }
 
@@ -176,6 +178,28 @@ namespace Purity.Compiler.Typechecker.Helpers
             result.A = tableau.Types[(d.A as UnknownType).Index];
             result.B = tableau.Types[(d.B as UnknownType).Index];
             result.C = tableau.Types[(d.C as UnknownType).Index];
+            Result = result;
+        }
+
+        public void VisitSynonym(Data.DataSynonym d)
+        {
+            var result = new Data.DataSynonym(d.Identifier);
+            Result = result;
+        }
+
+        public void VisitBox(Data.Box d)
+        {
+            var result = new Data.Box();
+            result.Target = tableau.Types[(d.Target as UnknownType).Index];
+            result.Type = tableau.Types[(d.Type as UnknownType).Index];
+            Result = result;
+        }
+
+        public void VisitUnbox(Data.Unbox d)
+        {
+            var result = new Data.Unbox();
+            result.Target = tableau.Types[(d.Target as UnknownType).Index];
+            result.Type = tableau.Types[(d.Type as UnknownType).Index];
             Result = result;
         }
     }

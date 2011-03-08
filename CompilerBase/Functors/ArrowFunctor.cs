@@ -24,23 +24,5 @@ namespace Purity.Compiler.Functors
         {
             visitor.VisitArrow(this);
         }
-
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj != null &&
-                obj is ArrowFunctor &&
-                (obj as ArrowFunctor).Left.Equals(Left) &&
-                (obj as ArrowFunctor).Right.Equals(Right);
-        }
-
-        public override string ToString()
-        {
-            return string.Format("A{0}{1}", Left, Right);
-        }
     }
 }
