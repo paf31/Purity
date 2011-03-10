@@ -57,7 +57,7 @@ namespace CommandLineCompiler
 
                 try
                 {
-                    new PurityCompiler(program).Compile(output, moduleName);
+                    new PurityCompiler(program.ToString()).Compile(output, moduleName);
                 }
                 catch (CompilerException ex)
                 {
