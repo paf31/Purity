@@ -7,6 +7,8 @@ namespace Purity.Compiler
 {
     public static class Constants
     {
+        public const char StartOfComment = '#';
+
         public const char CompositionOperator = '.';
 
         public const char EqualsSymbol = '=';
