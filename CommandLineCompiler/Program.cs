@@ -37,13 +37,21 @@ namespace CommandLineCompiler
                     moduleName = "output";
                 }
 
-                string program;
+                StringBuilder program = new StringBuilder();
 
                 using (var stream = new FileStream(input, FileMode.Open))
                 {
                     using (var reader = new StreamReader(stream))
                     {
-                        program = reader.ReadToEnd();
+                        string nextLine;
+
+                        while ((nextLine = reader.ReadLine()) != null)
+                        {
+                            if (!string.IsNullOrEmpty(nextLine) && nextLine[0] != Constants.StartOfComment)
+                            {
+                                program.AppendLine(nextLine);
+                            }
+                        }
                     }
                 }
 
