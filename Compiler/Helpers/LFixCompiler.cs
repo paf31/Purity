@@ -51,6 +51,8 @@ namespace Purity.Compiler.Helpers
 
             CompileCataFunction();
 
+            CompileCataFunction1();
+
             CompileOutClass();
 
             CompileOut();
@@ -126,6 +128,38 @@ namespace Purity.Compiler.Helpers
             cataBody.Emit(OpCodes.Ret);
         }
 
+        private void CompileCataFunction1()
+        {
+            TypeInfo.CataFunction1 = utilityClass.DefineNestedType(Constants.CataFunction1ClassName,
+                           TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic,
+                           null, Type.EmptyTypes);
+
+            var cataClassGenericParameter = TypeInfo.CataFunction1.DefineGenericParameters(Constants.CataFunction1ClassGenericParameterName)[0];
+            var fCataClassGenericParameter = new FunctorTypeMapper(cataClassGenericParameter).Map(functor.Value);
+
+            var algebraType = typeof(IFunction<,>).MakeGenericType(fCataClassGenericParameter, cataClassGenericParameter);
+            var initialMorphismType = typeof(IFunction<,>).MakeGenericType(TypeInfo.Type, cataClassGenericParameter);
+
+            TypeInfo.CataFunction1.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(algebraType, initialMorphismType));
+
+            TypeInfo.CataFunction1Constructor = TypeInfo.CataFunction1.DefineConstructor(MethodAttributes.Public, 
+                CallingConventions.Standard, Type.EmptyTypes);
+
+            var cataCtorBody = TypeInfo.CataFunction1Constructor.GetILGenerator();
+            cataCtorBody.Emit(OpCodes.Ldarg_0);
+            cataCtorBody.Emit(OpCodes.Call, typeof(object).GetConstructors()[0]);
+            cataCtorBody.Emit(OpCodes.Ret);
+
+            var call = TypeInfo.CataFunction1.DefineMethod(Constants.CallMethodName, MethodAttributes.Public | MethodAttributes.Virtual,
+                initialMorphismType, new Type[] { algebraType });
+
+            var callBody = call.GetILGenerator();
+            callBody.Emit(OpCodes.Ldarg_1);
+            callBody.Emit(OpCodes.Newobj, TypeBuilder.GetConstructor(TypeInfo.CataFunction.MakeGenericType(cataClassGenericParameter),
+                TypeInfo.CataFunctionConstructor));
+            callBody.Emit(OpCodes.Ret);
+        }
+
         private void CompileCataFunction()
         {
             TypeInfo.CataFunction = utilityClass.DefineNestedType(Constants.CataFunctionClassName,
@@ -140,7 +174,8 @@ namespace Purity.Compiler.Helpers
 
             var seedField = TypeInfo.CataFunction.DefineField(Constants.CataFunctionClassSeedFieldName, seedType, FieldAttributes.Private);
 
-            TypeInfo.CataFunctionConstructor = TypeInfo.CataFunction.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new[] { seedType });
+            TypeInfo.CataFunctionConstructor = TypeInfo.CataFunction.DefineConstructor(MethodAttributes.Public, 
+                CallingConventions.Standard, new[] { seedType });
 
             var cataCtorBody = TypeInfo.CataFunctionConstructor.GetILGenerator();
             cataCtorBody.Emit(OpCodes.Ldarg_0);

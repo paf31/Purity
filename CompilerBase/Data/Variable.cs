@@ -6,11 +6,22 @@ using Purity.Compiler.Interfaces;
 
 namespace Purity.Compiler.Data
 {
-    public class Ana : IData
+    public class Variable : IData
     {
+        public string Name
+        {
+            get;
+            set;
+        }
+
+        public Variable(string name)
+        {
+            Name = name;
+        }
+
         public void AcceptVisitor(IDataVisitor visitor)
         {
-            visitor.VisitAna(this);
+            visitor.VisitVariable(this);
         }
     }
 }

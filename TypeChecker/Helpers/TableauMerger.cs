@@ -31,7 +31,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public void VisitAna(Data.Ana d)
         {
-            var result = new Data.Ana(Merge(d.Coalgebra));
+            var result = new Data.Ana();
             result.CarrierType = tableau.Types[(d.CarrierType as UnknownType).Index];
             result.Functor = tableau.Functors[(d.Functor as UnknownFunctor).Index];
             result.GFixType = tableau.Types[(d.GFixType as UnknownType).Index];
@@ -57,7 +57,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public void VisitCata(Data.Cata d)
         {
-            var result = new Data.Cata(Merge(d.Algebra));
+            var result = new Data.Cata();
             result.CarrierType = tableau.Types[(d.CarrierType as UnknownType).Index];
             result.Functor = tableau.Functors[(d.Functor as UnknownFunctor).Index];
             result.LFixType = tableau.Types[(d.LFixType as UnknownType).Index];
@@ -163,24 +163,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             Result = result;
         }
 
-        public void VisitCl(Data.Cl d)
-        {
-            var result = new Data.Cl(Merge(d.Function));
-            result.A = tableau.Types[(d.A as UnknownType).Index];
-            result.B = tableau.Types[(d.B as UnknownType).Index];
-            result.C = tableau.Types[(d.C as UnknownType).Index];
-            Result = result;
-        }
-
-        public void VisitCr(Data.Cr d)
-        {
-            var result = new Data.Cr(Merge(d.Function));
-            result.A = tableau.Types[(d.A as UnknownType).Index];
-            result.B = tableau.Types[(d.B as UnknownType).Index];
-            result.C = tableau.Types[(d.C as UnknownType).Index];
-            Result = result;
-        }
-
         public void VisitSynonym(Data.DataSynonym d)
         {
             var result = new Data.DataSynonym(d.Identifier);
@@ -199,6 +181,21 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             var result = new Data.Unbox();
             result.Target = tableau.Types[(d.Target as UnknownType).Index];
+            result.Type = tableau.Types[(d.Type as UnknownType).Index];
+            Result = result;
+        }
+
+        public void VisitAbstraction(Data.Abstraction d)
+        {
+            var result = new Data.Abstraction(d.Variable, Merge(d.Body));
+            result.VariableType = tableau.Types[(d.VariableType as UnknownType).Index];
+            result.BodyType = tableau.Types[(d.BodyType as UnknownType).Index];
+            Result = result;
+        }
+
+        public void VisitVariable(Data.Variable d)
+        {
+            var result = new Data.Variable(d.Name);
             result.Type = tableau.Types[(d.Type as UnknownType).Index];
             Result = result;
         }

@@ -137,7 +137,7 @@ namespace Purity.Compiler.Typechecker.Helpers
                 var result = new Types.LFixType(MergeFunctorsVisitor.Merge(t.Functor, t1.Functor, out changed));
                 result.Identifier = t.Identifier ?? t1.Identifier;
                 Result = result;
-                Changed = changed;
+                Changed = changed || !string.Equals(result.Identifier, t.Identifier);
             }
             else
             {
@@ -159,7 +159,7 @@ namespace Purity.Compiler.Typechecker.Helpers
                 var result = new Types.GFixType(MergeFunctorsVisitor.Merge(t.Functor, t1.Functor, out changed));
                 result.Identifier = t.Identifier ?? t1.Identifier;
                 Result = result;
-                Changed = changed;
+                Changed = changed || !string.Equals(result.Identifier, t.Identifier);
             }
             else
             {

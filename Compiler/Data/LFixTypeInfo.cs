@@ -44,6 +44,18 @@ namespace Purity.Compiler.Data
             set;
         }
 
+        public TypeBuilder CataFunction1
+        {
+            get;
+            set;
+        }
+
+        public ConstructorBuilder CataFunction1Constructor
+        {
+            get;
+            set;
+        }
+
         public TypeBuilder OutFunction
         {
             get;

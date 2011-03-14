@@ -23,9 +23,7 @@ namespace Purity.Compiler
             Constants.Lfix,
             Constants.Gfix,
             Constants.Curry,
-            Constants.Uncurry,
-            Constants.ComposeOnTheLeft,
-            Constants.ComposeOnTheRight
+            Constants.Uncurry
         };
 
         public static bool IsKeyword(string s)

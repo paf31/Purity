@@ -68,6 +68,18 @@ namespace Purity.Compiler.Data
             set;
         }
 
+        public TypeBuilder AnaFunction1
+        {
+            get;
+            set;
+        }
+
+        public ConstructorBuilder AnaFunction1Constructor
+        {
+            get;
+            set;
+        }
+
         public ConstructorBuilder InGeneratingFunctionConstructor
         {
             get;

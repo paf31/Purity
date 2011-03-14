@@ -24,7 +24,6 @@ namespace Purity.Compiler.Typechecker.Helpers
         public void VisitAna(Data.Ana d)
         {
             Result = new Purity.Compiler.TypedExpressions.Ana(
-                Convert(d.Coalgebra),
                 new TypeConverter().Convert(d.CarrierType),
                 new TypeConverter().Convert(d.GFixType));
         }
@@ -51,7 +50,6 @@ namespace Purity.Compiler.Typechecker.Helpers
         public void VisitCata(Data.Cata d)
         {
             Result = new Purity.Compiler.TypedExpressions.Cata(
-                Convert(d.Algebra),
                 new TypeConverter().Convert(d.CarrierType),
                 new TypeConverter().Convert(d.LFixType));
         }
@@ -148,24 +146,6 @@ namespace Purity.Compiler.Typechecker.Helpers
                 new TypeConverter().Convert(d.Output));
         }
 
-        public void VisitCl(Data.Cl d)
-        {
-            Result = new Purity.Compiler.TypedExpressions.Cl(
-               Convert(d.Function),
-               new TypeConverter().Convert(d.A),
-               new TypeConverter().Convert(d.B),
-               new TypeConverter().Convert(d.C));
-        }
-
-        public void VisitCr(Data.Cr d)
-        {
-            Result = new Purity.Compiler.TypedExpressions.Cr(
-               Convert(d.Function),
-               new TypeConverter().Convert(d.A),
-               new TypeConverter().Convert(d.B),
-               new TypeConverter().Convert(d.C));
-        }
-
         public void VisitSynonym(Data.DataSynonym d)
         {
             Result = new Purity.Compiler.TypedExpressions.DataSynonym(d.Identifier);
@@ -182,6 +162,22 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             Result = new Purity.Compiler.TypedExpressions.Unbox(
                 new TypeConverter().Convert(d.Target), 
+                new TypeConverter().Convert(d.Type));
+        }
+
+        public void VisitAbstraction(Data.Abstraction d)
+        {
+            Result = new Purity.Compiler.TypedExpressions.Abstraction(
+                d.Variable,
+                Convert(d.Body), 
+                new TypeConverter().Convert(d.BodyType),
+                new TypeConverter().Convert(d.VariableType));
+        }
+
+        public void VisitVariable(Data.Variable d)
+        {
+            Result = new Purity.Compiler.TypedExpressions.Variable(
+                d.Name,
                 new TypeConverter().Convert(d.Type));
         }
     }

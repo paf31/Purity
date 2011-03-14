@@ -40,14 +40,14 @@ namespace Purity.Compiler.Interfaces
 
         void VisitCurry(Curried d);
 
-        void VisitCl(Cl d);
-
-        void VisitCr(Cr d);
-
         void VisitSynonym(DataSynonym d);
 
         void VisitBox(Box d);
 
         void VisitUnbox(Unbox d);
+
+        void VisitAbstraction(Abstraction d);
+
+        void VisitVariable(Variable d);
     }       
 }

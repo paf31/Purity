@@ -3,33 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Purity.Compiler.Typechecker.Interfaces;
-using Purity.Compiler.Interfaces;
 
 namespace Purity.Compiler.Typechecker.Data
 {
-    public class Ana : IConstrainedData
+    public class Variable : IConstrainedData
     {
-        public IPartialType CarrierType
+        public string Name
         {
             get;
             set;
         }
 
-        public IPartialFunctor Functor
+        public IPartialType Type
         {
             get;
             set;
         }
 
-        public IPartialType GFixType
+        public Variable(string name)
         {
-            get;
-            set;
+            Name = name;
         }
 
         public void AcceptVisitor(IConstrainedDataVisitor visitor)
         {
-            visitor.VisitAna(this);
+            visitor.VisitVariable(this);
         }
     }
 }

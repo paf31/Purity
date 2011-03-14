@@ -6,6 +6,7 @@ using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Typechecker.Types;
 using Purity.Compiler.Typechecker.Functors;
 using Purity.Compiler.Typechecker.Utilities;
+using Purity.Compiler.Exceptions;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
@@ -35,6 +36,10 @@ namespace Purity.Compiler.Typechecker.Helpers
                 HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Left, (current as ArrowType).Left);
                 HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Right, (current as ArrowType).Right);
             }
+            else if (!(current is UnknownType)) 
+            {
+                throw new CompilerException(ErrorMessages.ExpectedArrowType); 
+            }
         }
 
         public void VisitFix(Constraints.FixConstraint c)
@@ -49,6 +54,10 @@ namespace Purity.Compiler.Typechecker.Helpers
             {
                 HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (current as GFixType).Functor);
             }
+            else if (!(current is UnknownType))
+            {
+                throw new CompilerException(ErrorMessages.ExpectedFixedPointType);
+            }
         }
 
         public void VisitLFix(Constraints.LFixConstraint c)
@@ -61,6 +70,10 @@ namespace Purity.Compiler.Typechecker.Helpers
             {
                 HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (current as LFixType).Functor);
             }
+            else if (!(current is UnknownType))
+            {
+                throw new CompilerException(ErrorMessages.ExpectedLFixType);
+            }
         }
 
         public void VisitGFix(Constraints.GFixConstraint c)
@@ -72,6 +85,10 @@ namespace Purity.Compiler.Typechecker.Helpers
             if (current is GFixType)
             {
                 HasChanges |= TableauUtilities.SetFunctorInTableau(tableau, c.Functor, (current as GFixType).Functor);
+            }
+            else if (!(current is UnknownType))
+            {
+                throw new CompilerException(ErrorMessages.ExpectedGFixType);
             }
         }
 
@@ -86,6 +103,10 @@ namespace Purity.Compiler.Typechecker.Helpers
                 HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Left, (current as ProductType).Left);
                 HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Right, (current as ProductType).Right);
             }
+            else if (!(current is UnknownType))
+            {
+                throw new CompilerException(ErrorMessages.ExpectedProductType);
+            }
         }
 
         public void VisitSum(Constraints.SumConstraint c)
@@ -99,6 +120,10 @@ namespace Purity.Compiler.Typechecker.Helpers
                 HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Left, (current as SumType).Left);
                 HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Right, (current as SumType).Right);
             }
+            else if (!(current is UnknownType))
+            {
+                throw new CompilerException(ErrorMessages.ExpectedSumType);
+            }
         }
 
         public void VisitSynonym(Constraints.SynonymConstraint c)
@@ -110,6 +135,10 @@ namespace Purity.Compiler.Typechecker.Helpers
                 var resolved = Container.ResolveType((current as TypeSynonym).Identifier);
                 var converted = new PartialTypeCreator().Convert(resolved);
                 HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Target, converted);
+            }
+            else if (!(current is UnknownType))
+            {
+                throw new CompilerException(ErrorMessages.ExpectedTypeSynonym);
             }
         }
     }

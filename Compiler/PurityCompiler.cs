@@ -81,6 +81,7 @@ namespace Purity.Compiler
                                 declarationName = element.Data.Name;
                                 var data = element.Data.Value;
                                 var typedExpression = new Checker(data).CreateTypedExpression();
+                                typedExpression.AcceptVisitor(new AbstractionElimination());
 
                                 DataCompiler.CompileMethod(declarationName, dataClass, typedExpression, data);
                                 break;

@@ -9,6 +9,8 @@ namespace Purity.Compiler
     {
         public const char StartOfComment = '#';
 
+        public const char VariableIntroduction = '$';
+
         public const char CompositionOperator = '.';
 
         public const char EqualsSymbol = '=';
@@ -43,8 +45,7 @@ namespace Purity.Compiler
 
         public const string Const = "const";
 
-        public const string ComposeOnTheLeft = "cl";
-        public const string ComposeOnTheRight = "cr";
+        public const string LambdaOperator = "=>";
 
         public const string Id = "id";
 
@@ -107,9 +108,15 @@ namespace Purity.Compiler
         public const string CataFunctionClassGenericParameterName = "T";
         public const string CataFunctionClassSeedFieldName = "seed";
 
+        public const string CataFunction1ClassName = "Cata1";
+        public const string CataFunction1ClassGenericParameterName = "T";
+
         public const string AnaFunctionClassName = "Ana";
         public const string AnaFunctionClassGenericParameterName = "T";
         public const string AnaFunctionClassSeedFieldName = "seed";
+
+        public const string AnaFunction1ClassName = "Ana1";
+        public const string AnaFunction1ClassGenericParameterName = "T";
 
         public const string InMethodName = "In";
 

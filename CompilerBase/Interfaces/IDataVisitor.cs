@@ -42,12 +42,12 @@ namespace Purity.Compiler.Interfaces
 
         void VisitUncurry(Uncurried d);
 
-        void VisitCl(Cl d);
-
-        void VisitCr(Cr d);
-
         void VisitBox(Box d);
 
         void VisitUnbox(Unbox d);
+
+        void VisitAbstraction(Abstraction d);
+
+        void VisitVariable(Variable d);
     }       
 }

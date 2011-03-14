@@ -6,29 +6,29 @@ using Purity.Compiler.Interfaces;
 
 namespace Purity.Compiler.TypedExpressions
 {
-    public class Ana : ITypedExpression
+    public class Variable : ITypedExpression
     {
-        public IType CarrierType
+        public string Name
         {
             get;
             set;
         }
 
-        public IType GFixType
+        public IType Type
         {
             get;
             set;
         }
 
-        public Ana(IType carrierType, IType gfixType)
+        public Variable(string name, IType type)
         {
-            CarrierType = carrierType;
-            GFixType = gfixType;
+            Name = name;
+            Type = type;
         }
 
         public void AcceptVisitor(ITypedExpressionVisitor visitor)
         {
-            visitor.VisitAna(this);
+            visitor.VisitVariable(this);
         }
     }
 }

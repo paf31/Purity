@@ -30,13 +30,15 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             if (t.Left is UnknownType && (t.Left as UnknownType).Index == index)
             {
-                HasChanges = !(replacement is UnknownType);
+                var unknown = replacement as UnknownType;
+                HasChanges |= !(unknown != null && unknown.Index == index);
                 t.Left = replacement;
             }
 
             if (t.Right is UnknownType && (t.Right as UnknownType).Index == index)
             {
-                HasChanges = !(replacement is UnknownType);
+                var unknown = replacement as UnknownType;
+                HasChanges |= !(unknown != null && unknown.Index == index);
                 t.Right = replacement;
             }
 
@@ -52,13 +54,15 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             if (t.Left is UnknownType && (t.Left as UnknownType).Index == index)
             {
-                HasChanges = !(replacement is UnknownType);
+                var unknown = replacement as UnknownType;
+                HasChanges |= !(unknown != null && unknown.Index == index);
                 t.Left = replacement;
             }
 
             if (t.Right is UnknownType && (t.Right as UnknownType).Index == index)
             {
-                HasChanges = !(replacement is UnknownType);
+                var unknown = replacement as UnknownType;
+                HasChanges |= !(unknown != null && unknown.Index == index);
                 t.Right = replacement;
             }
 
@@ -70,13 +74,15 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             if (t.Left is UnknownType && (t.Left as UnknownType).Index == index)
             {
-                HasChanges = !(replacement is UnknownType);
+                var unknown = replacement as UnknownType;
+                HasChanges |= !(unknown != null && unknown.Index == index);
                 t.Left = replacement;
             }
 
             if (t.Right is UnknownType && (t.Right as UnknownType).Index == index)
             {
-                HasChanges = !(replacement is UnknownType);
+                var unknown = replacement as UnknownType;
+                HasChanges |= !(unknown != null && unknown.Index == index);
                 t.Right = replacement;
             }
 
@@ -102,7 +108,8 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             if (f.Left is UnknownType && (f.Left as UnknownType).Index == index)
             {
-                HasChanges = !(replacement is UnknownType);
+                var unknown = replacement as UnknownType;
+                HasChanges |= !(unknown != null && unknown.Index == index);
                 f.Left = replacement;
             }
 
@@ -114,7 +121,8 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             if (f.Value is UnknownType && (f.Value as UnknownType).Index == index)
             {
-                HasChanges = !(replacement is UnknownType);
+                var unknown = replacement as UnknownType;
+                HasChanges |= !(unknown != null && unknown.Index == index);
                 f.Value = replacement;
             }
 

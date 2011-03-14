@@ -8,12 +8,6 @@ namespace Purity.Compiler.TypedExpressions
 {
     public class Cata : ITypedExpression
     {
-        public ITypedExpression Algebra
-        {
-            get;
-            set;
-        }
-
         public IType CarrierType
         {
             get;
@@ -26,9 +20,8 @@ namespace Purity.Compiler.TypedExpressions
             set;
         }
 
-        public Cata(ITypedExpression algebra, IType carrierType, IType lfixType)
+        public Cata(IType carrierType, IType lfixType)
         {
-            Algebra = algebra;
             CarrierType = carrierType;
             LFixType = lfixType;
         }

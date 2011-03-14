@@ -37,10 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Functions\ArrowFunctorAction.cs" />
-    <Compile Include="Functions\Cl.cs" />
     <Compile Include="Functions\CompositeFunction.cs" />
     <Compile Include="Functions\ConstantFunction.cs" />
-    <Compile Include="Functions\Cr.cs" />
     <Compile Include="Functions\DelegateFunction.cs" />
     <Compile Include="Functions\UncurriedFunction.cs" />
     <Compile Include="Functions\CurriedFunction.cs" />

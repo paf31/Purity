@@ -68,6 +68,8 @@ namespace Purity.Compiler.Helpers
 
             CompileAnaFunction();
 
+            CompileAnaFunction1();
+
             CompileIn();
 
             CompileInFunction();
@@ -238,6 +240,39 @@ namespace Purity.Compiler.Helpers
             callBody.Emit(OpCodes.Ldarg_0);
             callBody.Emit(OpCodes.Ldfld, seedField);
             callBody.Emit(OpCodes.Call, TypeInfo.Ana.MakeGenericMethod(anaClassGenericParameter));
+            callBody.Emit(OpCodes.Ret);
+        }
+
+        private void CompileAnaFunction1()
+        {
+            TypeInfo.AnaFunction1 = utilityClass.DefineNestedType(Constants.AnaFunction1ClassName,
+                          TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic,
+                          null, Type.EmptyTypes);
+
+            var anaClassGenericParameter = TypeInfo.AnaFunction1.DefineGenericParameters(Constants.AnaFunction1ClassGenericParameterName)[0];
+            var fAnaClassGenericParameter = new FunctorTypeMapper(anaClassGenericParameter).Map(functor.Value);
+
+            var coalgebraType = typeof(IFunction<,>).MakeGenericType(anaClassGenericParameter, fAnaClassGenericParameter);
+            var terminalMorphismType = typeof(IFunction<,>).MakeGenericType(anaClassGenericParameter, TypeInfo.Type);
+
+            TypeInfo.AnaFunction1.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(coalgebraType,
+                terminalMorphismType));
+
+            TypeInfo.AnaFunction1Constructor = TypeInfo.AnaFunction1.DefineConstructor(MethodAttributes.Public, 
+                CallingConventions.Standard, Type.EmptyTypes);
+
+            var anaCtorBody = TypeInfo.AnaFunction1Constructor.GetILGenerator();
+            anaCtorBody.Emit(OpCodes.Ldarg_0);
+            anaCtorBody.Emit(OpCodes.Call, typeof(object).GetConstructors()[0]);
+            anaCtorBody.Emit(OpCodes.Ret);
+
+            var call = TypeInfo.AnaFunction1.DefineMethod(Constants.CallMethodName, MethodAttributes.Public | MethodAttributes.Virtual,
+                terminalMorphismType, new Type[] { coalgebraType });
+
+            var callBody = call.GetILGenerator();
+            callBody.Emit(OpCodes.Ldarg_1);
+            callBody.Emit(OpCodes.Newobj, TypeBuilder.GetConstructor(TypeInfo.AnaFunction.MakeGenericType(anaClassGenericParameter),
+                TypeInfo.AnaFunctionConstructor));
             callBody.Emit(OpCodes.Ret);
         }
 

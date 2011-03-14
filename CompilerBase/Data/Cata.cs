@@ -8,17 +8,6 @@ namespace Purity.Compiler.Data
 {
     public class Cata : IData
     {
-        public IData Algebra
-        {
-            get;
-            set;
-        }
-
-        public Cata(IData algebra)
-        {
-            Algebra = algebra;
-        }
-
         public void AcceptVisitor(IDataVisitor visitor)
         {
             visitor.VisitCata(this);

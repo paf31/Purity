@@ -7,7 +7,7 @@ using Purity.Compiler.Functors;
 
 namespace Purity.Compiler.Types
 {
-    public class LFixType : IType
+    public class LFixType : IFixedPointType
     {
         public IFunctor Functor
         {

@@ -32,13 +32,12 @@ namespace Purity.Compiler.Helpers
 
             if (gfix == null)
             {
-                throw new CompilerException("Expected greatest fixed point type.");
+                throw new CompilerException(ErrorMessages.ExpectedGFixType);
             }
 
-            d.Coalgebra.AcceptVisitor(this);
             var typeInfo = TypeContainer.ResolveGFixType(gfix.Identifier);
-            var anaClass = typeInfo.AnaFunction;
-            var genericCtor = typeInfo.AnaFunctionConstructor;
+            var anaClass = typeInfo.AnaFunction1;
+            var genericCtor = typeInfo.AnaFunction1Constructor;
             var genericParameter = new TypeConverter().Convert(d.CarrierType);
             var ctor = TypeBuilder.GetConstructor(anaClass.MakeGenericType(genericParameter), genericCtor);
             body.Emit(OpCodes.Newobj, ctor);
@@ -50,13 +49,12 @@ namespace Purity.Compiler.Helpers
 
             if (lfix == null)
             {
-                throw new CompilerException("Expected least fixed point type.");
+                throw new CompilerException(ErrorMessages.ExpectedLFixType);
             }
 
-            d.Algebra.AcceptVisitor(this);
-            var typeInfo = TypeContainer.ResolveLFixType((d.LFixType as LFixType).Identifier);
-            var cataClass = typeInfo.CataFunction;
-            var genericCtor = typeInfo.CataFunctionConstructor;
+            var typeInfo = TypeContainer.ResolveLFixType(lfix.Identifier);
+            var cataClass = typeInfo.CataFunction1;
+            var genericCtor = typeInfo.CataFunction1Constructor;
             var genericParameter = new TypeConverter().Convert(d.CarrierType);
             var ctor = TypeBuilder.GetConstructor(cataClass.MakeGenericType(genericParameter), genericCtor);
             body.Emit(OpCodes.Newobj, ctor);
@@ -66,40 +64,30 @@ namespace Purity.Compiler.Helpers
         {
             var source = d.Source;
 
-            if (source is LFixType)
+            var fix = source as IFixedPointType;
+
+            if (fix == null)
             {
-                var ctor = TypeContainer.ResolveFixPointType((source as LFixType).Identifier).InFunctionConstructor;
-                body.Emit(OpCodes.Newobj, ctor);
+                throw new CompilerException(ErrorMessages.ExpectedFixedPointType);
             }
-            else if (source is GFixType)
-            {
-                var ctor = TypeContainer.ResolveFixPointType((source as GFixType).Identifier).InFunctionConstructor;
-                body.Emit(OpCodes.Newobj, ctor);
-            }
-            else
-            {
-                throw new CompilerException("Expected fixed point type.");
-            }
+
+            var ctor = TypeContainer.ResolveFixPointType(fix.Identifier).InFunctionConstructor;
+            body.Emit(OpCodes.Newobj, ctor);
         }
 
         public void VisitOut(TypedExpressions.Out d)
         {
             var target = d.Target;
 
-            if (target is LFixType)
-            {
-                var ctor = TypeContainer.ResolveFixPointType((target as LFixType).Identifier).OutFunctionConstructor;
-                body.Emit(OpCodes.Newobj, ctor);
-            }
-            else if (target is GFixType)
-            {
-                var ctor = TypeContainer.ResolveFixPointType((target as GFixType).Identifier).OutFunctionConstructor;
-                body.Emit(OpCodes.Newobj, ctor);
-            }
-            else
+            var fix = target as IFixedPointType;
+
+            if (fix == null)
             {
                 throw new CompilerException(ErrorMessages.ExpectedFixedPointType);
             }
+
+            var ctor = TypeContainer.ResolveFixPointType(fix.Identifier).OutFunctionConstructor;
+            body.Emit(OpCodes.Newobj, ctor);
         }
 
         public void VisitApplication(TypedExpressions.Application d)
@@ -253,34 +241,6 @@ namespace Purity.Compiler.Helpers
             body.Emit(OpCodes.Newobj, ctor);
         }
 
-        public void VisitCl(TypedExpressions.Cl d)
-        {
-            d.Function.AcceptVisitor(this);
-
-            var a = new TypeConverter().Convert(d.A);
-            var b = new TypeConverter().Convert(d.B);
-            var c = new TypeConverter().Convert(d.C);
-
-            var defCtor = typeof(Cl<,,>).GetConstructors()[0];
-            var ctor = TypeBuilder.GetConstructor(typeof(Cl<,,>).MakeGenericType(a, b, c), defCtor);
-
-            body.Emit(OpCodes.Newobj, ctor);
-        }
-
-        public void VisitCr(TypedExpressions.Cr d)
-        {
-            d.Function.AcceptVisitor(this);
-
-            var a = new TypeConverter().Convert(d.A);
-            var b = new TypeConverter().Convert(d.B);
-            var c = new TypeConverter().Convert(d.C);
-
-            var defCtor = typeof(Cr<,,>).GetConstructors()[0];
-            var ctor = TypeBuilder.GetConstructor(typeof(Cr<,,>).MakeGenericType(a, b, c), defCtor);
-
-            body.Emit(OpCodes.Newobj, ctor);
-        }
-
         public void VisitSynonym(TypedExpressions.DataSynonym d)
         {
             var method = DataContainer.Resolve(d.Identifier).Method;
@@ -331,8 +291,8 @@ namespace Purity.Compiler.Helpers
 
             var dataInfo = new DataInfo();
             dataInfo.Method = method;
-            DataContainer.Add(name, dataInfo); 
-            
+            DataContainer.Add(name, dataInfo);
+
             var arguments = new List<IType>();
             var returnType = data.Type;
 
@@ -366,6 +326,16 @@ namespace Purity.Compiler.Helpers
 
                 method = curried;
             }
+        }
+
+        public void VisitAbstraction(TypedExpressions.Abstraction d)
+        {
+            d.PointFreeExpression.AcceptVisitor(this);
+        }
+
+        public void VisitVariable(TypedExpressions.Variable d)
+        {
+            throw new CompilerException(string.Format(ErrorMessages.UnexpectedVariable, d.Name));
         }
     }
 }
