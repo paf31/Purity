@@ -11,6 +11,8 @@ namespace Purity.Compiler.Parser
 
         public static Parser<string, IEnumerable<char>> Whitespace = WSChar.Rep();
 
+        public static Parser<string, string> EOF = s => string.IsNullOrWhiteSpace(s) ? new Result<string, string>(s, string.Empty) : null;
+
         private static Parser<string, string> AlphaNumeric = from first in Any().Where(char.IsLetter)
                                                           from rest in Any().Where(char.IsLetterOrDigit).Rep()
                                                           select new string(new[] { first }.Concat(rest).ToArray());
