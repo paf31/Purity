@@ -52,13 +52,14 @@ namespace Purity.Compiler.Parser
              from data in ParseNamedUntypedData
              select new ProgramElement(data));
 
-        public static Parser<string, Module> ParseModule = 
+        static Parser<string, IEnumerable<ProgramElement>> ParseManyProgramElements =
             from p in ParseProgramElement
             from ps in
                 (from ws in Parsers.WSChar.Rep1()
-                 from part in ParseProgramElement
-                 select part).Rep1()
-            select new Module(new[] { p }.Concat(ps).ToArray());
+                 from parts in ParseManyProgramElements
+                 select parts).Or(Parsers.EOF.Select(s => Enumerable.Empty<ProgramElement>()))
+            select new[] { p }.Concat(ps);
 
-    }
+        public static Parser<string, Module> ParseModule = 
+            ParseManyProgramElements.Select(es => new Module(es));    }
 }
