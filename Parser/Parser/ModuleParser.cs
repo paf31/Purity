@@ -61,5 +61,6 @@ namespace Purity.Compiler.Parser
             select new[] { p }.Concat(ps);
 
         public static Parser<string, Module> ParseModule = 
-            ParseManyProgramElements.Select(es => new Module(es));    }
+            ParseManyProgramElements.Select(es => new Module(es));   
+    }
 }
