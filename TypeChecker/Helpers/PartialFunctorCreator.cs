@@ -8,48 +8,41 @@ using Purity.Compiler.Exceptions;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
-    public class PartialFunctorCreator : IFunctorVisitor
+    public class PartialFunctorCreator : IFunctorVisitor<IPartialFunctor>
     {
-        public IPartialFunctor Result
+        public static IPartialFunctor Convert(IFunctor functor)
         {
-            get;
-            set;
+            return functor.AcceptVisitor(new PartialFunctorCreator());
         }
 
-        public IPartialFunctor Convert(IFunctor functor)
+        public IPartialFunctor VisitArrow(Purity.Compiler.Functors.ArrowFunctor f)
         {
-            functor.AcceptVisitor(this);
-            return Result;
+            return new Functors.ArrowFunctor(PartialTypeCreator.Convert(f.Left), Convert(f.Right));
         }
 
-        public void VisitArrow(Purity.Compiler.Functors.ArrowFunctor f)
+        public IPartialFunctor VisitConstant(Purity.Compiler.Functors.ConstantFunctor f)
         {
-            Result = new Functors.ArrowFunctor(new PartialTypeCreator().Convert(f.Left), Convert(f.Right));
+            return new Functors.ConstantFunctor(PartialTypeCreator.Convert(f.Value));
         }
 
-        public void VisitConstant(Purity.Compiler.Functors.ConstantFunctor f)
+        public IPartialFunctor VisitIdentity(Purity.Compiler.Functors.IdentityFunctor f)
         {
-            Result = new Functors.ConstantFunctor(new PartialTypeCreator().Convert(f.Value));
+            return new Functors.IdentityFunctor();
         }
 
-        public void VisitIdentity(Purity.Compiler.Functors.IdentityFunctor f)
+        public IPartialFunctor VisitProduct(Purity.Compiler.Functors.ProductFunctor f)
         {
-            Result = new Functors.IdentityFunctor();
+            return new Functors.ProductFunctor(Convert(f.Left), Convert(f.Right));
         }
 
-        public void VisitProduct(Purity.Compiler.Functors.ProductFunctor f)
+        public IPartialFunctor VisitSum(Purity.Compiler.Functors.SumFunctor f)
         {
-            Result = new Functors.ProductFunctor(Convert(f.Left), Convert(f.Right));
+            return new Functors.SumFunctor(Convert(f.Left), Convert(f.Right));
         }
 
-        public void VisitSum(Purity.Compiler.Functors.SumFunctor f)
+        public IPartialFunctor VisitSynonym(Compiler.Functors.FunctorSynonym f)
         {
-            Result = new Functors.SumFunctor(Convert(f.Left), Convert(f.Right));
-        }
-
-        public void VisitSynonym(Compiler.Functors.FunctorSynonym f)
-        {
-            Result = new Functors.FunctorSynonym(f.Identifier);
+            return new Functors.FunctorSynonym(f.Identifier);
         }
     }
 }

@@ -30,5 +30,10 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitCase(this);
         }
+
+        public R AcceptVisitor<R>(IDataVisitor<R> visitor)
+        {
+            return visitor.VisitCase(this);
+        }
     }
 }

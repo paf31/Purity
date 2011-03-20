@@ -25,5 +25,10 @@ namespace Purity.Compiler.Typechecker.Data
         {
             visitor.VisitUncurry(this);
         }
+
+        public R AcceptVisitor<R>(IConstrainedDataVisitor<R> visitor)
+        {
+            return visitor.VisitUncurry(this);
+        }
     }
 }

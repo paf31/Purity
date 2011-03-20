@@ -23,4 +23,21 @@ namespace Purity.Compiler.Typechecker.Interfaces
 
         void VisitSynonym(FunctorSynonym f);
     }
+
+    public interface IPartialFunctorVisitor<R>
+    {
+        R VisitArrow(ArrowFunctor f);
+
+        R VisitConstant(ConstantFunctor f);
+
+        R VisitIdentity(IdentityFunctor f);
+
+        R VisitProduct(ProductFunctor f);
+
+        R VisitSum(SumFunctor f);
+
+        R VisitUnknown(UnknownFunctor f);
+
+        R VisitSynonym(FunctorSynonym f);
+    }
 }

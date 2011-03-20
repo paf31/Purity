@@ -51,5 +51,10 @@ namespace Purity.Compiler.TypedExpressions
         {
             visitor.VisitComposition(this);
         }
+
+        public R AcceptVisitor<R>(ITypedExpressionVisitor<R> visitor)
+        {
+            return visitor.VisitComposition(this);
+        }
     }
 }

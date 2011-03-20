@@ -20,10 +20,12 @@ namespace Purity.Compiler.Helpers
     public class DataCompiler : ITypedExpressionVisitor
     {
         private readonly ILGenerator body;
+        private Type[] genericMethodParameters;
 
-        public DataCompiler(ILGenerator body)
+        public DataCompiler(ILGenerator body, Type[] genericMethodParameters)
         {
             this.body = body;
+            this.genericMethodParameters = genericMethodParameters;
         }
 
         public void VisitAna(TypedExpressions.Ana d)
@@ -38,7 +40,7 @@ namespace Purity.Compiler.Helpers
             var typeInfo = TypeContainer.ResolveGFixType(gfix.Identifier);
             var anaClass = typeInfo.AnaFunction1;
             var genericCtor = typeInfo.AnaFunction1Constructor;
-            var genericParameter = new TypeConverter().Convert(d.CarrierType);
+            var genericParameter = new TypeConverter(genericMethodParameters).Convert(d.CarrierType);
             var ctor = TypeBuilder.GetConstructor(anaClass.MakeGenericType(genericParameter), genericCtor);
             body.Emit(OpCodes.Newobj, ctor);
         }
@@ -55,7 +57,7 @@ namespace Purity.Compiler.Helpers
             var typeInfo = TypeContainer.ResolveLFixType(lfix.Identifier);
             var cataClass = typeInfo.CataFunction1;
             var genericCtor = typeInfo.CataFunction1Constructor;
-            var genericParameter = new TypeConverter().Convert(d.CarrierType);
+            var genericParameter = new TypeConverter(genericMethodParameters).Convert(d.CarrierType);
             var ctor = TypeBuilder.GetConstructor(cataClass.MakeGenericType(genericParameter), genericCtor);
             body.Emit(OpCodes.Newobj, ctor);
         }
@@ -95,7 +97,7 @@ namespace Purity.Compiler.Helpers
             d.Left.AcceptVisitor(this);
             d.Right.AcceptVisitor(this);
 
-            var functionType = new TypeConverter().Convert(d.LeftType);
+            var functionType = new TypeConverter(genericMethodParameters).Convert(d.LeftType);
             var callMethod = typeof(IFunction<,>).GetMethod(Constants.CallMethodName);
 
             body.Emit(OpCodes.Callvirt, TypeBuilder.GetMethod(functionType, callMethod));
@@ -106,9 +108,9 @@ namespace Purity.Compiler.Helpers
             d.Left.AcceptVisitor(this);
             d.Right.AcceptVisitor(this);
 
-            var leftType = new TypeConverter().Convert(d.LeftType);
-            var rightType = new TypeConverter().Convert(d.RightType);
-            var resultType = new TypeConverter().Convert(d.ResultType);
+            var leftType = new TypeConverter(genericMethodParameters).Convert(d.LeftType);
+            var rightType = new TypeConverter(genericMethodParameters).Convert(d.RightType);
+            var resultType = new TypeConverter(genericMethodParameters).Convert(d.ResultType);
 
             var defCtor = typeof(CaseFunction<,,>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(CaseFunction<,,>).MakeGenericType(leftType, rightType, resultType), defCtor);
@@ -121,9 +123,9 @@ namespace Purity.Compiler.Helpers
             d.Right.AcceptVisitor(this);
             d.Left.AcceptVisitor(this);
 
-            var leftType = new TypeConverter().Convert(d.LeftType);
-            var middleType = new TypeConverter().Convert(d.MiddleType);
-            var rightType = new TypeConverter().Convert(d.RightType);
+            var leftType = new TypeConverter(genericMethodParameters).Convert(d.LeftType);
+            var middleType = new TypeConverter(genericMethodParameters).Convert(d.MiddleType);
+            var rightType = new TypeConverter(genericMethodParameters).Convert(d.RightType);
 
             var defCtor = typeof(CompositeFunction<,,>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(CompositeFunction<,,>).MakeGenericType(leftType, middleType, rightType), defCtor);
@@ -135,8 +137,8 @@ namespace Purity.Compiler.Helpers
         {
             d.Value.AcceptVisitor(this);
 
-            var dom = new TypeConverter().Convert(d.InputType);
-            var cod = new TypeConverter().Convert(d.OutputType);
+            var dom = new TypeConverter(genericMethodParameters).Convert(d.InputType);
+            var cod = new TypeConverter(genericMethodParameters).Convert(d.OutputType);
 
             var defCtor = typeof(ConstantFunction<,>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(ConstantFunction<,>).MakeGenericType(dom, cod), defCtor);
@@ -146,7 +148,7 @@ namespace Purity.Compiler.Helpers
 
         public void VisitIdentity(TypedExpressions.Identity d)
         {
-            var type = new TypeConverter().Convert(d.Type);
+            var type = new TypeConverter(genericMethodParameters).Convert(d.Type);
 
             var defCtor = typeof(IdentityFunction<>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(IdentityFunction<>).MakeGenericType(type), defCtor);
@@ -156,8 +158,8 @@ namespace Purity.Compiler.Helpers
 
         public void VisitInl(TypedExpressions.Inl d)
         {
-            var leftType = new TypeConverter().Convert(d.LeftType);
-            var rightType = new TypeConverter().Convert(d.RightType);
+            var leftType = new TypeConverter(genericMethodParameters).Convert(d.LeftType);
+            var rightType = new TypeConverter(genericMethodParameters).Convert(d.RightType);
 
             var defCtor = typeof(InlFunction<,>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(InlFunction<,>).MakeGenericType(leftType, rightType), defCtor);
@@ -167,8 +169,8 @@ namespace Purity.Compiler.Helpers
 
         public void VisitInr(TypedExpressions.Inr d)
         {
-            var leftType = new TypeConverter().Convert(d.LeftType);
-            var rightType = new TypeConverter().Convert(d.RightType);
+            var leftType = new TypeConverter(genericMethodParameters).Convert(d.LeftType);
+            var rightType = new TypeConverter(genericMethodParameters).Convert(d.RightType);
 
             var defCtor = typeof(InrFunction<,>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(InrFunction<,>).MakeGenericType(leftType, rightType), defCtor);
@@ -178,8 +180,8 @@ namespace Purity.Compiler.Helpers
 
         public void VisitOutl(TypedExpressions.Outl d)
         {
-            var leftType = new TypeConverter().Convert(d.LeftType);
-            var rightType = new TypeConverter().Convert(d.RightType);
+            var leftType = new TypeConverter(genericMethodParameters).Convert(d.LeftType);
+            var rightType = new TypeConverter(genericMethodParameters).Convert(d.RightType);
 
             var defCtor = typeof(OutlFunction<,>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(OutlFunction<,>).MakeGenericType(leftType, rightType), defCtor);
@@ -189,8 +191,8 @@ namespace Purity.Compiler.Helpers
 
         public void VisitOutr(TypedExpressions.Outr d)
         {
-            var leftType = new TypeConverter().Convert(d.LeftType);
-            var rightType = new TypeConverter().Convert(d.RightType);
+            var leftType = new TypeConverter(genericMethodParameters).Convert(d.LeftType);
+            var rightType = new TypeConverter(genericMethodParameters).Convert(d.RightType);
 
             var defCtor = typeof(OutrFunction<,>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(OutrFunction<,>).MakeGenericType(leftType, rightType), defCtor);
@@ -203,9 +205,9 @@ namespace Purity.Compiler.Helpers
             d.Left.AcceptVisitor(this);
             d.Right.AcceptVisitor(this);
 
-            var inputType = new TypeConverter().Convert(d.InputType);
-            var leftType = new TypeConverter().Convert(d.LeftType);
-            var rightType = new TypeConverter().Convert(d.RightType);
+            var inputType = new TypeConverter(genericMethodParameters).Convert(d.InputType);
+            var leftType = new TypeConverter(genericMethodParameters).Convert(d.LeftType);
+            var rightType = new TypeConverter(genericMethodParameters).Convert(d.RightType);
 
             var defCtor = typeof(SplitFunction<,,>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(SplitFunction<,,>).MakeGenericType(inputType, leftType, rightType), defCtor);
@@ -217,9 +219,9 @@ namespace Purity.Compiler.Helpers
         {
             d.Function.AcceptVisitor(this);
 
-            var first = new TypeConverter().Convert(d.First);
-            var second = new TypeConverter().Convert(d.Second);
-            var output = new TypeConverter().Convert(d.Output);
+            var first = new TypeConverter(genericMethodParameters).Convert(d.First);
+            var second = new TypeConverter(genericMethodParameters).Convert(d.Second);
+            var output = new TypeConverter(genericMethodParameters).Convert(d.Output);
 
             var defCtor = typeof(UncurriedFunction<,,>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(UncurriedFunction<,,>).MakeGenericType(first, second, output), defCtor);
@@ -231,9 +233,9 @@ namespace Purity.Compiler.Helpers
         {
             d.Function.AcceptVisitor(this);
 
-            var first = new TypeConverter().Convert(d.First);
-            var second = new TypeConverter().Convert(d.Second);
-            var output = new TypeConverter().Convert(d.Output);
+            var first = new TypeConverter(genericMethodParameters).Convert(d.First);
+            var second = new TypeConverter(genericMethodParameters).Convert(d.Second);
+            var output = new TypeConverter(genericMethodParameters).Convert(d.Output);
 
             var defCtor = typeof(CurriedFunction<,,>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(CurriedFunction<,,>).MakeGenericType(first, second, output), defCtor);
@@ -244,7 +246,24 @@ namespace Purity.Compiler.Helpers
         public void VisitSynonym(TypedExpressions.DataSynonym d)
         {
             var method = DataContainer.Resolve(d.Identifier).Method;
-            body.Emit(OpCodes.Call, method);
+
+            if (d.TypeParameters.Any())
+            {
+                var typeParameters = new Type[d.TypeParameters.Count];
+
+                for (int i = 0; i < typeParameters.Length; i++)
+                {
+                    typeParameters[i] = new TypeConverter(genericMethodParameters).Convert(d.TypeParameters.Values.ElementAt(i));
+                }
+
+                var genericMethod = method.MakeGenericMethod(typeParameters);
+
+                body.Emit(OpCodes.Call, genericMethod);
+            }
+            else
+            {
+                body.Emit(OpCodes.Call, method);
+            }
         }
 
         public void VisitBox(TypedExpressions.Box d)
@@ -278,13 +297,20 @@ namespace Purity.Compiler.Helpers
         public static void CompileMethod(string name, TypeBuilder dataClass, ITypedExpression typedExpression,
             DataDeclaration data)
         {
-            var converter = new TypeConverter();
-
-            var converted = converter.Convert(data.Type);
             var method = dataClass.DefineMethod(name,
-                MethodAttributes.Public | MethodAttributes.Static, converted, Type.EmptyTypes);
+                MethodAttributes.Public | MethodAttributes.Static, null, Type.EmptyTypes);
+
+            if (data.TypeParameters.Any())
+            {
+                method.DefineGenericParameters(data.TypeParameters.ToArray());
+            }
+
+            var converter = new TypeConverter(method.GetGenericArguments());
+            var converted = converter.Convert(data.Type);
+            method.SetReturnType(converted);
+
             var body = method.GetILGenerator();
-            typedExpression.AcceptVisitor(new DataCompiler(body));
+            typedExpression.AcceptVisitor(new DataCompiler(body, method.GetGenericArguments()));
             body.Emit(OpCodes.Ret);
 
             Container.Add(name, data);
@@ -310,6 +336,12 @@ namespace Purity.Compiler.Helpers
                     MethodAttributes.Public | MethodAttributes.Static,
                     compiledReturnType,
                     arguments.Select(converter.Convert).ToArray());
+
+                if (data.TypeParameters.Any())
+                {
+                    curried.DefineGenericParameters(data.TypeParameters.ToArray());
+                }
+
                 var curriedBody = curried.GetILGenerator();
 
                 for (int argIndex = 0; argIndex < arguments.Count - 1; argIndex++)
@@ -317,7 +349,14 @@ namespace Purity.Compiler.Helpers
                     curriedBody.Emit(OpCodes.Ldarg, argIndex);
                 }
 
-                curriedBody.Emit(OpCodes.Call, method);
+                if (data.TypeParameters.Any())
+                {
+                    curriedBody.Emit(OpCodes.Call, method.MakeGenericMethod(curried.GetGenericArguments()));
+                }
+                else
+                {
+                    curriedBody.Emit(OpCodes.Call, method);
+                }
                 curriedBody.Emit(OpCodes.Ldarg, arguments.Count - 1);
                 curriedBody.Emit(OpCodes.Callvirt, TypeBuilder.GetMethod(
                     typeof(IFunction<,>).MakeGenericType(lastArgument, compiledReturnType),

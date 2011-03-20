@@ -8,52 +8,50 @@ using Purity.Compiler.Exceptions;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
-    public class PartialTypeCreator : ITypeVisitor
+    public class PartialTypeCreator : ITypeVisitor<IPartialType>
     {
-        public IPartialType Result
+        public static IPartialType Convert(IType type)
         {
-            get;
-            set;
+            return type.AcceptVisitor(new PartialTypeCreator());
         }
 
-        public IPartialType Convert(IType type)
+        public IPartialType VisitArrow(Compiler.Types.ArrowType t)
         {
-            type.AcceptVisitor(this);
-            return Result;
+            return new Types.ArrowType(Convert(t.Left), Convert(t.Right));
         }
 
-        public void VisitArrow(Compiler.Types.ArrowType t)
+        public IPartialType VisitSynonym(Compiler.Types.TypeSynonym t)
         {
-            Result = new Types.ArrowType(Convert(t.Left), Convert(t.Right));
+            return new Types.TypeSynonym(t.Identifier);
         }
 
-        public void VisitSynonym(Compiler.Types.TypeSynonym t)
+        public IPartialType VisitProduct(Compiler.Types.ProductType t)
         {
-            Result = new Types.TypeSynonym(t.Identifier);
+            return new Types.ProductType(Convert(t.Left), Convert(t.Right));
         }
 
-        public void VisitProduct(Compiler.Types.ProductType t)
+        public IPartialType VisitSum(Compiler.Types.SumType t)
         {
-            Result = new Types.ProductType(Convert(t.Left), Convert(t.Right));
+            return new Types.SumType(Convert(t.Left), Convert(t.Right));
         }
 
-        public void VisitSum(Compiler.Types.SumType t)
+        public IPartialType VisitLFix(Compiler.Types.LFixType t)
         {
-            Result = new Types.SumType(Convert(t.Left), Convert(t.Right));
-        }
-
-        public void VisitLFix(Compiler.Types.LFixType t)
-        {
-            var result = new Types.LFixType(new PartialFunctorCreator().Convert(t.Functor));
+            var result = new Types.LFixType(PartialFunctorCreator.Convert(t.Functor));
             result.Identifier = t.Identifier;
-            Result = result;
+            return result;
         }
 
-        public void VisitGFix(Compiler.Types.GFixType t)
+        public IPartialType VisitGFix(Compiler.Types.GFixType t)
         {
-            var result = new Types.GFixType(new PartialFunctorCreator().Convert(t.Functor));
+            var result = new Types.GFixType(PartialFunctorCreator.Convert(t.Functor));
             result.Identifier = t.Identifier;
-            Result = result;
+            return result;
+        }
+
+        public IPartialType VisitParameter(Compiler.Types.TypeParameter t)
+        {
+            return new Types.TypeParameter(t.Identifier);
         }
     }
 }

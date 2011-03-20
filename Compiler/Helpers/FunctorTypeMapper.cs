@@ -9,11 +9,9 @@ using Purity.Core.Types;
 
 namespace Purity.Compiler.Helpers
 {
-    public class FunctorTypeMapper : IFunctorVisitor
+    public class FunctorTypeMapper : IFunctorVisitor<Type>
     {
         private readonly Type t;
-
-        public Type Result { get; private set; }
 
         public FunctorTypeMapper(Type t)
         {
@@ -22,38 +20,37 @@ namespace Purity.Compiler.Helpers
 
         public Type Map(IFunctor f)
         {
-            f.AcceptVisitor(this);
-            return Result;
+            return f.AcceptVisitor(this);
         }
 
-        public void VisitArrow(Functors.ArrowFunctor f)
+        public Type VisitArrow(Functors.ArrowFunctor f)
         {
-            Result = typeof(IFunction<,>).MakeGenericType(new TypeConverter().Convert(f.Left), Map(f.Right));
+            return typeof(IFunction<,>).MakeGenericType(new TypeConverter(null).Convert(f.Left), Map(f.Right));
         }
 
-        public void VisitConstant(Functors.ConstantFunctor f)
+        public Type VisitConstant(Functors.ConstantFunctor f)
         {
-            Result = new TypeConverter().Convert(f.Value);
+            return new TypeConverter(null).Convert(f.Value);
         }
 
-        public void VisitSynonym(Functors.FunctorSynonym f)
+        public Type VisitSynonym(Functors.FunctorSynonym f)
         {
-            Result = Map(Container.ResolveFunctor(f.Identifier));
+            return Map(Container.ResolveFunctor(f.Identifier));
         }
 
-        public void VisitIdentity(Functors.IdentityFunctor f)
+        public Type VisitIdentity(Functors.IdentityFunctor f)
         {
-            Result = t;
+            return t;
         }
 
-        public void VisitProduct(Functors.ProductFunctor f)
+        public Type VisitProduct(Functors.ProductFunctor f)
         {
-            Result = typeof(Tuple<,>).MakeGenericType(Map(f.Left), Map(f.Right));
+            return typeof(Tuple<,>).MakeGenericType(Map(f.Left), Map(f.Right));
         }
 
-        public void VisitSum(Functors.SumFunctor f)
+        public Type VisitSum(Functors.SumFunctor f)
         {
-            Result = typeof(Either<,>).MakeGenericType(Map(f.Left), Map(f.Right));
+            return typeof(Either<,>).MakeGenericType(Map(f.Left), Map(f.Right));
         }
     }
 }

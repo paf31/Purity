@@ -19,5 +19,10 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitUncurry(this);
         }
+
+        public R AcceptVisitor<R>(IDataVisitor<R> visitor)
+        {
+            return visitor.VisitUncurry(this);
+        }
     }
 }

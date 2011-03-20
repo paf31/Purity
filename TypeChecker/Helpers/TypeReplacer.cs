@@ -11,6 +11,7 @@ namespace Purity.Compiler.Typechecker.Helpers
     public class TypeReplacer : IPartialTypeVisitor, IPartialFunctorVisitor
     {
         private readonly int index;
+        private readonly Tableau tableau;
         private readonly IPartialType replacement;
 
         public bool HasChanges
@@ -19,9 +20,17 @@ namespace Purity.Compiler.Typechecker.Helpers
             set;
         }
 
-        public TypeReplacer(int index, IPartialType replacement)
+        public static bool Replace(IPartialType type, Tableau tableau, int index, IPartialType replacement)
+        {
+            var visitor = new TypeReplacer(index, tableau, replacement);
+            type.AcceptVisitor(visitor);
+            return visitor.HasChanges;
+        }
+
+        public TypeReplacer(int index, Tableau tableau, IPartialType replacement)
         {
             this.index = index;
+            this.tableau = tableau;
             this.replacement = replacement;
             this.HasChanges = false;
         }
@@ -100,7 +109,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             t.Functor.AcceptVisitor(this);
         }
 
-        public void VisitUnknown(Types.UnknownType unknownType)
+        public void VisitUnknown(Types.UnknownType t)
         {
         }
 
@@ -150,6 +159,10 @@ namespace Purity.Compiler.Typechecker.Helpers
         }
 
         public void VisitSynonym(Functors.FunctorSynonym f)
+        {
+        }
+
+        public void VisitParameter(TypeParameter t)
         {
         }
     }

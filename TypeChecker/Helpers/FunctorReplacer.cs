@@ -20,6 +20,13 @@ namespace Purity.Compiler.Typechecker.Helpers
             set;
         }
 
+        public static bool Replace(IPartialFunctor functor, int index, IPartialFunctor replacement)
+        {
+            var visitor = new FunctorReplacer(index, replacement);
+            functor.AcceptVisitor(visitor);
+            return visitor.HasChanges;
+        }
+
         public FunctorReplacer(int index, IPartialFunctor replacement)
         {
             this.index = index;
@@ -69,6 +76,11 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
 
             t.Functor.AcceptVisitor(this);
+        }
+
+        public void VisitParameter(TypeParameter t)
+        {
+            HasChanges = false;
         }
 
         public void VisitUnknown(Types.UnknownType unknownType)

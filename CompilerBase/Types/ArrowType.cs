@@ -23,5 +23,10 @@ namespace Purity.Compiler.Types
         {
             visitor.VisitArrow(this);
         }
+
+        public R AcceptVisitor<R>(ITypeVisitor<R> visitor)
+        {
+            return visitor.VisitArrow(this);
+        }
     }
 }

@@ -37,5 +37,10 @@ namespace Purity.Compiler.Typechecker.Constraints
         {
             visitor.VisitSum(this);
         }
+
+        public R AcceptVisitor<R>(IConstraintVisitor<R> visitor)
+        {
+            return visitor.VisitSum(this);
+        }
     }
 }

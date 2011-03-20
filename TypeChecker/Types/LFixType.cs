@@ -31,5 +31,10 @@ namespace Purity.Compiler.Typechecker.Types
         {
             visitor.VisitLFix(this);
         }
+
+        public R AcceptVisitor<R>(IPartialTypeVisitor<R> visitor)
+        {
+            return visitor.VisitLFix(this);
+        }
     }
 }

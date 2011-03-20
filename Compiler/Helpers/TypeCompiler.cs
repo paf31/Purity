@@ -8,20 +8,15 @@ using System.Reflection.Emit;
 using System.Reflection;
 using Purity.Compiler.Modules;
 using Purity.Compiler.Data;
+using Purity.Compiler.Exceptions;
 
 namespace Purity.Compiler.Helpers
 {
-    public class TypeCompiler : ITypeVisitor
+    public class TypeCompiler : ITypeVisitor<ITypeInfo>
     {
         private readonly ModuleBuilder module;
         private readonly string moduleName;
         private readonly string name;
-
-        public ITypeInfo Result
-        {
-            get;
-            set;
-        }
 
         public TypeCompiler(ModuleBuilder module, string moduleName, string name)
         {
@@ -30,27 +25,32 @@ namespace Purity.Compiler.Helpers
             this.name = name;
         }
 
-        public void VisitArrow(Types.ArrowType t)
+        public static ITypeInfo Compile(IType type, ModuleBuilder module, string moduleName, string declarationName)
         {
-            Result = BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
+            return type.AcceptVisitor(new TypeCompiler(module, moduleName, declarationName));
         }
 
-        public void VisitSynonym(Types.TypeSynonym t)
+        public ITypeInfo VisitArrow(Types.ArrowType t)
         {
-            Result = BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
+            return BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
         }
 
-        public void VisitProduct(Types.ProductType t)
+        public ITypeInfo VisitSynonym(Types.TypeSynonym t)
         {
-            Result = BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
+            return BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
         }
 
-        public void VisitSum(Types.SumType t)
+        public ITypeInfo VisitProduct(Types.ProductType t)
         {
-            Result = BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
+            return BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
         }
 
-        public void VisitLFix(Types.LFixType t)
+        public ITypeInfo VisitSum(Types.SumType t)
+        {
+            return BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
+        }
+
+        public ITypeInfo VisitLFix(Types.LFixType t)
         {
             t.Identifier = name;
 
@@ -62,10 +62,10 @@ namespace Purity.Compiler.Helpers
             var compiler = new LFixCompiler(named, module, functorClass, fmap, moduleName);
             compiler.Compile();
 
-            Result = compiler.TypeInfo;
+            return compiler.TypeInfo;
         }
 
-        public void VisitGFix(Types.GFixType t)
+        public ITypeInfo VisitGFix(Types.GFixType t)
         {
             t.Identifier = name;
 
@@ -77,7 +77,12 @@ namespace Purity.Compiler.Helpers
             var compiler = new GFixCompiler(named, module, functorClass, fmap, moduleName);
             compiler.Compile();
 
-            Result = compiler.TypeInfo;
+            return compiler.TypeInfo;
+        }
+
+        public ITypeInfo VisitParameter(Types.TypeParameter t)
+        {
+            throw new CompilerException(ErrorMessages.UnexpectedVariable);
         }
     }
 }

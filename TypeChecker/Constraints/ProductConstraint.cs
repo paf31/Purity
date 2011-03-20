@@ -37,5 +37,10 @@ namespace Purity.Compiler.Typechecker.Constraints
         {
             visitor.VisitProduct(this);
         }
+
+        public R AcceptVisitor<R>(IConstraintVisitor<R> visitor)
+        {
+            return visitor.VisitProduct(this);
+        }
     }
 }

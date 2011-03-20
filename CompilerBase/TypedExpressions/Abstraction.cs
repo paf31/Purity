@@ -50,5 +50,10 @@ namespace Purity.Compiler.TypedExpressions
         {
             visitor.VisitAbstraction(this);
         }
+
+        public R AcceptVisitor<R>(ITypedExpressionVisitor<R> visitor)
+        {
+            return visitor.VisitAbstraction(this);
+        }
     }
 }

@@ -20,4 +20,19 @@ namespace Purity.Compiler.Interfaces
 
         void VisitSum(SumFunctor f);
     }
+
+    public interface IFunctorVisitor<R>
+    {
+        R VisitArrow(ArrowFunctor f);
+
+        R VisitConstant(ConstantFunctor f);
+
+        R VisitSynonym(FunctorSynonym f);
+
+        R VisitIdentity(IdentityFunctor f);
+
+        R VisitProduct(ProductFunctor f);
+
+        R VisitSum(SumFunctor f);
+    }
 }

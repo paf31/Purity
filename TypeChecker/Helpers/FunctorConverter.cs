@@ -8,51 +8,44 @@ using Purity.Compiler.Exceptions;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
-    public class FunctorConverter : IPartialFunctorVisitor
+    public class FunctorConverter : IPartialFunctorVisitor<IFunctor>
     {
-        public IFunctor Result
+        public static IFunctor Convert(IPartialFunctor functor)
         {
-            get;
-            set;
+            return functor.AcceptVisitor(new FunctorConverter());
         }
 
-        public IFunctor Convert(IPartialFunctor functor)
+        public IFunctor VisitArrow(Functors.ArrowFunctor f)
         {
-            functor.AcceptVisitor(this);
-            return Result;
+            return new Purity.Compiler.Functors.ArrowFunctor(TypeConverter.Convert(f.Left), Convert(f.Right));
         }
 
-        public void VisitArrow(Functors.ArrowFunctor f)
+        public IFunctor VisitConstant(Functors.ConstantFunctor f)
         {
-            Result = new Purity.Compiler.Functors.ArrowFunctor(new TypeConverter().Convert(f.Left), Convert(f.Right));
+            return new Purity.Compiler.Functors.ConstantFunctor(TypeConverter.Convert(f.Value));
         }
 
-        public void VisitConstant(Functors.ConstantFunctor f)
+        public IFunctor VisitIdentity(Functors.IdentityFunctor f)
         {
-            Result = new Purity.Compiler.Functors.ConstantFunctor(new TypeConverter().Convert(f.Value));
+            return new Purity.Compiler.Functors.IdentityFunctor();
         }
 
-        public void VisitIdentity(Functors.IdentityFunctor f)
+        public IFunctor VisitProduct(Functors.ProductFunctor f)
         {
-            Result = new Purity.Compiler.Functors.IdentityFunctor();
+            return new Purity.Compiler.Functors.ProductFunctor(Convert(f.Left), Convert(f.Right));
         }
 
-        public void VisitProduct(Functors.ProductFunctor f)
+        public IFunctor VisitSum(Functors.SumFunctor f)
         {
-            Result = new Purity.Compiler.Functors.ProductFunctor(Convert(f.Left), Convert(f.Right));
+            return new Purity.Compiler.Functors.SumFunctor(Convert(f.Left), Convert(f.Right));
         }
 
-        public void VisitSum(Functors.SumFunctor f)
+        public IFunctor VisitSynonym(Functors.FunctorSynonym f)
         {
-            Result = new Purity.Compiler.Functors.SumFunctor(Convert(f.Left), Convert(f.Right));
+            return new Purity.Compiler.Functors.FunctorSynonym(f.Identifier);
         }
 
-        public void VisitSynonym(Functors.FunctorSynonym f)
-        {
-            Result = new Purity.Compiler.Functors.FunctorSynonym(f.Identifier);
-        }
-
-        public void VisitUnknown(Functors.UnknownFunctor f)
+        public IFunctor VisitUnknown(Functors.UnknownFunctor f)
         {
             throw new CompilerException(ErrorMessages.UnableToInferFunctor);
         }

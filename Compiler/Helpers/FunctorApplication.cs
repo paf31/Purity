@@ -9,11 +9,9 @@ using Purity.Core.Types;
 
 namespace Purity.Compiler.Helpers
 {
-    public class FunctorApplication : IFunctorVisitor
+    public class FunctorApplication : IFunctorVisitor<IType>
     {
         private readonly IType t;
-
-        public IType Result { get; private set; }
 
         public FunctorApplication(IType t)
         {
@@ -23,38 +21,37 @@ namespace Purity.Compiler.Helpers
         public static IType Map(IFunctor f, IType t)
         {
             var visitor = new FunctorApplication(t);
-            f.AcceptVisitor(visitor);
-            return visitor.Result;
+            return f.AcceptVisitor(visitor);
         }
 
-        public void VisitArrow(Functors.ArrowFunctor f)
+        public IType VisitArrow(Functors.ArrowFunctor f)
         {
-            Result = new Types.ArrowType(f.Left, Map(f, t));
+            return new Types.ArrowType(f.Left, Map(f, t));
         }
 
-        public void VisitConstant(Functors.ConstantFunctor f)
+        public IType VisitConstant(Functors.ConstantFunctor f)
         {
-            Result = f.Value;
+            return f.Value;
         }
 
-        public void VisitSynonym(Functors.FunctorSynonym f)
+        public IType VisitSynonym(Functors.FunctorSynonym f)
         {
-            Result = Map(Container.ResolveFunctor(f.Identifier), t);
+            return Map(Container.ResolveFunctor(f.Identifier), t);
         }
 
-        public void VisitIdentity(Functors.IdentityFunctor f)
+        public IType VisitIdentity(Functors.IdentityFunctor f)
         {
-            Result = t;
+            return t;
         }
 
-        public void VisitProduct(Functors.ProductFunctor f)
+        public IType VisitProduct(Functors.ProductFunctor f)
         {
-            Result = new Types.ProductType(Map(f.Left, t), Map(f.Right, t));
+            return new Types.ProductType(Map(f.Left, t), Map(f.Right, t));
         }
 
-        public void VisitSum(Functors.SumFunctor f)
+        public IType VisitSum(Functors.SumFunctor f)
         {
-            Result = new Types.SumType(Map(f.Left, t), Map(f.Right, t));
+            return new Types.SumType(Map(f.Left, t), Map(f.Right, t));
         }
     }
 }

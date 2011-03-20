@@ -23,5 +23,10 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitVariable(this);
         }
+
+        public R AcceptVisitor<R>(IDataVisitor<R> visitor)
+        {
+            return visitor.VisitVariable(this);
+        }
     }
 }

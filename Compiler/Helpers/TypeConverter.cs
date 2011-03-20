@@ -12,49 +12,53 @@ using Purity.Core.Types;
 
 namespace Purity.Compiler.Helpers
 {
-    public class TypeConverter : ITypeVisitor
+    public class TypeConverter : ITypeVisitor<Type>
     {
-        public Type Result
+        private readonly Type[] genericMethodParameters;
+       
+        public TypeConverter(Type[] genericMethodParameters)
         {
-            get;
-            set;
+            this.genericMethodParameters = genericMethodParameters;
         }
 
         public Type Convert(IType t)
         {
-            t.AcceptVisitor(this);
-            return Result;
+            return t.AcceptVisitor(this);
         }
 
-        public void VisitArrow(Types.ArrowType t)
+        public Type VisitArrow(Types.ArrowType t)
         {
-            Result = typeof(IFunction<,>).MakeGenericType(Convert(t.Left), Convert(t.Right));
+            return typeof(IFunction<,>).MakeGenericType(Convert(t.Left), Convert(t.Right));
         }
 
-        public void VisitProduct(Types.ProductType t)
+        public Type VisitProduct(Types.ProductType t)
         {
-            Result = typeof(Tuple<,>).MakeGenericType(Convert(t.Left), Convert(t.Right));
+            return typeof(Tuple<,>).MakeGenericType(Convert(t.Left), Convert(t.Right));
         }
 
-        public void VisitSum(Types.SumType t)
+        public Type VisitSum(Types.SumType t)
         {
-            Result = typeof(Either<,>).MakeGenericType(Convert(t.Left), Convert(t.Right));
+            return typeof(Either<,>).MakeGenericType(Convert(t.Left), Convert(t.Right));
         }
 
-        public void VisitSynonym(Types.TypeSynonym t)
+        public Type VisitSynonym(Types.TypeSynonym t)
         {
-            ITypeInfo typeInfo = TypeContainer.ResolveType(t.Identifier);
-            Result = typeInfo.Type;
+            return TypeContainer.ResolveType(t.Identifier).Type;
         }
 
-        public void VisitLFix(Types.LFixType t)
+        public Type VisitLFix(Types.LFixType t)
         {
-            Result = TypeContainer.ResolveLFixType(t.Identifier).Type;
+            return TypeContainer.ResolveLFixType(t.Identifier).Type;
         }
 
-        public void VisitGFix(Types.GFixType t)
+        public Type VisitGFix(Types.GFixType t)
         {
-            Result = TypeContainer.ResolveGFixType(t.Identifier).Type;
+            return TypeContainer.ResolveGFixType(t.Identifier).Type;
+        }
+
+        public Type VisitParameter(Types.TypeParameter t)
+        {
+            return genericMethodParameters.FirstOrDefault(p => p.Name.Equals(t.Identifier));
         }
     }
 }

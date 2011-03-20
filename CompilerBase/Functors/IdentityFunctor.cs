@@ -14,15 +14,9 @@ namespace Purity.Compiler.Functors
             visitor.VisitIdentity(this);
         }
 
-        public override int GetHashCode()
+        public R AcceptVisitor<R>(Interfaces.IFunctorVisitor<R> visitor)
         {
-            return ToString().GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj != null &&
-                obj is IdentityFunctor;
+            return visitor.VisitIdentity(this);
         }
     }
 }

@@ -26,5 +26,10 @@ namespace Purity.Compiler.Functors
         {
             visitor.VisitConstant(this);
         }
+
+        public R AcceptVisitor<R>(Interfaces.IFunctorVisitor<R> visitor)
+        {
+            return visitor.VisitConstant(this);
+        }
     }
 }

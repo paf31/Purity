@@ -35,14 +35,20 @@ namespace Purity.Compiler.Parser
                                                                               from ws1 in Parsers.WSChar.Rep1()
                                                                               from ident in Parsers.Identifier
                                                                               from ws2 in Parsers.Whitespace
-                                                                              from intro in Parsers.Match(Constants.DataTypeIntroduction)
-                                                                              from ws3 in Parsers.Whitespace
-                                                                              from type in TypeParser.ParseType
-                                                                              from ws4 in Parsers.Whitespace
-                                                                              from eq in Parsers.Match(Constants.EqualsSymbol)
-                                                                              from ws5 in Parsers.Whitespace
-                                                                              from data in DataParser.ParseData
-                                                                              select new Named<DataDeclaration>(ident, new DataDeclaration(type, data));
+                                                                              from rest in
+                                                                                  (from intro in Parsers.Match(Constants.DataTypeIntroduction)
+                                                                                   from ws3 in Parsers.Whitespace
+                                                                                   from type in TypeParser.ParseType
+                                                                                   from ws4 in Parsers.Whitespace
+                                                                                   from eq in Parsers.Match(Constants.EqualsSymbol)
+                                                                                   from ws5 in Parsers.Whitespace
+                                                                                   from data in DataParser.ParseData
+                                                                                   select new Named<DataDeclaration>(ident, new DataDeclaration(type, data)))
+                                                                                   .Or(from eq in Parsers.Match(Constants.EqualsSymbol)
+                                                                                       from ws3 in Parsers.Whitespace
+                                                                                       from data in DataParser.ParseData
+                                                                                       select new Named<DataDeclaration>(ident, new DataDeclaration(data)))
+                                                                              select rest;
 
         static Parser<string, ProgramElement> ParseProgramElement =
             (from functor in ParseNamedFunctor
@@ -60,7 +66,7 @@ namespace Purity.Compiler.Parser
                  select parts).Or(Parsers.EOF.Select(s => Enumerable.Empty<ProgramElement>()))
             select new[] { p }.Concat(ps);
 
-        public static Parser<string, Module> ParseModule = 
-            ParseManyProgramElements.Select(es => new Module(es));   
+        public static Parser<string, Module> ParseModule =
+            ParseManyProgramElements.Select(es => new Module(es));
     }
 }

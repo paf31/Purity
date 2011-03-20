@@ -21,4 +21,21 @@ namespace Purity.Compiler.Typechecker.Interfaces
 
         void VisitSynonym(Constraints.SynonymConstraint c);
     }
+
+    public interface IConstraintVisitor<R>
+    {
+        R VisitArrow(Constraints.ArrowConstraint c);
+
+        R VisitFix(Constraints.FixConstraint c);
+
+        R VisitLFix(Constraints.LFixConstraint c);
+
+        R VisitGFix(Constraints.GFixConstraint c);
+
+        R VisitProduct(Constraints.ProductConstraint c);
+
+        R VisitSum(Constraints.SumConstraint c);
+
+        R VisitSynonym(Constraints.SynonymConstraint c);
+    }
 }

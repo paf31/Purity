@@ -23,5 +23,10 @@ namespace Purity.Compiler.Typechecker.Functors
         {
             visitor.VisitUnknown(this);
         }
+
+        public R AcceptVisitor<R>(IPartialFunctorVisitor<R> visitor)
+        {
+            return visitor.VisitUnknown(this);
+        }
     }
 }

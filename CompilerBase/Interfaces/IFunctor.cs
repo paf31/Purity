@@ -10,5 +10,7 @@ namespace Purity.Compiler.Interfaces
     public interface IFunctor
     {
         void AcceptVisitor(IFunctorVisitor visitor);
+
+        R AcceptVisitor<R>(IFunctorVisitor<R> visitor);
     }
 }

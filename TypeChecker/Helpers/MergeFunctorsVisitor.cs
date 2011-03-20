@@ -7,49 +7,35 @@ using Purity.Compiler.Exceptions;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
-    public class MergeFunctorsVisitor : IPartialFunctorVisitor
+    public class MergeFunctorsVisitor : IPartialFunctorVisitor<IPartialFunctor>
     {
+        private readonly Tableau tableau;
         private readonly IPartialFunctor replacement;
 
-        public IPartialFunctor Result
-        {
-            get;
-            set;
-        }
-
-        public bool Changed
-        {
-            get;
-            set;
-        }
-
-        public MergeFunctorsVisitor(IPartialFunctor replacement)
+        public MergeFunctorsVisitor(IPartialFunctor replacement, Tableau tableau)
         {
             this.replacement = replacement;
-            this.Changed = false;
+            this.tableau = tableau;
         }
 
-        public static IPartialFunctor Merge(IPartialFunctor f1, IPartialFunctor f2, out bool changed)
+        public static IPartialFunctor Merge(IPartialFunctor f1, IPartialFunctor f2, Tableau tableau)
         {
-            var visitor = new MergeFunctorsVisitor(f2);
-            f1.AcceptVisitor(visitor);
-            changed = visitor.Changed;
-            return visitor.Result;
+            var visitor = new MergeFunctorsVisitor(f2, tableau);
+            return f1.AcceptVisitor(visitor);
         }
 
-        public void VisitArrow(Functors.ArrowFunctor f)
+        public IPartialFunctor VisitArrow(Functors.ArrowFunctor f)
         {
             if (replacement is Functors.UnknownFunctor)
             {
-                Result = f;
-                Changed = false;
+                return null;
             }
             else if (replacement is Functors.ArrowFunctor)
             {
-                bool changed1, changed2;
                 var f1 = replacement as Functors.ArrowFunctor;
-                Result = new Functors.ArrowFunctor(MergeTypesVisitor.Merge(f.Left, f1.Left, out changed1), Merge(f.Right, f1.Right, out changed2));
-                Changed = changed1 || changed2;
+                var left = MergeTypesVisitor.Merge(f.Left, f1.Left, tableau);
+                var right = Merge(f.Right, f1.Right, tableau);
+                return left == null && right == null ? null : new Functors.ArrowFunctor(left ?? f.Left, right ?? f.Right);
             }
             else
             {
@@ -57,18 +43,17 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitConstant(Functors.ConstantFunctor f)
+        public IPartialFunctor VisitConstant(Functors.ConstantFunctor f)
         {
             if (replacement is Functors.UnknownFunctor)
             {
-                Result = f;
+                return null;
             }
             else if (replacement is Functors.ConstantFunctor)
             {
-                bool changed;
                 var f1 = replacement as Functors.ConstantFunctor;
-                Result = new Functors.ConstantFunctor(MergeTypesVisitor.Merge(f.Value, f1.Value, out changed));
-                Changed = changed;
+                var value = MergeTypesVisitor.Merge(f.Value, f1.Value, tableau);
+                return value == null ? null : new Functors.ConstantFunctor(value);
             }
             else
             {
@@ -76,15 +61,15 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitIdentity(Functors.IdentityFunctor f)
+        public IPartialFunctor VisitIdentity(Functors.IdentityFunctor f)
         {
             if (replacement is Functors.UnknownFunctor)
             {
-                Result = f;
+                return null;
             }
             else if (replacement is Functors.IdentityFunctor)
             {
-                Result = new Functors.IdentityFunctor();
+                return null;
             }
             else
             {
@@ -92,18 +77,18 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitProduct(Functors.ProductFunctor f)
+        public IPartialFunctor VisitProduct(Functors.ProductFunctor f)
         {
             if (replacement is Functors.UnknownFunctor)
             {
-                Result = f;
+                return null;
             }
             else if (replacement is Functors.ProductFunctor)
             {
-                bool changed1, changed2;
                 var f1 = replacement as Functors.ProductFunctor;
-                Result = new Functors.ProductFunctor(Merge(f.Left, f1.Left, out changed1), Merge(f.Right, f1.Right, out changed2));
-                Changed = changed1 || changed2;
+                var left = Merge(f.Left, f1.Left, tableau);
+                var right = Merge(f.Right, f1.Right, tableau);
+                return left == null && right == null ? null : new Functors.ProductFunctor(left ?? f.Left, right ?? f.Right);
             }
             else
             {
@@ -111,18 +96,18 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitSum(Functors.SumFunctor f)
+        public IPartialFunctor VisitSum(Functors.SumFunctor f)
         {
             if (replacement is Functors.UnknownFunctor)
             {
-                Result = f;
+                return null;
             }
             else if (replacement is Functors.SumFunctor)
             {
-                bool changed1, changed2;
                 var f1 = replacement as Functors.SumFunctor;
-                Result = new Functors.SumFunctor(Merge(f.Left, f1.Left, out changed1), Merge(f.Right, f1.Right, out changed2));
-                Changed = changed1 || changed2;
+                var left = Merge(f.Left, f1.Left, tableau);
+                var right = Merge(f.Right, f1.Right, tableau);
+                return left == null && right == null ? null : new Functors.SumFunctor(left ?? f.Left, right ?? f.Right);
             }
             else
             {
@@ -130,29 +115,29 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitUnknown(Functors.UnknownFunctor f)
-        {
-            Result = replacement;
-
-            if (!(replacement is Functors.UnknownFunctor))
-            {
-                Changed = true;
-            }
-        }
-
-        public void VisitSynonym(Functors.FunctorSynonym f)
+        public IPartialFunctor VisitUnknown(Functors.UnknownFunctor f)
         {
             if (replacement is Functors.UnknownFunctor)
             {
-                Result = f;
-                Changed = false;
+                return null;
+            }
+            else
+            {
+                return replacement;
+            }
+        }
+
+        public IPartialFunctor VisitSynonym(Functors.FunctorSynonym f)
+        {
+            if (replacement is Functors.UnknownFunctor)
+            {
+                return null;
             }
             else if (replacement is Functors.FunctorSynonym)
             {
                 if (f.Identifier.Equals((replacement as Functors.FunctorSynonym).Identifier))
                 {
-                    Result = f;
-                    Changed = false;
+                    return null;
                 }
                 else
                 {

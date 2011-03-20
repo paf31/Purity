@@ -19,5 +19,24 @@ namespace Purity.Compiler.Interfaces
         void VisitLFix(LFixType t);
 
         void VisitGFix(GFixType t);
+
+        void VisitParameter(TypeParameter t);
+    }
+
+    public interface ITypeVisitor<R>
+    {
+        R VisitArrow(ArrowType t);
+
+        R VisitSynonym(TypeSynonym t);
+
+        R VisitProduct(ProductType t);
+
+        R VisitSum(SumType t);
+
+        R VisitLFix(LFixType t);
+
+        R VisitGFix(GFixType t);
+
+        R VisitParameter(TypeParameter t);
     }
 }

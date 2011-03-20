@@ -21,5 +21,10 @@ namespace Purity.Compiler.Functors
         {
             visitor.VisitSynonym(this);
         }
+
+        public R AcceptVisitor<R>(Interfaces.IFunctorVisitor<R> visitor)
+        {
+            return visitor.VisitSynonym(this);
+        }
     }
 }

@@ -8,49 +8,35 @@ using Purity.Compiler.Typechecker.Functors;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
-    public class MergeTypesVisitor : IPartialTypeVisitor
+    public class MergeTypesVisitor : IPartialTypeVisitor<IPartialType>
     {
-        private IPartialType replacement;
+        private readonly Tableau tableau;
+        private readonly IPartialType replacement;
 
-        public IPartialType Result
+        public MergeTypesVisitor(IPartialType replacement, Tableau tableau)
         {
-            get;
-            set;
-        }
-
-        public bool Changed
-        {
-            get;
-            set;
-        }
-
-        public MergeTypesVisitor(IPartialType replacement)
-        {
+            this.tableau = tableau;
             this.replacement = replacement;
-            this.Changed = false;
         }
 
-        public static IPartialType Merge(IPartialType t1, IPartialType t2, out bool changed)
+        public static IPartialType Merge(IPartialType t1, IPartialType t2, Tableau tableau)
         {
-            var visitor = new MergeTypesVisitor(t2);
-            t1.AcceptVisitor(visitor);
-            changed = visitor.Changed;
-            return visitor.Result;
+            var visitor = new MergeTypesVisitor(t2, tableau);
+            return t1.AcceptVisitor(visitor);
         }
 
-        public void VisitArrow(Types.ArrowType t)
+        public IPartialType VisitArrow(Types.ArrowType t)
         {
             if (replacement is Types.UnknownType)
             {
-                Result = t;
-                Changed = false;
+                return null;
             }
             else if (replacement is Types.ArrowType)
             {
-                bool changed1, changed2;
                 var t1 = replacement as Types.ArrowType;
-                Result = new Types.ArrowType(Merge(t.Left, t1.Left, out changed1), Merge(t.Right, t1.Right, out changed2));
-                Changed = changed1 || changed2;
+                var left = Merge(t.Left, t1.Left, tableau);
+                var right = Merge(t.Right, t1.Right, tableau);
+                return left == null && right == null ? null : new Types.ArrowType(left ?? t.Left, right ?? t.Right);
             }
             else
             {
@@ -58,19 +44,17 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitSynonym(Types.TypeSynonym t)
+        public IPartialType VisitSynonym(Types.TypeSynonym t)
         {
             if (replacement is Types.UnknownType)
             {
-                Result = t;
-                Changed = false;
+                return null;
             }
             else if (replacement is Types.TypeSynonym)
             {
                 if (t.Identifier.Equals((replacement as Types.TypeSynonym).Identifier))
                 {
-                    Result = t;
-                    Changed = false;
+                    return null;
                 }
                 else
                 {
@@ -83,19 +67,18 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitProduct(Types.ProductType t)
+        public IPartialType VisitProduct(Types.ProductType t)
         {
             if (replacement is Types.UnknownType)
             {
-                Result = t;
-                Changed = false;
+                return null;
             }
             else if (replacement is Types.ProductType)
             {
-                bool changed1, changed2;
                 var t1 = replacement as Types.ProductType;
-                Result = new Types.ProductType(Merge(t.Left, t1.Left, out changed1), Merge(t.Right, t1.Right, out changed2));
-                Changed = changed1 || changed2;
+                var left = Merge(t.Left, t1.Left, tableau);
+                var right = Merge(t.Right, t1.Right, tableau);
+                return left == null && right == null ? null : new Types.ProductType(left ?? t.Left, right ?? t.Right);
             }
             else
             {
@@ -103,19 +86,18 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitSum(Types.SumType t)
+        public IPartialType VisitSum(Types.SumType t)
         {
             if (replacement is Types.UnknownType)
             {
-                Result = t;
-                Changed = false;
+                return null;
             }
             else if (replacement is Types.SumType)
             {
-                bool changed1, changed2;
                 var t1 = replacement as Types.SumType;
-                Result = new Types.SumType(Merge(t.Left, t1.Left, out changed1), Merge(t.Right, t1.Right, out changed2));
-                Changed = changed1 || changed2;
+                var left = Merge(t.Left, t1.Left, tableau);
+                var right = Merge(t.Right, t1.Right, tableau);
+                return left == null && right == null ? null : new Types.SumType(left ?? t.Left, right ?? t.Right);
             }
             else
             {
@@ -123,21 +105,26 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitLFix(Types.LFixType t)
+        public IPartialType VisitLFix(Types.LFixType t)
         {
             if (replacement is Types.UnknownType)
             {
-                Result = t;
-                Changed = false;
+                return null;
             }
             else if (replacement is Types.LFixType)
             {
-                bool changed;
                 var t1 = replacement as Types.LFixType;
-                var result = new Types.LFixType(MergeFunctorsVisitor.Merge(t.Functor, t1.Functor, out changed));
-                result.Identifier = t.Identifier ?? t1.Identifier;
-                Result = result;
-                Changed = changed || !string.Equals(result.Identifier, t.Identifier);
+                var functor = MergeFunctorsVisitor.Merge(t.Functor, t1.Functor, tableau);
+                if (functor == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    var result = new Types.LFixType(functor);
+                    result.Identifier = t.Identifier ?? t1.Identifier;
+                    return string.Equals(result.Identifier, t.Identifier) ? null : result;
+                }
             }
             else
             {
@@ -145,21 +132,26 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitGFix(Types.GFixType t)
+        public IPartialType VisitGFix(Types.GFixType t)
         {
             if (replacement is Types.UnknownType)
             {
-                Result = t;
-                Changed = false;
+                return null;
             }
             else if (replacement is Types.GFixType)
             {
-                bool changed;
                 var t1 = replacement as Types.GFixType;
-                var result = new Types.GFixType(MergeFunctorsVisitor.Merge(t.Functor, t1.Functor, out changed));
-                result.Identifier = t.Identifier ?? t1.Identifier;
-                Result = result;
-                Changed = changed || !string.Equals(result.Identifier, t.Identifier);
+                var functor = MergeFunctorsVisitor.Merge(t.Functor, t1.Functor, tableau);
+                if (functor == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    var result = new Types.GFixType(functor);
+                    result.Identifier = t.Identifier ?? t1.Identifier;
+                    return string.Equals(result.Identifier, t.Identifier) ? null : result;
+                }
             }
             else
             {
@@ -167,13 +159,45 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public void VisitUnknown(Types.UnknownType unknownType)
+        public IPartialType VisitUnknown(Types.UnknownType t)
         {
-            Result = replacement;
+            var unknown = replacement as Types.UnknownType;
 
-            if (!(replacement is Types.UnknownType))
+            if (unknown != null)
             {
-                Changed = true;
+                if (unknown.Index != t.Index)
+                {
+                    tableau.AddCollision(unknown.Index, t.Index);
+                }
+
+                return null;
+            }
+            else
+            {
+                return replacement;
+            }
+        }
+
+        public IPartialType VisitParameter(Types.TypeParameter t)
+        {
+            if (replacement is Types.UnknownType)
+            {
+                return null;
+            }
+            else if (replacement is Types.TypeParameter)
+            {
+                if (t.Identifier.Equals((replacement as Types.TypeParameter).Identifier))
+                {
+                    return null;
+                }
+                else
+                {
+                    throw new CompilerException(string.Format(ErrorMessages.Expected, t.Identifier));
+                }
+            }
+            else
+            {
+                throw new CompilerException(ErrorMessages.ExpectedNamedType);
             }
         }
     }

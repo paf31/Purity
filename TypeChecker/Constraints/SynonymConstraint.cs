@@ -30,5 +30,10 @@ namespace Purity.Compiler.Typechecker.Constraints
         {
             visitor.VisitSynonym(this);
         }
+
+        public R AcceptVisitor<R>(IConstraintVisitor<R> visitor)
+        {
+            return visitor.VisitSynonym(this);
+        }
     }
 }

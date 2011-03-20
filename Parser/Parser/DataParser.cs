@@ -106,6 +106,9 @@ namespace Purity.Compiler.Parser
             .Or(ParseCata)
             .Or(ParseCase)
             .Or(ParseSplit)
+            .Or(ParseAbstraction)
+            .Or(ParseVariable)
+            .Or(ParseDataSynonym)
             .Or(ParseInl)
             .Or(ParseInr)
             .Or(ParseIn)
@@ -116,9 +119,6 @@ namespace Purity.Compiler.Parser
             .Or(ParseIdentity)
             .Or(ParseUncurriedFunction)
             .Or(ParseCurriedFunction)
-            .Or(ParseAbstraction)
-            .Or(ParseVariable)
-            .Or(ParseDataSynonym)
             .Or(ParseBrackettedData);
 
         static Parser<string, IData> ParseCompositionOfAtoms =

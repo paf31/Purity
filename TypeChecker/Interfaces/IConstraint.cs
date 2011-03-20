@@ -14,5 +14,7 @@ namespace Purity.Compiler.Typechecker.Interfaces
         }
 
         void AcceptVisitor(IConstraintVisitor visitor);
+        
+        R AcceptVisitor<R>(IConstraintVisitor<R> visitor);
     }
 }

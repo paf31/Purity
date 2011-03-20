@@ -6,19 +6,14 @@ using Purity.Compiler.Interfaces;
 using Purity.Compiler.Utilities;
 using Purity.Compiler.Exceptions;
 using Purity.Compiler.Types;
+using Purity.Compiler.Typechecker.Helpers;
 
 namespace Purity.Compiler.Helpers
 {
-    public class VariableElimination : ITypedExpressionVisitor
+    public class VariableElimination : ITypedExpressionVisitor<ITypedExpression>
     {
         private IType variableType;
         private string variableName;
-
-        public ITypedExpression Result
-        {
-            get;
-            set;
-        }
 
         private VariableElimination(string variableName, IType variableType)
         {
@@ -29,11 +24,10 @@ namespace Purity.Compiler.Helpers
         public static ITypedExpression Visit(ITypedExpression expression, string variableName, IType variableType)
         {
             var visitor = new VariableElimination(variableName, variableType);
-            expression.AcceptVisitor(visitor);
-            return visitor.Result;
+            return expression.AcceptVisitor(visitor);
         }
 
-        public void VisitIn(TypedExpressions.In d)
+        public ITypedExpression VisitIn(TypedExpressions.In d)
         {
             var fix = d.Source as IFixedPointType;
 
@@ -42,12 +36,12 @@ namespace Purity.Compiler.Helpers
                 throw new CompilerException(ErrorMessages.ExpectedFixedPointType);
             }
 
-            Result = new TypedExpressions.Const(d,
+            return new TypedExpressions.Const(d,
                 variableType,
                 new Types.ArrowType(fix, FunctorApplication.Map(fix.Functor, fix)));
         }
 
-        public void VisitOut(TypedExpressions.Out d)
+        public ITypedExpression VisitOut(TypedExpressions.Out d)
         {
             var fix = d.Target as IFixedPointType;
 
@@ -56,19 +50,19 @@ namespace Purity.Compiler.Helpers
                 throw new CompilerException(ErrorMessages.ExpectedFixedPointType);
             }
 
-            Result = new TypedExpressions.Const(d,
+            return new TypedExpressions.Const(d,
                 variableType,
                 new Types.ArrowType(FunctorApplication.Map(fix.Functor, fix), fix));
         }
 
-        public void VisitCase(TypedExpressions.Case d)
+        public ITypedExpression VisitCase(TypedExpressions.Case d)
         {
             var left = Visit(d.Left, variableName, variableType);
             var right = Visit(d.Right, variableName, variableType);
 
             // [<f, g>] = curry (<uncurry [f], uncurry [g]> . distr)
 
-            Result = new TypedExpressions.Curried
+            return new TypedExpressions.Curried
                 (
                     new TypedExpressions.Composition
                     (
@@ -103,14 +97,14 @@ namespace Purity.Compiler.Helpers
                 );
         }
 
-        public void VisitSplit(TypedExpressions.Split d)
+        public ITypedExpression VisitSplit(TypedExpressions.Split d)
         {
             var left = Visit(d.Left, variableName, variableType);
             var right = Visit(d.Right, variableName, variableType);
 
             // [(f, g)] = curry (uncurry [f], uncurry [g])
 
-            Result = new TypedExpressions.Curried
+            return new TypedExpressions.Curried
                 (
                     new TypedExpressions.Split
                     (
@@ -126,7 +120,7 @@ namespace Purity.Compiler.Helpers
                 );
         }
 
-        public void VisitApplication(TypedExpressions.Application d)
+        public ITypedExpression VisitApplication(TypedExpressions.Application d)
         {
             var left = Visit(d.Left, variableName, variableType);
             var right = Visit(d.Right, variableName, variableType);
@@ -136,7 +130,7 @@ namespace Purity.Compiler.Helpers
             var domain = (d.LeftType as Types.ArrowType).Left;
             var codomain = (d.LeftType as Types.ArrowType).Right;
 
-            Result = new TypedExpressions.Composition
+            return new TypedExpressions.Composition
                 (
                     new TypedExpressions.Uncurried(left, variableType, domain, codomain),
                     new TypedExpressions.Split
@@ -153,14 +147,14 @@ namespace Purity.Compiler.Helpers
                 );
         }
 
-        public void VisitComposition(TypedExpressions.Composition d)
+        public ITypedExpression VisitComposition(TypedExpressions.Composition d)
         {
             var left = Visit(d.Left, variableName, variableType);
             var right = Visit(d.Right, variableName, variableType);
 
             // [f . g] = curry ((uncurry [f]) . (outl, uncurry [g]))
 
-            Result = new TypedExpressions.Curried
+            return new TypedExpressions.Curried
                 (
                     new TypedExpressions.Composition
                     (
@@ -183,13 +177,13 @@ namespace Purity.Compiler.Helpers
                 );
         }
 
-        public void VisitConst(TypedExpressions.Const d)
+        public ITypedExpression VisitConst(TypedExpressions.Const d)
         {
             var value = Visit(d.Value, variableName, variableType);
 
             // [const x] = curry ([x] . outl)
 
-            Result = new TypedExpressions.Curried
+            return new TypedExpressions.Curried
                 (
                     new TypedExpressions.Composition
                     (
@@ -205,13 +199,13 @@ namespace Purity.Compiler.Helpers
                 );
         }
 
-        public void VisitUncurry(TypedExpressions.Uncurried d)
+        public ITypedExpression VisitUncurry(TypedExpressions.Uncurried d)
         {
             var function = Visit(d.Function, variableName, variableType);
 
             // [curry f] = curry (uncurry uncurry [f] . assocl)
 
-            Result = new TypedExpressions.Curried
+            return new TypedExpressions.Curried
                 (
                     new TypedExpressions.Composition
                     (
@@ -239,13 +233,13 @@ namespace Purity.Compiler.Helpers
                 );
         }
 
-        public void VisitCurry(TypedExpressions.Curried d)
+        public ITypedExpression VisitCurry(TypedExpressions.Curried d)
         {
             var function = Visit(d.Function, variableName, variableType);
 
             // [curry f] = curry curry (uncurry [f] . assocr)
 
-            Result = new TypedExpressions.Curried
+            return new TypedExpressions.Curried
                 (
                     new TypedExpressions.Curried
                         (
@@ -273,79 +267,81 @@ namespace Purity.Compiler.Helpers
                 );
         }
 
-        public void VisitAbstraction(TypedExpressions.Abstraction d)
+        public ITypedExpression VisitAbstraction(TypedExpressions.Abstraction d)
         {
-            d.PointFreeExpression.AcceptVisitor(this);
+            return d.PointFreeExpression.AcceptVisitor(this);
         }
 
-        public void VisitVariable(TypedExpressions.Variable d)
+        public ITypedExpression VisitVariable(TypedExpressions.Variable d)
         {
             if (d.Name.Equals(variableName))
             {
-                Result = new TypedExpressions.Identity(d.Type);
+                return new TypedExpressions.Identity(d.Type);
             }
             else
             {
-                Result = new TypedExpressions.Const(d, variableType, d.Type);
+                return new TypedExpressions.Const(d, variableType, d.Type);
             }
         }
 
-        public void VisitIdentity(TypedExpressions.Identity d)
+        public ITypedExpression VisitIdentity(TypedExpressions.Identity d)
         {
-            Result = new TypedExpressions.Const(d,
+            return new TypedExpressions.Const(d,
                 variableType, new Types.ArrowType(d.Type, d.Type));
         }
 
-        public void VisitInl(TypedExpressions.Inl d)
+        public ITypedExpression VisitInl(TypedExpressions.Inl d)
         {
-            Result = new TypedExpressions.Const(d,
+            return new TypedExpressions.Const(d,
                 variableType, new Types.ArrowType(d.LeftType, new Types.SumType(d.LeftType, d.RightType)));
         }
 
-        public void VisitInr(TypedExpressions.Inr d)
+        public ITypedExpression VisitInr(TypedExpressions.Inr d)
         {
-            Result = new TypedExpressions.Const(d,
+            return new TypedExpressions.Const(d,
                  variableType, new Types.ArrowType(d.RightType, new Types.SumType(d.LeftType, d.RightType)));
         }
 
-        public void VisitOutl(TypedExpressions.Outl d)
+        public ITypedExpression VisitOutl(TypedExpressions.Outl d)
         {
-            Result = new TypedExpressions.Const(d,
+            return new TypedExpressions.Const(d,
                 variableType, new Types.ArrowType(new Types.ProductType(d.LeftType, d.RightType), d.LeftType));
         }
 
-        public void VisitOutr(TypedExpressions.Outr d)
+        public ITypedExpression VisitOutr(TypedExpressions.Outr d)
         {
-            Result = new TypedExpressions.Const(d,
+            return new TypedExpressions.Const(d,
                  variableType, new Types.ArrowType(new Types.ProductType(d.LeftType, d.RightType), d.RightType));
         }
 
-        public void VisitSynonym(TypedExpressions.DataSynonym d)
+        public ITypedExpression VisitSynonym(TypedExpressions.DataSynonym d)
         {
-            Result = new TypedExpressions.Const(d, variableType, Container.ResolveValue(d.Identifier).Type);
+            var resolved = Container.ResolveValue(d.Identifier);
+            var substituted = ReplaceTypeParameters.Replace(resolved.Type, d.TypeParameters);
+            return new TypedExpressions.Const(d, variableType, substituted);
         }
 
-        public void VisitBox(TypedExpressions.Box d)
+        public ITypedExpression VisitBox(TypedExpressions.Box d)
         {
-            Result = new TypedExpressions.Const(d, variableType, new Types.ArrowType(d.Target, d.Type));
+            return new TypedExpressions.Const(d, variableType, new Types.ArrowType(d.Target, d.Type));
         }
 
-        public void VisitUnbox(TypedExpressions.Unbox d)
+        public ITypedExpression VisitUnbox(TypedExpressions.Unbox d)
         {
-            Result = new TypedExpressions.Const(d, variableType, new Types.ArrowType(d.Type, d.Target));
+            return new TypedExpressions.Const(d, variableType, new Types.ArrowType(d.Type, d.Target));
         }
 
-        public void VisitAna(TypedExpressions.Ana d)
+        public ITypedExpression VisitAna(TypedExpressions.Ana d)
         {
-            Result = new TypedExpressions.Const(d,
+            return new TypedExpressions.Const(d,
                 variableType, new Types.ArrowType(new Types.ArrowType(
                     d.CarrierType, FunctorApplication.Map((d.GFixType as GFixType).Functor, d.CarrierType)), 
                     new Types.ArrowType(d.CarrierType, d.GFixType)));
         }
 
-        public void VisitCata(TypedExpressions.Cata d)
+        public ITypedExpression VisitCata(TypedExpressions.Cata d)
         {
-            Result = new TypedExpressions.Const(d,
+            return new TypedExpressions.Const(d,
                 variableType, new Types.ArrowType(new Types.ArrowType(
                     FunctorApplication.Map((d.LFixType as LFixType).Functor, d.CarrierType), d.CarrierType), 
                     new Types.ArrowType(d.LFixType, d.CarrierType)));

@@ -37,5 +37,10 @@ namespace Purity.Compiler.TypedExpressions
         {
             visitor.VisitConst(this);
         }
+
+        public R AcceptVisitor<R>(ITypedExpressionVisitor<R> visitor)
+        {
+            return visitor.VisitConst(this);
+        }
     }
 }

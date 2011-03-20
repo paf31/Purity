@@ -23,5 +23,10 @@ namespace Purity.Compiler.TypedExpressions
         {
             visitor.VisitIdentity(this);
         }
+
+        public R AcceptVisitor<R>(ITypedExpressionVisitor<R> visitor)
+        {
+            return visitor.VisitIdentity(this);
+        }
     }
 }

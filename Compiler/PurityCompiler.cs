@@ -69,19 +69,22 @@ namespace Purity.Compiler
                             {
                                 declarationName = element.Type.Name;
                                 var type = element.Type.Value;
-                                var compiler = new TypeCompiler(module, moduleName, declarationName);
-                                type.AcceptVisitor(compiler);
+                                var typeInfo = TypeCompiler.Compile(type, module, moduleName, declarationName); 
 
                                 Container.Add(declarationName, type);
-                                TypeContainer.Add(declarationName, compiler.Result);
+                                TypeContainer.Add(declarationName, typeInfo);
                                 break;
                             }
                         case ProgramElementType.Data:
                             {
                                 declarationName = element.Data.Name;
                                 var data = element.Data.Value;
-                                var typedExpression = new Checker(data).CreateTypedExpression();
+                                var typedExpression = Checker.CreateTypedExpression(data);
                                 typedExpression.AcceptVisitor(new AbstractionElimination());
+                                
+                                var collector = new TypeParameterCollector();
+                                data.Type.AcceptVisitor(collector);
+                                data.TypeParameters = collector.Parameters.ToArray();
 
                                 DataCompiler.CompileMethod(declarationName, dataClass, typedExpression, data);
                                 break;

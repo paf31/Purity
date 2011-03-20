@@ -8,65 +8,63 @@ using Purity.Compiler.Exceptions;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
-    public class TypeConverter : IPartialTypeVisitor
+    public class TypeConverter : IPartialTypeVisitor<IType>
     {
-        public IType Result
+        public static IType Convert(IPartialType type)
         {
-            get;
-            set;
+            return type.AcceptVisitor(new TypeConverter());
         }
 
-        public IType Convert(IPartialType type)
+        public IType VisitArrow(Types.ArrowType t)
         {
-            type.AcceptVisitor(this);
-            return Result;
+            return new Purity.Compiler.Types.ArrowType(Convert(t.Left), Convert(t.Right));
         }
 
-        public void VisitArrow(Types.ArrowType t)
+        public IType VisitSynonym(Types.TypeSynonym t)
         {
-            Result = new Purity.Compiler.Types.ArrowType(Convert(t.Left), Convert(t.Right));
+            return new Purity.Compiler.Types.TypeSynonym(t.Identifier);
         }
 
-        public void VisitSynonym(Types.TypeSynonym t)
+        public IType VisitProduct(Types.ProductType t)
         {
-            Result = new Purity.Compiler.Types.TypeSynonym(t.Identifier);
+            return new Purity.Compiler.Types.ProductType(Convert(t.Left), Convert(t.Right));
         }
 
-        public void VisitProduct(Types.ProductType t)
+        public IType VisitSum(Types.SumType t)
         {
-            Result = new Purity.Compiler.Types.ProductType(Convert(t.Left), Convert(t.Right));
+            return new Purity.Compiler.Types.SumType(Convert(t.Left), Convert(t.Right));
         }
 
-        public void VisitSum(Types.SumType t)
-        {
-            Result = new Purity.Compiler.Types.SumType(Convert(t.Left), Convert(t.Right));
-        }
-
-        public void VisitLFix(Types.LFixType t)
+        public IType VisitLFix(Types.LFixType t)
         {
             if (t.Identifier == null)
             {
                 throw new CompilerException(ErrorMessages.UnableToInferFunctor);
             }
 
-            var result = new Purity.Compiler.Types.LFixType(new FunctorConverter().Convert(t.Functor));
+            var result = new Purity.Compiler.Types.LFixType(FunctorConverter.Convert(t.Functor));
             result.Identifier = t.Identifier;
-            Result = result;
+            return result;
         }
 
-        public void VisitGFix(Types.GFixType t)
+        public IType VisitGFix(Types.GFixType t)
         {
             if (t.Identifier == null)
             {
                 throw new CompilerException(ErrorMessages.UnableToInferFunctor);
             }
 
-            var result = new Purity.Compiler.Types.GFixType(new FunctorConverter().Convert(t.Functor));
+            var result = new Purity.Compiler.Types.GFixType(FunctorConverter.Convert(t.Functor));
             result.Identifier = t.Identifier;
-            Result = result;
+            return result;
         }
 
-        public void VisitUnknown(Types.UnknownType unknownType)
+        public IType VisitParameter(Types.TypeParameter t)
+        {
+            return new Purity.Compiler.Types.TypeParameter(t.Identifier);
+        }
+
+        public IType VisitUnknown(Types.UnknownType t)
         {
             throw new CompilerException(ErrorMessages.UnableToInferType);
         }

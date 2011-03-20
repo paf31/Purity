@@ -8,5 +8,7 @@ namespace Purity.Compiler.Typechecker.Interfaces
     public interface IConstrainedData
     {
         void AcceptVisitor(IConstrainedDataVisitor visitor);
+
+        R AcceptVisitor<R>(IConstrainedDataVisitor<R> visitor);
     }
 }

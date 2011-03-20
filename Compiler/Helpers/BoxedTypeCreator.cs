@@ -14,11 +14,9 @@ namespace Purity.Compiler.Helpers
     {
         public static BoxedTypeInfo CreateBoxedType(IType type, ModuleBuilder module, string moduleName, string name)
         {
-            var genericParameter = new Helpers.TypeConverter().Convert(type);
-
             var boxedTypeInfo = new BoxedTypeInfo();
 
-            var containedType = new TypeConverter().Convert(type);
+            var containedType = new TypeConverter(null).Convert(type);
 
             boxedTypeInfo.Type = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Sealed);

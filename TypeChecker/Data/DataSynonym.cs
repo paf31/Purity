@@ -11,6 +11,7 @@ namespace Purity.Compiler.Typechecker.Data
         public DataSynonym(string identifier)
         {
             Identifier = identifier;
+            TypeParameters = new Dictionary<string, IPartialType>();
         }
 
         public string Identifier
@@ -19,9 +20,20 @@ namespace Purity.Compiler.Typechecker.Data
             set;
         }
 
+        public IDictionary<string, IPartialType> TypeParameters
+        {
+            get;
+            set;
+        }
+
         public void AcceptVisitor(IConstrainedDataVisitor visitor)
         {
             visitor.VisitSynonym(this);
+        }
+
+        public R AcceptVisitor<R>(IConstrainedDataVisitor<R> visitor)
+        {
+            return visitor.VisitSynonym(this);
         }
     }
 }

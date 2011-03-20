@@ -21,5 +21,26 @@ namespace Purity.Compiler.Typechecker.Interfaces
         void VisitGFix(GFixType t);
 
         void VisitUnknown(UnknownType t);
+
+        void VisitParameter(TypeParameter t);
+    }
+
+    public interface IPartialTypeVisitor<R>
+    {
+        R VisitArrow(ArrowType t);
+
+        R VisitSynonym(TypeSynonym t);
+
+        R VisitProduct(ProductType t);
+
+        R VisitSum(SumType t);
+
+        R VisitLFix(LFixType t);
+
+        R VisitGFix(GFixType t);
+
+        R VisitUnknown(UnknownType t);
+
+        R VisitParameter(TypeParameter t);
     }
 }

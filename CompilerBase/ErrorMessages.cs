@@ -34,5 +34,6 @@ namespace Purity.Compiler
         public const string ExpectedGFixType = "Expected greatest fixed point type.";
         public const string Expected = "Expected '{0}'.";
         public const string UnexpectedVariable = "Unexpected variable '{0}'.";
+        public const string CycleDetected = "Infinite type detected.";
     }
 }

@@ -96,6 +96,7 @@
     <Compile Include="TypedExpressions\Uncurried.cs" />
     <Compile Include="TypedExpressions\Variable.cs" />
     <Compile Include="Types\ArrowType.cs" />
+    <Compile Include="Types\TypeParameter.cs" />
     <Compile Include="Types\GFixType.cs" />
     <Compile Include="Types\LFixType.cs" />
     <Compile Include="Types\ProductType.cs" />

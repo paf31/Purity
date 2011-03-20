@@ -11,8 +11,12 @@ namespace Purity.Compiler.Parser
 {
     public static class TypeParser
     {
-        static Parser<string, IType> ParseTypeSynonym = from ident in Parsers.Identifier
-                                                        select (IType) new TypeSynonym(ident);
+        static Parser<string, IType> ParseTypeSynonymOrParameter = from ident in Parsers.Identifier
+                                                                   from type in (
+                                                                       Parsers.Match(Constants.TypeParameterIndicator)
+                                                                       .Select(_ => (IType) new TypeParameter(ident))
+                                                                       .Or(Parsers.Return<string, IType>((IType) new TypeSynonym(ident))))
+                                                                   select type;
 
         static Parser<string, IType> ParseLFix = from lfix in Parsers.Match(Constants.Lfix)
                                                  from ws in Parsers.WSChar.Rep1()
@@ -33,7 +37,7 @@ namespace Purity.Compiler.Parser
             select type;
 
         static Parser<string, IType> ParseAtom =
-            ParseTypeSynonym
+            ParseTypeSynonymOrParameter
             .Or(ParseLFix)
             .Or(ParseGFix)
             .Or(ParseBrackettedType);
@@ -45,7 +49,7 @@ namespace Purity.Compiler.Parser
                  from op in Parsers.Match(Constants.TypeOperatorProduct)
                  from ws2 in Parsers.Whitespace
                  from product in ParseProductOfAtoms
-                 select (IType)new ProductType(first, product))
+                 select (IType) new ProductType(first, product))
                  .Or(Parsers.Return<string, IType>(first))
             select opt;
 
@@ -56,7 +60,7 @@ namespace Purity.Compiler.Parser
                  from op in Parsers.Match(Constants.TypeOperatorSum)
                  from ws2 in Parsers.Whitespace
                  from sum in ParseSumOfProductsOfAtoms
-                 select (IType)new SumType(first, sum))
+                 select (IType) new SumType(first, sum))
                 .Or(Parsers.Return<string, IType>(first))
             select opt;
 
@@ -67,7 +71,7 @@ namespace Purity.Compiler.Parser
                  from op in Parsers.Match(Constants.TypeOperatorArrow)
                  from ws2 in Parsers.Whitespace
                  from arrow in ParseType
-                 select (IType)new ArrowType(first, arrow))
+                 select (IType) new ArrowType(first, arrow))
                 .Or(Parsers.Return<string, IType>(first))
             select opt;
     }

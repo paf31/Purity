@@ -8,5 +8,8 @@ namespace Purity.Compiler.Typechecker.Interfaces
     public interface IPartialFunctor
     {
         void AcceptVisitor(IPartialFunctorVisitor visitor);
+
+        R AcceptVisitor<R>(IPartialFunctorVisitor<R> visitor);
     }
+
 }

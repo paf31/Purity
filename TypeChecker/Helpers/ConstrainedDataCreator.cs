@@ -11,7 +11,7 @@ using Purity.Compiler.Typechecker.Constraints;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
-    public class ConstrainedDataCreator : IDataVisitor
+    public class ConstrainedDataCreator : IDataVisitor<Tuple<IConstrainedData, int>>
     {
         public int TypeIndex
         {
@@ -25,25 +25,13 @@ namespace Purity.Compiler.Typechecker.Helpers
             set;
         }
 
-        public IConstrainedData Result
-        {
-            get;
-            set;
-        }
-
-        public int RootIndex
-        {
-            get;
-            set;
-        }
-
         public IList<IConstraint> Constraints
         {
             get;
             set;
         }
 
-        public IDictionary<int, IType> KnownTypes
+        public IDictionary<int, IPartialType> KnownTypes
         {
             get;
             set;
@@ -64,19 +52,19 @@ namespace Purity.Compiler.Typechecker.Helpers
         public ConstrainedDataCreator()
         {
             Constraints = new List<IConstraint>();
-            KnownTypes = new Dictionary<int, IType>();
+            KnownTypes = new Dictionary<int, IPartialType>();
             Variables = new Dictionary<string, int>();
             KnownFunctorApplications = new Dictionary<int, Tuple<int, int>>();
         }
 
         public IConstrainedData Convert(IData data, out int index)
         {
-            data.AcceptVisitor(this);
-            index = RootIndex;
-            return Result;
+            var pair = data.AcceptVisitor(this);
+            index = pair.Item2;
+            return pair.Item1;
         }
 
-        public void VisitAna(Compiler.Data.Ana d)
+        public Tuple<IConstrainedData, int> VisitAna(Compiler.Data.Ana d)
         {
             int coalgebra = TypeIndex++;
             int terminal = TypeIndex++;
@@ -91,7 +79,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             result.CarrierType = new UnknownType(carrier);
             result.Functor = new UnknownFunctor(functor);
             result.GFixType = new UnknownType(gfix);
-            Result = result;
 
             Constraints.Add(new GFixConstraint(functor, gfix));
             Constraints.Add(new ArrowConstraint(carrier, fCarrier, coalgebra));
@@ -101,10 +88,10 @@ namespace Purity.Compiler.Typechecker.Helpers
 
             KnownFunctorApplications[fCarrier] = Tuple.Create(functor, carrier);
 
-            RootIndex = ana;
+            return Tuple.Create<IConstrainedData, int>(result, ana);
         }
 
-        public void VisitApplication(Compiler.Data.Application d)
+        public Tuple<IConstrainedData, int> VisitApplication(Compiler.Data.Application d)
         {
             int left;
             int right;
@@ -113,14 +100,13 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.Application(Convert(d.Left, out left), Convert(d.Right, out right));
             result.LeftType = new UnknownType(left);
             result.RightType = new UnknownType(right);
-            Result = result;
 
             Constraints.Add(new ArrowConstraint(right, output, left));
 
-            RootIndex = output;
+            return Tuple.Create<IConstrainedData, int>(result, output);
         }
 
-        public void VisitCase(Compiler.Data.Case d)
+        public Tuple<IConstrainedData, int> VisitCase(Compiler.Data.Case d)
         {
             int left;
             int right;
@@ -136,17 +122,16 @@ namespace Purity.Compiler.Typechecker.Helpers
             result.LeftType = new UnknownType(t1);
             result.RightType = new UnknownType(t2);
             result.ResultType = new UnknownType(output);
-            Result = result;
 
             Constraints.Add(new SumConstraint(t1, t2, sum));
             Constraints.Add(new ArrowConstraint(t1, output, left));
             Constraints.Add(new ArrowConstraint(t2, output, right));
             Constraints.Add(new ArrowConstraint(sum, output, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitCata(Compiler.Data.Cata d)
+        public Tuple<IConstrainedData, int> VisitCata(Compiler.Data.Cata d)
         {
             int algebra = TypeIndex++;
             int initial = TypeIndex++;
@@ -161,7 +146,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             result.CarrierType = new UnknownType(carrier);
             result.Functor = new UnknownFunctor(functor);
             result.LFixType = new UnknownType(lfix);
-            Result = result;
 
             Constraints.Add(new LFixConstraint(functor, lfix));
             Constraints.Add(new ArrowConstraint(fCarrier, carrier, algebra));
@@ -171,10 +155,10 @@ namespace Purity.Compiler.Typechecker.Helpers
 
             KnownFunctorApplications[fCarrier] = Tuple.Create(functor, carrier);
 
-            RootIndex = cata;
+            return Tuple.Create<IConstrainedData, int>(result, cata);
         }
 
-        public void VisitComposition(Compiler.Data.Composition d)
+        public Tuple<IConstrainedData, int> VisitComposition(Compiler.Data.Composition d)
         {
             int left;
             int right;
@@ -187,16 +171,15 @@ namespace Purity.Compiler.Typechecker.Helpers
             result.LeftType = new UnknownType(t1);
             result.MiddleType = new UnknownType(t2);
             result.RightType = new UnknownType(t3);
-            Result = result;
 
             Constraints.Add(new ArrowConstraint(t2, t3, left));
             Constraints.Add(new ArrowConstraint(t1, t2, right));
             Constraints.Add(new ArrowConstraint(t1, t3, composition));
 
-            RootIndex = composition;
+            return Tuple.Create<IConstrainedData, int>(result, composition);
         }
 
-        public void VisitConst(Compiler.Data.Const d)
+        public Tuple<IConstrainedData, int> VisitConst(Compiler.Data.Const d)
         {
             int value;
             int input = TypeIndex++;
@@ -205,36 +188,61 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.Const(Convert(d.Value, out value));
             result.InputType = new UnknownType(input);
             result.OutputType = new UnknownType(value);
-            Result = result;
 
             Constraints.Add(new ArrowConstraint(input, value, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitSynonym(Compiler.Data.DataSynonym d)
+        public Tuple<IConstrainedData, int> VisitSynonym(Compiler.Data.DataSynonym d)
         {
-            int index = TypeIndex++;
-            KnownTypes[index] = Container.ResolveValue(d.Identifier).Type;
-            Result = new Purity.Compiler.Typechecker.Data.DataSynonym(d.Identifier);
-            RootIndex = index;
+            var declaration = Container.ResolveValue(d.Identifier);
+
+            if (declaration.TypeParameters.Any())
+            {
+                var result = new Purity.Compiler.Typechecker.Data.DataSynonym(d.Identifier);
+
+                var lookup = new Dictionary<string, int>();
+
+                for (int i = 0; i < declaration.TypeParameters.Length; i++)
+                {
+                    int newIndex = TypeIndex++;
+                    result.TypeParameters[declaration.TypeParameters[i]] = new UnknownType(newIndex);
+                    lookup.Add(declaration.TypeParameters[i], newIndex);
+                }
+
+                int index = TypeIndex++;
+                
+                KnownTypes[index] = ReplaceTypeParameters.Replace(declaration.Type, lookup);
+
+                return Tuple.Create<IConstrainedData, int>(result, index);
+            }
+            else
+            {
+                var result = new Purity.Compiler.Typechecker.Data.DataSynonym(d.Identifier);
+                
+                int index = TypeIndex++;
+
+                KnownTypes[index] = PartialTypeCreator.Convert(declaration.Type);
+                
+                return Tuple.Create<IConstrainedData, int>(result, index);
+            }           
         }
 
-        public void VisitIdentity(Compiler.Data.Identity d)
+        public Tuple<IConstrainedData, int> VisitIdentity(Compiler.Data.Identity d)
         {
             int t = TypeIndex++;
             int arrow = TypeIndex++;
 
             var result = new Purity.Compiler.Typechecker.Data.Identity();
             result.Type = new UnknownType(t);
-            Result = result;
 
             Constraints.Add(new ArrowConstraint(t, t, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitInl(Compiler.Data.Inl d)
+        public Tuple<IConstrainedData, int> VisitInl(Compiler.Data.Inl d)
         {
             int t1 = TypeIndex++;
             int t2 = TypeIndex++;
@@ -244,15 +252,14 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.Inl();
             result.LeftType = new UnknownType(t1);
             result.RightType = new UnknownType(t2);
-            Result = result;
 
             Constraints.Add(new SumConstraint(t1, t2, sum));
             Constraints.Add(new ArrowConstraint(t1, sum, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitInr(Compiler.Data.Inr d)
+        public Tuple<IConstrainedData, int> VisitInr(Compiler.Data.Inr d)
         {
             int t1 = TypeIndex++;
             int t2 = TypeIndex++;
@@ -262,15 +269,14 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.Inr();
             result.LeftType = new UnknownType(t1);
             result.RightType = new UnknownType(t2);
-            Result = result;
 
             Constraints.Add(new SumConstraint(t1, t2, sum));
             Constraints.Add(new ArrowConstraint(t2, sum, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitOutl(Compiler.Data.Outl d)
+        public Tuple<IConstrainedData, int> VisitOutl(Compiler.Data.Outl d)
         {
             int t1 = TypeIndex++;
             int t2 = TypeIndex++;
@@ -280,15 +286,14 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.Outl();
             result.LeftType = new UnknownType(t1);
             result.RightType = new UnknownType(t2);
-            Result = result;
 
             Constraints.Add(new ProductConstraint(t1, t2, product));
             Constraints.Add(new ArrowConstraint(product, t1, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitOutr(Compiler.Data.Outr d)
+        public Tuple<IConstrainedData, int> VisitOutr(Compiler.Data.Outr d)
         {
             int t1 = TypeIndex++;
             int t2 = TypeIndex++;
@@ -298,15 +303,14 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.Outr();
             result.LeftType = new UnknownType(t1);
             result.RightType = new UnknownType(t2);
-            Result = result;
 
             Constraints.Add(new ProductConstraint(t1, t2, product));
             Constraints.Add(new ArrowConstraint(product, t2, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitSplit(Compiler.Data.Split d)
+        public Tuple<IConstrainedData, int> VisitSplit(Compiler.Data.Split d)
         {
             int left;
             int right;
@@ -320,17 +324,16 @@ namespace Purity.Compiler.Typechecker.Helpers
             result.LeftType = new UnknownType(t1);
             result.RightType = new UnknownType(t2);
             result.InputType = new UnknownType(input);
-            Result = result;
 
             Constraints.Add(new ProductConstraint(t1, t2, product));
             Constraints.Add(new ArrowConstraint(input, product, arrow));
             Constraints.Add(new ArrowConstraint(input, t1, left));
             Constraints.Add(new ArrowConstraint(input, t2, right));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitIn(Compiler.Data.In d)
+        public Tuple<IConstrainedData, int> VisitIn(Compiler.Data.In d)
         {
             int functor = FunctorIndex++;
             int fix = TypeIndex++;
@@ -341,7 +344,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.In();
             result.Source = new UnknownType(fix);
             result.Functor = new UnknownFunctor(functor);
-            Result = result;
 
             Constraints.Add(new FixConstraint(functor, fix));
             Constraints.Add(new ArrowConstraint(boxed, ffix, arrow));
@@ -349,10 +351,10 @@ namespace Purity.Compiler.Typechecker.Helpers
 
             KnownFunctorApplications[ffix] = Tuple.Create(functor, boxed);
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitOut(Compiler.Data.Out d)
+        public Tuple<IConstrainedData, int> VisitOut(Compiler.Data.Out d)
         {
             int functor = FunctorIndex++;
             int fix = TypeIndex++;
@@ -363,7 +365,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.Out();
             result.Target = new UnknownType(fix);
             result.Functor = new UnknownFunctor(functor);
-            Result = result;
 
             Constraints.Add(new FixConstraint(functor, fix));
             Constraints.Add(new ArrowConstraint(ffix, boxed, arrow));
@@ -371,10 +372,10 @@ namespace Purity.Compiler.Typechecker.Helpers
 
             KnownFunctorApplications[ffix] = Tuple.Create(functor, boxed);
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitCurry(Compiler.Data.Curried curried)
+        public Tuple<IConstrainedData, int> VisitCurry(Compiler.Data.Curried curried)
         {
             int uncurried;
             int first = TypeIndex++;
@@ -388,17 +389,16 @@ namespace Purity.Compiler.Typechecker.Helpers
             result.First = new UnknownType(first);
             result.Second = new UnknownType(second);
             result.Output = new UnknownType(output);
-            Result = result;
 
             Constraints.Add(new ProductConstraint(first, second, product));
             Constraints.Add(new ArrowConstraint(second, output, innerArrow));
             Constraints.Add(new ArrowConstraint(first, innerArrow, arrow));
             Constraints.Add(new ArrowConstraint(product, output, uncurried));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitUncurry(Compiler.Data.Uncurried uncurried)
+        public Tuple<IConstrainedData, int> VisitUncurry(Compiler.Data.Uncurried uncurried)
         {
             int curried;
             int first = TypeIndex++;
@@ -412,17 +412,16 @@ namespace Purity.Compiler.Typechecker.Helpers
             result.First = new UnknownType(first);
             result.Second = new UnknownType(second);
             result.Output = new UnknownType(output);
-            Result = result;
 
             Constraints.Add(new ProductConstraint(first, second, product));
             Constraints.Add(new ArrowConstraint(second, output, innerArrow));
             Constraints.Add(new ArrowConstraint(first, innerArrow, curried));
             Constraints.Add(new ArrowConstraint(product, output, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitBox(Compiler.Data.Box d)
+        public Tuple<IConstrainedData, int> VisitBox(Compiler.Data.Box d)
         {
             int target = TypeIndex++;
             int boxed = TypeIndex++;
@@ -431,15 +430,14 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.Box();
             result.Type = new UnknownType(boxed);
             result.Target = new UnknownType(target);
-            Result = result;
 
             Constraints.Add(new SynonymConstraint(target, boxed));
             Constraints.Add(new ArrowConstraint(target, boxed, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitUnbox(Compiler.Data.Unbox d)
+        public Tuple<IConstrainedData, int> VisitUnbox(Compiler.Data.Unbox d)
         {
             int target = TypeIndex++;
             int boxed = TypeIndex++;
@@ -448,15 +446,14 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.Unbox();
             result.Type = new UnknownType(boxed);
             result.Target = new UnknownType(target);
-            Result = result;
 
             Constraints.Add(new SynonymConstraint(target, boxed));
             Constraints.Add(new ArrowConstraint(boxed, target, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitAbstraction(Compiler.Data.Abstraction d)
+        public Tuple<IConstrainedData, int> VisitAbstraction(Compiler.Data.Abstraction d)
         {
             int bodyType;
             int variableType = TypeIndex++;
@@ -467,20 +464,23 @@ namespace Purity.Compiler.Typechecker.Helpers
             var result = new Purity.Compiler.Typechecker.Data.Abstraction(d.Variable, Convert(d.Body, out bodyType));
             result.BodyType = new UnknownType(bodyType);
             result.VariableType = new UnknownType(variableType);
-            Result = result;
 
             Constraints.Add(new ArrowConstraint(variableType, bodyType, arrow));
 
-            RootIndex = arrow;
+            return Tuple.Create<IConstrainedData, int>(result, arrow);
         }
 
-        public void VisitVariable(Compiler.Data.Variable d)
+        public Tuple<IConstrainedData, int> VisitVariable(Compiler.Data.Variable d)
         {
+            if (!Variables.ContainsKey(d.Name))
+            {
+                throw new CompilerException(string.Format(ErrorMessages.UnexpectedVariable, d.Name));
+            }
+
             var result = new Purity.Compiler.Typechecker.Data.Variable(d.Name);
             result.Type = new UnknownType(Variables[d.Name]);
-            Result = result;
 
-            RootIndex = Variables[d.Name];
+            return Tuple.Create<IConstrainedData, int>(result, Variables[d.Name]);
         }
     }
 }

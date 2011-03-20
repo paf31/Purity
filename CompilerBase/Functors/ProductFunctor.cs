@@ -24,5 +24,10 @@ namespace Purity.Compiler.Functors
         {
             visitor.VisitProduct(this);
         }
+
+        public R AcceptVisitor<R>(Interfaces.IFunctorVisitor<R> visitor)
+        {
+            return visitor.VisitProduct(this);
+        }
     }
 }

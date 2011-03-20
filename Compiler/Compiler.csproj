@@ -51,6 +51,8 @@
     <Compile Include="Helpers\AbstractionElimination.cs" />
     <Compile Include="Helpers\BoxedTypeCreator.cs" />
     <Compile Include="Helpers\FunctorApplication.cs" />
+    <Compile Include="Helpers\ReplaceTypeParameters.cs" />
+    <Compile Include="Helpers\TypeParameterCollector.cs" />
     <Compile Include="Helpers\VariableElimination.cs" />
     <Compile Include="Helpers\GFixCompiler.cs" />
     <Compile Include="Helpers\DataCompiler.cs" />

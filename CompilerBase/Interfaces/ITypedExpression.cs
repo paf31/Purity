@@ -8,5 +8,7 @@ namespace Purity.Compiler.Interfaces
     public interface ITypedExpression
     {
         void AcceptVisitor(ITypedExpressionVisitor visitor);
+
+        R AcceptVisitor<R>(ITypedExpressionVisitor<R> visitor);
     }
 }

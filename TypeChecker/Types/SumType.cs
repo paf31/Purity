@@ -32,5 +32,10 @@ namespace Purity.Compiler.Typechecker.Types
         {
             visitor.VisitSum(this);
         }
+
+        public R AcceptVisitor<R>(IPartialTypeVisitor<R> visitor)
+        {
+            return visitor.VisitSum(this);
+        }
     }
 }

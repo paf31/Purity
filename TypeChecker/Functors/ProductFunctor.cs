@@ -33,5 +33,10 @@ namespace Purity.Compiler.Typechecker.Functors
         {
             visitor.VisitProduct(this);
         }
+
+        public R AcceptVisitor<R>(IPartialFunctorVisitor<R> visitor)
+        {
+            return visitor.VisitProduct(this);
+        }
     }
 }

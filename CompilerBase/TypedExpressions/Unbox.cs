@@ -8,6 +8,18 @@ namespace Purity.Compiler.TypedExpressions
 {
     public class Unbox : ITypedExpression
     {
+        public IType Target
+        {
+            get;
+            set;
+        }
+
+        public IType Type
+        {
+            get;
+            set;
+        }
+
         public Unbox(IType target, IType type)
         {
             Target = target;
@@ -19,16 +31,9 @@ namespace Purity.Compiler.TypedExpressions
             visitor.VisitUnbox(this);
         }
 
-        public IType Target
+        public R AcceptVisitor<R>(ITypedExpressionVisitor<R> visitor)
         {
-            get;
-            set;
-        }
-
-        public IType Type
-        {
-            get;
-            set;
+            return visitor.VisitUnbox(this);
         }
     }
 }

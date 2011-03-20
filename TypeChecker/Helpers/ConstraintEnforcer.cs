@@ -133,7 +133,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             if (current is TypeSynonym)
             {
                 var resolved = Container.ResolveType((current as TypeSynonym).Identifier);
-                var converted = new PartialTypeCreator().Convert(resolved);
+                var converted = PartialTypeCreator.Convert(resolved);
                 HasChanges |= TableauUtilities.SetTypeInTableau(tableau, c.Target, converted);
             }
             else if (!(current is UnknownType))

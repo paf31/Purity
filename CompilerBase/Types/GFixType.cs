@@ -30,5 +30,10 @@ namespace Purity.Compiler.Types
         {
             visitor.VisitGFix(this);
         }
+
+        public R AcceptVisitor<R>(ITypeVisitor<R> visitor)
+        {
+            return visitor.VisitGFix(this);
+        }
     }
 }

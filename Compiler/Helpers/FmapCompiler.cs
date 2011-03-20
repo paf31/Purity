@@ -30,7 +30,7 @@ namespace Purity.Compiler.Helpers
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(ArrowFunctorAction<,,>).MakeGenericType(
-                    new TypeConverter().Convert(f.Left),
+                    new TypeConverter(null).Convert(f.Left),
                     new FunctorTypeMapper(dom).Map(f.Right),
                     new FunctorTypeMapper(cod).Map(f.Right)),
                 typeof(ArrowFunctorAction<,,>).GetConstructors()[0]));
@@ -38,7 +38,7 @@ namespace Purity.Compiler.Helpers
 
         public void VisitConstant(Functors.ConstantFunctor f)
         {
-            var genericParameter = new TypeConverter().Convert(f.Value);
+            var genericParameter = new TypeConverter(null).Convert(f.Value);
             body.Emit(OpCodes.Newobj, TypeBuilder.GetConstructor(
                 typeof(IdentityFunction<>).MakeGenericType(genericParameter),
                 typeof(IdentityFunction<>).GetConstructors()[0]));

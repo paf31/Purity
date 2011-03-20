@@ -53,6 +53,8 @@
     <Compile Include="Data\Uncurried.cs" />
     <Compile Include="Data\Variable.cs" />
     <Compile Include="Functors\FunctorSynonym.cs" />
+    <Compile Include="Helpers\CycleDetector.cs" />
+    <Compile Include="Helpers\UnknownTypeCollector.cs" />
     <Compile Include="Helpers\ConstraintEnforcer.cs" />
     <Compile Include="Data\Curried.cs" />
     <Compile Include="Helpers\FunctorReplacer.cs" />
@@ -61,6 +63,7 @@
     <Compile Include="Helpers\PartialFunctorCreator.cs" />
     <Compile Include="Helpers\PartialFunctorTypeMapper.cs" />
     <Compile Include="Helpers\PartialTypeCreator.cs" />
+    <Compile Include="Helpers\ReplaceTypeParameters.cs" />
     <Compile Include="Helpers\TableauMerger.cs" />
     <Compile Include="Helpers\TypeReplacer.cs" />
     <Compile Include="Interfaces\IConstraint.cs" />
@@ -100,6 +103,7 @@
     <Compile Include="Tableau.cs" />
     <Compile Include="Checker.cs" />
     <Compile Include="Types\ArrowType.cs" />
+    <Compile Include="Types\TypeParameter.cs" />
     <Compile Include="Types\GFixType.cs" />
     <Compile Include="Types\LFixType.cs" />
     <Compile Include="Types\ProductType.cs" />

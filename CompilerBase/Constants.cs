@@ -20,6 +20,8 @@ namespace Purity.Compiler
 
         public const char DataTypeIntroduction = ':';
 
+        public const char TypeParameterIndicator = '?';
+
         public const char OpeningSquareBracket = '[';
         public const char ClosingSquareBracket = ']';
 

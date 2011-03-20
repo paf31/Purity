@@ -19,5 +19,10 @@ namespace Purity.Compiler.Data
         {
             visitor.VisitSynonym(this);
         }
+
+        public R AcceptVisitor<R>(IDataVisitor<R> visitor)
+        {
+            return visitor.VisitSynonym(this);
+        }
     }
 }

@@ -20,5 +20,10 @@ namespace Purity.Compiler.Types
         {
             visitor.VisitSynonym(this);
         }
+
+        public R AcceptVisitor<R>(ITypeVisitor<R> visitor)
+        {
+            return visitor.VisitSynonym(this);
+        }
     }
 }

@@ -49,5 +49,50 @@ namespace Purity.Compiler.Typechecker.Interfaces
         void VisitAbstraction(Abstraction d);
 
         void VisitVariable(Variable d);
+    }
+
+    public interface IConstrainedDataVisitor<R>
+    {
+        R VisitAna(Ana d);
+
+        R VisitApplication(Application d);
+
+        R VisitCase(Case d);
+
+        R VisitCata(Cata d);
+
+        R VisitComposition(Composition d);
+
+        R VisitConst(Const d);
+
+        R VisitIdentity(Identity d);
+
+        R VisitInl(Inl d);
+
+        R VisitInr(Inr d);
+
+        R VisitOutl(Outl d);
+
+        R VisitOutr(Outr d);
+
+        R VisitSplit(Split d);
+
+        R VisitIn(In d);
+
+        R VisitOut(Out d);
+
+        R VisitCurry(Curried d);
+
+        R VisitUncurry(Uncurried d);
+
+        R VisitSynonym(DataSynonym d);
+
+        R VisitBox(Box d);
+
+        R VisitUnbox(Unbox d);
+
+        R VisitAbstraction(Abstraction d);
+
+        R VisitVariable(Variable d);
     }       
 }

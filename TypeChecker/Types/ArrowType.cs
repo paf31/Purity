@@ -31,5 +31,10 @@ namespace Purity.Compiler.Typechecker.Types
         {
             visitor.VisitArrow(this);
         }
+
+        public R AcceptVisitor<R>(IPartialTypeVisitor<R> visitor)
+        {
+            return visitor.VisitArrow(this);
+        }
     }
 }
