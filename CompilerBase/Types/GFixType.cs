@@ -7,7 +7,7 @@ using Purity.Compiler.Functors;
 
 namespace Purity.Compiler.Types
 {
-    public class GFixType : IType
+    public class GFixType : IFixedPointType
     {
         public IFunctor Functor
         {
