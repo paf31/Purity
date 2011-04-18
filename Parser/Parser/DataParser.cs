@@ -9,10 +9,6 @@ namespace Purity.Compiler.Parser
 {
     public static class DataParser
     {
-        static Parser<string, IData> ParseIn = Parsers.Match(Constants.In).Select(o => (IData)new In());
-
-        static Parser<string, IData> ParseOut = Parsers.Match(Constants.Out).Select(o => (IData)new Out());
-
         static Parser<string, IData> ParseInl = Parsers.Match(Constants.Inl).Select(o => (IData)new Inl());
 
         static Parser<string, IData> ParseInr = Parsers.Match(Constants.Inr).Select(o => (IData)new Inr());
@@ -23,26 +19,8 @@ namespace Purity.Compiler.Parser
 
         static Parser<string, IData> ParseIdentity = Parsers.Match(Constants.Id).Select(o => (IData)new Identity());
 
-        static Parser<string, IData> ParseBox = Parsers.Match(Constants.Box).Select(o => (IData)new Box());
-
-        static Parser<string, IData> ParseUnbox = Parsers.Match(Constants.Unbox).Select(o => (IData)new Unbox());
-
         static Parser<string, IData> ParseDataSynonym = from ident in Parsers.Identifier
                                                         select (IData)new DataSynonym(ident);
-
-        static Parser<string, IData> ParseAna = from open in Parsers.Match(Constants.AnaOpeningBrace)
-                                                from ws1 in Parsers.Whitespace
-                                                from coalgebra in ParseData
-                                                from ws2 in Parsers.Whitespace
-                                                from close in Parsers.Match(Constants.AnaClosingBrace)
-                                                select (IData)new Application(new Ana(), coalgebra);
-
-        static Parser<string, IData> ParseCata = from open in Parsers.Match(Constants.CataOpeningBrace)
-                                                 from ws1 in Parsers.Whitespace
-                                                 from algebra in ParseData
-                                                 from ws2 in Parsers.Whitespace
-                                                 from close in Parsers.Match(Constants.CataClosingBrace)
-                                                 select (IData)new Application(new Cata(), algebra);
 
         static Parser<string, IData> ParseConst = from open in Parsers.Match(Constants.Const)
                                                   from ws in Parsers.Whitespace
@@ -100,21 +78,15 @@ namespace Purity.Compiler.Parser
                                                         select (IData)new Abstraction(variable, body);
 
         static Parser<string, IData> ParseAtom =
-            ParseAna
-            .Or(ParseBox)
-            .Or(ParseUnbox)
-            .Or(ParseCata)
-            .Or(ParseCase)
+            ParseCase
             .Or(ParseSplit)
             .Or(ParseAbstraction)
             .Or(ParseVariable)
             .Or(ParseDataSynonym)
             .Or(ParseInl)
             .Or(ParseInr)
-            .Or(ParseIn)
             .Or(ParseOutl)
             .Or(ParseOutr)
-            .Or(ParseOut)
             .Or(ParseConst)
             .Or(ParseIdentity)
             .Or(ParseUncurriedFunction)

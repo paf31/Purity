@@ -12,16 +12,16 @@ namespace Purity.Compiler
 {
     public static class Container
     {
-        private static IDictionary<string, IType> types =
-            new Dictionary<string, IType>();
+        private static IDictionary<string, ITypeDeclaration> types =
+            new Dictionary<string, ITypeDeclaration>();
 
-        private static IDictionary<string, IFunctor> functors =
-            new Dictionary<string, IFunctor>();
+        private static IDictionary<string, FunctorDeclaration> functors =
+            new Dictionary<string, FunctorDeclaration>();
 
         private static IDictionary<string, DataDeclaration> data =
             new Dictionary<string, DataDeclaration>();
 
-        public static IType ResolveType(string identifier)
+        public static ITypeDeclaration ResolveType(string identifier)
         {
             if (!types.ContainsKey(identifier))
             {
@@ -31,7 +31,7 @@ namespace Purity.Compiler
             return types[identifier];
         }
 
-        public static IFunctor ResolveFunctor(string identifier)
+        public static FunctorDeclaration ResolveFunctor(string identifier)
         {
             if (!functors.ContainsKey(identifier))
             {
@@ -51,12 +51,12 @@ namespace Purity.Compiler
             return data[identifier];
         }
 
-        public static void Add(string identifier, IType value)
+        public static void Add(string identifier, ITypeDeclaration value)
         {
             types[identifier] = value;
         }
 
-        public static void Add(string identifier, IFunctor value)
+        public static void Add(string identifier, FunctorDeclaration value)
         {
             functors[identifier] = value;
         }

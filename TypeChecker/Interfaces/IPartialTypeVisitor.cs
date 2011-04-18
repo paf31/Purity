@@ -16,10 +16,6 @@ namespace Purity.Compiler.Typechecker.Interfaces
 
         void VisitSum(SumType t);
 
-        void VisitLFix(LFixType t);
-
-        void VisitGFix(GFixType t);
-
         void VisitUnknown(UnknownType t);
 
         void VisitParameter(TypeParameter t);
@@ -34,10 +30,6 @@ namespace Purity.Compiler.Typechecker.Interfaces
         R VisitProduct(ProductType t);
 
         R VisitSum(SumType t);
-
-        R VisitLFix(LFixType t);
-
-        R VisitGFix(GFixType t);
 
         R VisitUnknown(UnknownType t);
 

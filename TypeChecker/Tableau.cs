@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Typechecker.Types;
-using Purity.Compiler.Typechecker.Functors;
 using Purity.Compiler.Interfaces;
 
 namespace Purity.Compiler.Typechecker
@@ -12,18 +11,6 @@ namespace Purity.Compiler.Typechecker
     public class Tableau
     {
         public IDictionary<int, IPartialType> Types
-        {
-            get;
-            set;
-        }
-
-        public IDictionary<int, IPartialFunctor> Functors
-        {
-            get;
-            set;
-        }
-
-        public IDictionary<int, Tuple<int, int>> FunctorApplications
         {
             get;
             set;
@@ -57,8 +44,6 @@ namespace Purity.Compiler.Typechecker
         public Tableau()
         {
             Types = new Dictionary<int, IPartialType>();
-            Functors = new Dictionary<int, IPartialFunctor>();
-            FunctorApplications = new Dictionary<int, Tuple<int, int>>();
             Collisions = new List<Tuple<int, int>>();
         }
 
@@ -68,11 +53,6 @@ namespace Purity.Compiler.Typechecker
             for (int i = 0; i < types; i++)
             {
                 Types[i] = new UnknownType(i);
-            }
-
-            for (int i = 0; i < functors; i++)
-            {
-                Functors[i] = new UnknownFunctor(i);
             }
         }
     }

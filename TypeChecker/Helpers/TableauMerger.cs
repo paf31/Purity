@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Typechecker.Types;
-using Purity.Compiler.Typechecker.Functors;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
@@ -22,15 +21,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             return data.AcceptVisitor(new TableauMerger(tableau));
         }
 
-        public IConstrainedData VisitAna(Data.Ana d)
-        {
-            var result = new Data.Ana();
-            result.CarrierType = tableau.Types[(d.CarrierType as UnknownType).Index];
-            result.Functor = tableau.Functors[(d.Functor as UnknownFunctor).Index];
-            result.GFixType = tableau.Types[(d.GFixType as UnknownType).Index];
-            return result;
-        }
-
         public IConstrainedData VisitApplication(Data.Application d)
         {
             var result = new Data.Application(Merge(d.Left, tableau), Merge(d.Right, tableau));
@@ -45,15 +35,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             result.LeftType = tableau.Types[(d.LeftType as UnknownType).Index];
             result.RightType = tableau.Types[(d.RightType as UnknownType).Index];
             result.ResultType = tableau.Types[(d.ResultType as UnknownType).Index];
-            return result;
-        }
-
-        public IConstrainedData VisitCata(Data.Cata d)
-        {
-            var result = new Data.Cata();
-            result.CarrierType = tableau.Types[(d.CarrierType as UnknownType).Index];
-            result.Functor = tableau.Functors[(d.Functor as UnknownFunctor).Index];
-            result.LFixType = tableau.Types[(d.LFixType as UnknownType).Index];
             return result;
         }
 
@@ -122,22 +103,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             return result;
         }
 
-        public IConstrainedData VisitIn(Data.In d)
-        {
-            var result = new Data.In();
-            result.Source = tableau.Types[(d.Source as UnknownType).Index];
-            result.Functor = tableau.Functors[(d.Functor as UnknownFunctor).Index];
-            return result;
-        }
-
-        public IConstrainedData VisitOut(Data.Out d)
-        {
-            var result = new Data.Out();
-            result.Target = tableau.Types[(d.Target as UnknownType).Index];
-            result.Functor = tableau.Functors[(d.Functor as UnknownFunctor).Index];
-            return result;
-        }
-
         public IConstrainedData VisitCurry(Data.Curried d)
         {
             var result = new Data.Curried(Merge(d.Function, tableau));
@@ -165,22 +130,6 @@ namespace Purity.Compiler.Typechecker.Helpers
                 result.TypeParameters[pair.Key] = tableau.Types[(pair.Value as UnknownType).Index];
             }
 
-            return result;
-        }
-
-        public IConstrainedData VisitBox(Data.Box d)
-        {
-            var result = new Data.Box();
-            result.Target = tableau.Types[(d.Target as UnknownType).Index];
-            result.Type = tableau.Types[(d.Type as UnknownType).Index];
-            return result;
-        }
-
-        public IConstrainedData VisitUnbox(Data.Unbox d)
-        {
-            var result = new Data.Unbox();
-            result.Target = tableau.Types[(d.Target as UnknownType).Index];
-            result.Type = tableau.Types[(d.Type as UnknownType).Index];
             return result;
         }
 

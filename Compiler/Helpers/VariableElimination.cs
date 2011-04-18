@@ -23,36 +23,26 @@ namespace Purity.Compiler.Helpers
 
         public static ITypedExpression Visit(ITypedExpression expression, string variableName, IType variableType)
         {
-            var visitor = new VariableElimination(variableName, variableType);
-            return expression.AcceptVisitor(visitor);
+            /**
+             * TODO: In the worst case, we make this check for every structurally smaller 
+             * value in the expression tree, but if it is true for the root then it is true
+             * for all structurally smaller values too.
+             */
+            if (ConstantExpressions.IsConstantExpression(expression, variableName)) 
+            {
+                return Constant(expression, variableType);
+            }
+            else
+            {
+                var visitor = new VariableElimination(variableName, variableType);
+                return expression.AcceptVisitor(visitor);
+            }
         }
 
-        public ITypedExpression VisitIn(TypedExpressions.In d)
+        private static ITypedExpression Constant(ITypedExpression expression, IType variableType)
         {
-            var fix = d.Source as IFixedPointType;
-
-            if (fix == null)
-            {
-                throw new CompilerException(ErrorMessages.ExpectedFixedPointType);
-            }
-
-            return new TypedExpressions.Const(d,
-                variableType,
-                new Types.ArrowType(fix, FunctorApplication.Map(fix.Functor, fix)));
-        }
-
-        public ITypedExpression VisitOut(TypedExpressions.Out d)
-        {
-            var fix = d.Target as IFixedPointType;
-
-            if (fix == null)
-            {
-                throw new CompilerException(ErrorMessages.ExpectedFixedPointType);
-            }
-
-            return new TypedExpressions.Const(d,
-                variableType,
-                new Types.ArrowType(FunctorApplication.Map(fix.Functor, fix), fix));
+            var type = TypeOfTypedExpression.TypeOf(expression);
+            return new TypedExpressions.Const(expression, variableType, type);
         }
 
         public ITypedExpression VisitCase(TypedExpressions.Case d)
@@ -267,11 +257,6 @@ namespace Purity.Compiler.Helpers
                 );
         }
 
-        public ITypedExpression VisitAbstraction(TypedExpressions.Abstraction d)
-        {
-            return d.PointFreeExpression.AcceptVisitor(this);
-        }
-
         public ITypedExpression VisitVariable(TypedExpressions.Variable d)
         {
             if (d.Name.Equals(variableName))
@@ -280,71 +265,43 @@ namespace Purity.Compiler.Helpers
             }
             else
             {
-                return new TypedExpressions.Const(d, variableType, d.Type);
+                return Constant(d, variableType);
             }
+        }
+
+        public ITypedExpression VisitAbstraction(TypedExpressions.Abstraction d)
+        {
+            return d.PointFreeExpression.AcceptVisitor(this);
         }
 
         public ITypedExpression VisitIdentity(TypedExpressions.Identity d)
         {
-            return new TypedExpressions.Const(d,
-                variableType, new Types.ArrowType(d.Type, d.Type));
+            return Constant(d, variableType);
         }
 
         public ITypedExpression VisitInl(TypedExpressions.Inl d)
         {
-            return new TypedExpressions.Const(d,
-                variableType, new Types.ArrowType(d.LeftType, new Types.SumType(d.LeftType, d.RightType)));
+            return Constant(d, variableType);
         }
 
         public ITypedExpression VisitInr(TypedExpressions.Inr d)
         {
-            return new TypedExpressions.Const(d,
-                 variableType, new Types.ArrowType(d.RightType, new Types.SumType(d.LeftType, d.RightType)));
+            return Constant(d, variableType);
         }
 
         public ITypedExpression VisitOutl(TypedExpressions.Outl d)
         {
-            return new TypedExpressions.Const(d,
-                variableType, new Types.ArrowType(new Types.ProductType(d.LeftType, d.RightType), d.LeftType));
+            return Constant(d, variableType);
         }
 
         public ITypedExpression VisitOutr(TypedExpressions.Outr d)
         {
-            return new TypedExpressions.Const(d,
-                 variableType, new Types.ArrowType(new Types.ProductType(d.LeftType, d.RightType), d.RightType));
+            return Constant(d, variableType);
         }
 
         public ITypedExpression VisitSynonym(TypedExpressions.DataSynonym d)
         {
-            var resolved = Container.ResolveValue(d.Identifier);
-            var substituted = ReplaceTypeParameters.Replace(resolved.Type, d.TypeParameters);
-            return new TypedExpressions.Const(d, variableType, substituted);
-        }
-
-        public ITypedExpression VisitBox(TypedExpressions.Box d)
-        {
-            return new TypedExpressions.Const(d, variableType, new Types.ArrowType(d.Target, d.Type));
-        }
-
-        public ITypedExpression VisitUnbox(TypedExpressions.Unbox d)
-        {
-            return new TypedExpressions.Const(d, variableType, new Types.ArrowType(d.Type, d.Target));
-        }
-
-        public ITypedExpression VisitAna(TypedExpressions.Ana d)
-        {
-            return new TypedExpressions.Const(d,
-                variableType, new Types.ArrowType(new Types.ArrowType(
-                    d.CarrierType, FunctorApplication.Map((d.GFixType as GFixType).Functor, d.CarrierType)), 
-                    new Types.ArrowType(d.CarrierType, d.GFixType)));
-        }
-
-        public ITypedExpression VisitCata(TypedExpressions.Cata d)
-        {
-            return new TypedExpressions.Const(d,
-                variableType, new Types.ArrowType(new Types.ArrowType(
-                    FunctorApplication.Map((d.LFixType as LFixType).Functor, d.CarrierType), d.CarrierType), 
-                    new Types.ArrowType(d.LFixType, d.CarrierType)));
+            return Constant(d, variableType);
         }
     }
 }

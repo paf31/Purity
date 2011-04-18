@@ -34,7 +34,7 @@ namespace Purity.Compiler.Helpers
 
         public IType VisitSynonym(Compiler.Types.TypeSynonym t)
         {
-            return new Types.TypeSynonym(t.Identifier);
+            return new Types.TypeSynonym(t.Identifier, t.TypeParameters.Select(p => Replace(p, lookup)).ToArray());
         }
 
         public IType VisitProduct(Compiler.Types.ProductType t)
@@ -45,20 +45,6 @@ namespace Purity.Compiler.Helpers
         public IType VisitSum(Compiler.Types.SumType t)
         {
             return new Types.SumType(Replace(t.Left, lookup), Replace(t.Right, lookup));
-        }
-
-        public IType VisitLFix(Compiler.Types.LFixType t)
-        {
-            var result = new Types.LFixType(Replace(t.Functor, lookup));
-            result.Identifier = t.Identifier;
-            return result;
-        }
-
-        public IType VisitGFix(Compiler.Types.GFixType t)
-        {
-            var result = new Types.GFixType(Replace(t.Functor, lookup));
-            result.Identifier = t.Identifier;
-            return result;
         }
 
         public IType VisitParameter(Compiler.Types.TypeParameter t)
@@ -78,7 +64,7 @@ namespace Purity.Compiler.Helpers
 
         public IFunctor VisitSynonym(Compiler.Functors.FunctorSynonym f)
         {
-            return new Functors.FunctorSynonym(f.Identifier);
+            return new Functors.FunctorSynonym(f.Identifier, f.TypeParameters.Select(p => Replace(p, lookup)).ToArray());
         }
 
         public IFunctor VisitIdentity(Compiler.Functors.IdentityFunctor f)

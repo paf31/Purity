@@ -12,8 +12,6 @@ namespace Purity.Compiler
             Constants.DataKeyword,
             Constants.FunctorKeyword,
             Constants.TypeKeyword,
-            Constants.In,
-            Constants.Out,
             Constants.Inl,
             Constants.Inr,
             Constants.Outl,

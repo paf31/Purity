@@ -5,7 +5,6 @@ using System.Text;
 using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Typechecker.Helpers;
 using Purity.Compiler.Typechecker.Types;
-using Purity.Compiler.Typechecker.Functors;
 using Purity.Compiler.Exceptions;
 using Purity.Compiler.Interfaces;
 
@@ -29,52 +28,7 @@ namespace Purity.Compiler.Typechecker.Utilities
                 changed |= TypeReplacer.Replace(type.Value, tableau, index, tableau.Types[index]);
             }
 
-            foreach (var application in tableau.FunctorApplications.Where(a => a.Value.Item2 == index))
-            {
-                changed |= ApplyFunctorInTableau(tableau, application.Key, application.Value.Item1, application.Value.Item2);
-            }
-
             return changed;
-        }
-
-        public static bool SetFunctorInTableau(Tableau tableau, int index, IPartialFunctor replacement)
-        {
-            var merged = MergeFunctorsVisitor.Merge(tableau.Functors[index], replacement, tableau);
-
-            bool changed = merged != null;
-
-            if (changed)
-            {
-                tableau.Functors[index] = merged;
-            }
-
-            foreach (var functor in tableau.Functors.ToList())
-            {
-                changed |= FunctorReplacer.Replace(functor.Value, index, tableau.Functors[index]);
-            }
-
-            foreach (var application in tableau.FunctorApplications.Where(a => a.Value.Item1 == index))
-            {
-                changed |= ApplyFunctorInTableau(tableau, application.Key, application.Value.Item1, application.Value.Item2);
-            }
-
-            return changed;
-        }
-
-        private static bool ApplyFunctorInTableau(Tableau tableau, int index, int functorIndex, int typeIndex)
-        {
-            var functor = tableau.Functors[functorIndex];
-
-            if (functor is UnknownFunctor) 
-            {
-                return false; 
-            }
-            else
-            {
-                var type = tableau.Types[typeIndex];
-                var applied = PartialFunctorTypeMapper.Map(type, functor);
-                return SetTypeInTableau(tableau, index, applied);
-            }
         }
 
         public static IType ReplaceUnknownsWithTypeVariables(Tableau tableau, int rootIndex)

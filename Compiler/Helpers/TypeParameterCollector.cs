@@ -27,6 +27,10 @@ namespace Purity.Compiler.Helpers
 
         public void VisitSynonym(Types.TypeSynonym t)
         {
+            foreach (var typeParameter in t.TypeParameters)
+            {
+                typeParameter.AcceptVisitor(this);
+            }
         }
 
         public void VisitProduct(Types.ProductType t)
@@ -39,16 +43,6 @@ namespace Purity.Compiler.Helpers
         {
             t.Left.AcceptVisitor(this);
             t.Right.AcceptVisitor(this);
-        }
-
-        public void VisitLFix(Types.LFixType t)
-        {
-            t.Functor.AcceptVisitor(this);
-        }
-
-        public void VisitGFix(Types.GFixType t)
-        {
-            t.Functor.AcceptVisitor(this);
         }
 
         public void VisitParameter(Types.TypeParameter t)
@@ -72,6 +66,10 @@ namespace Purity.Compiler.Helpers
 
         public void VisitSynonym(Functors.FunctorSynonym f)
         {
+            foreach (var typeParameter in f.TypeParameters)
+            {
+                typeParameter.AcceptVisitor(this);
+            }
         }
 
         public void VisitIdentity(Functors.IdentityFunctor f)

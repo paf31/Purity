@@ -14,13 +14,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             return data.AcceptVisitor(new TypedExpressionCreator());
         }
 
-        public ITypedExpression VisitAna(Data.Ana d)
-        {
-            return new Purity.Compiler.TypedExpressions.Ana(
-                TypeConverter.Convert(d.CarrierType),
-                TypeConverter.Convert(d.GFixType));
-        }
-
         public ITypedExpression VisitApplication(Data.Application d)
         {
             return new Purity.Compiler.TypedExpressions.Application(
@@ -38,13 +31,6 @@ namespace Purity.Compiler.Typechecker.Helpers
                 TypeConverter.Convert(d.LeftType),
                 TypeConverter.Convert(d.RightType),
                 TypeConverter.Convert(d.ResultType));
-        }
-
-        public ITypedExpression VisitCata(Data.Cata d)
-        {
-            return new Purity.Compiler.TypedExpressions.Cata(
-                TypeConverter.Convert(d.CarrierType),
-                TypeConverter.Convert(d.LFixType));
         }
 
         public ITypedExpression VisitComposition(Data.Composition d)
@@ -109,18 +95,6 @@ namespace Purity.Compiler.Typechecker.Helpers
                 TypeConverter.Convert(d.InputType));
         }
 
-        public ITypedExpression VisitIn(Data.In d)
-        {
-            return new Purity.Compiler.TypedExpressions.In(
-                TypeConverter.Convert(d.Source));
-        }
-
-        public ITypedExpression VisitOut(Data.Out d)
-        {
-            return new Purity.Compiler.TypedExpressions.Out(
-                TypeConverter.Convert(d.Target));
-        }
-
         public ITypedExpression VisitCurry(Data.Curried d)
         {
             return new Purity.Compiler.TypedExpressions.Curried(
@@ -150,20 +124,6 @@ namespace Purity.Compiler.Typechecker.Helpers
 
             return new Purity.Compiler.TypedExpressions.DataSynonym(d.Identifier,
                 typeParameters);
-        }
-
-        public ITypedExpression VisitBox(Data.Box d)
-        {
-            return new Purity.Compiler.TypedExpressions.Box(
-                TypeConverter.Convert(d.Target), 
-                TypeConverter.Convert(d.Type));
-        }
-
-        public ITypedExpression VisitUnbox(Data.Unbox d)
-        {
-            return new Purity.Compiler.TypedExpressions.Unbox(
-                TypeConverter.Convert(d.Target), 
-                TypeConverter.Convert(d.Type));
         }
 
         public ITypedExpression VisitAbstraction(Data.Abstraction d)

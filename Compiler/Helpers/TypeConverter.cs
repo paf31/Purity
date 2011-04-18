@@ -43,22 +43,13 @@ namespace Purity.Compiler.Helpers
 
         public Type VisitSynonym(Types.TypeSynonym t)
         {
-            return TypeContainer.ResolveType(t.Identifier).Type;
-        }
-
-        public Type VisitLFix(Types.LFixType t)
-        {
-            return TypeContainer.ResolveLFixType(t.Identifier).Type;
-        }
-
-        public Type VisitGFix(Types.GFixType t)
-        {
-            return TypeContainer.ResolveGFixType(t.Identifier).Type;
+            var type = TypeContainer.ResolveType(t.Identifier).Type;
+            return t.TypeParameters.Any() ? type.MakeGenericType(t.TypeParameters.Select(Convert).ToArray()) : type;
         }
 
         public Type VisitParameter(Types.TypeParameter t)
         {
-            return genericMethodParameters.FirstOrDefault(p => p.Name.Equals(t.Identifier));
+            return genericMethodParameters.First(p => p.Name.Equals(t.Identifier));
         }
     }
 }

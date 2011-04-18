@@ -8,13 +8,9 @@ namespace Purity.Compiler.Interfaces
 {
     public interface IDataVisitor
     {
-        void VisitAna(Ana d);
-
         void VisitApplication(Application d);
 
         void VisitCase(Case d);
-
-        void VisitCata(Cata d);
 
         void VisitComposition(Composition d);
 
@@ -34,17 +30,9 @@ namespace Purity.Compiler.Interfaces
 
         void VisitSplit(Split d);
 
-        void VisitIn(In d);
-
-        void VisitOut(Out d);
-
         void VisitCurry(Curried d);
 
         void VisitUncurry(Uncurried d);
-
-        void VisitBox(Box d);
-
-        void VisitUnbox(Unbox d);
 
         void VisitAbstraction(Abstraction d);
 
@@ -53,13 +41,9 @@ namespace Purity.Compiler.Interfaces
 
     public interface IDataVisitor<R>
     {
-        R VisitAna(Ana d);
-
         R VisitApplication(Application d);
 
         R VisitCase(Case d);
-
-        R VisitCata(Cata d);
 
         R VisitComposition(Composition d);
 
@@ -79,17 +63,9 @@ namespace Purity.Compiler.Interfaces
 
         R VisitSplit(Split d);
 
-        R VisitIn(In d);
-
-        R VisitOut(Out d);
-
         R VisitCurry(Curried d);
 
         R VisitUncurry(Uncurried d);
-
-        R VisitBox(Box d);
-
-        R VisitUnbox(Unbox d);
 
         R VisitAbstraction(Abstraction d);
 

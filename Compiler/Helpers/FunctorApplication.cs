@@ -36,7 +36,7 @@ namespace Purity.Compiler.Helpers
 
         public IType VisitSynonym(Functors.FunctorSynonym f)
         {
-            return Map(Container.ResolveFunctor(f.Identifier), t);
+            return Map(Container.ResolveFunctor(f.Identifier).Functor, t);
         }
 
         public IType VisitIdentity(Functors.IdentityFunctor f)

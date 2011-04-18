@@ -80,16 +80,16 @@ namespace Purity.Compiler.Data
             set;
         }
 
-        public TypeBuilder InFunction 
+        public TypeBuilder InFunction
         {
             get;
-            set; 
+            set;
         }
 
-        public ConstructorBuilder InFunctionConstructor 
+        public ConstructorBuilder InFunctionConstructor
         {
-            get; 
-            set; 
+            get;
+            set;
         }
     }
 }

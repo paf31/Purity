@@ -8,13 +8,9 @@ namespace Purity.Compiler.Interfaces
 {
     public interface ITypedExpressionVisitor
     {
-        void VisitAna(Ana d);
-
         void VisitApplication(Application d);
 
         void VisitCase(Case d);
-
-        void VisitCata(Cata d);
 
         void VisitComposition(Composition d);
 
@@ -32,19 +28,11 @@ namespace Purity.Compiler.Interfaces
 
         void VisitSplit(Split d);
 
-        void VisitIn(In d);
-
-        void VisitOut(Out d);
-
         void VisitUncurry(Uncurried d);
 
         void VisitCurry(Curried d);
 
         void VisitSynonym(DataSynonym d);
-
-        void VisitBox(Box d);
-
-        void VisitUnbox(Unbox d);
 
         void VisitAbstraction(Abstraction d);
 
@@ -53,13 +41,9 @@ namespace Purity.Compiler.Interfaces
 
     public interface ITypedExpressionVisitor<R>
     {
-        R VisitAna(Ana d);
-
         R VisitApplication(Application d);
 
         R VisitCase(Case d);
-
-        R VisitCata(Cata d);
 
         R VisitComposition(Composition d);
 
@@ -77,19 +61,11 @@ namespace Purity.Compiler.Interfaces
 
         R VisitSplit(Split d);
 
-        R VisitIn(In d);
-
-        R VisitOut(Out d);
-
         R VisitUncurry(Uncurried d);
 
         R VisitCurry(Curried d);
 
         R VisitSynonym(DataSynonym d);
-
-        R VisitBox(Box d);
-
-        R VisitUnbox(Unbox d);
 
         R VisitAbstraction(Abstraction d);
 

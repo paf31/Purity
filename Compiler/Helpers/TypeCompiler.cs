@@ -12,77 +12,113 @@ using Purity.Compiler.Exceptions;
 
 namespace Purity.Compiler.Helpers
 {
-    public class TypeCompiler : ITypeVisitor<ITypeInfo>
+    public class TypeCompiler : ITypeDeclarationVisitor<ITypeInfo>
     {
         private readonly ModuleBuilder module;
+        private readonly TypeBuilder dataClass;
         private readonly string moduleName;
         private readonly string name;
 
-        public TypeCompiler(ModuleBuilder module, string moduleName, string name)
+        public TypeCompiler(ModuleBuilder module, TypeBuilder dataClass, string moduleName, string name)
         {
             this.module = module;
+            this.dataClass = dataClass;
             this.moduleName = moduleName;
             this.name = name;
         }
 
-        public static ITypeInfo Compile(IType type, ModuleBuilder module, string moduleName, string declarationName)
+        public static ITypeInfo Compile(ITypeDeclaration typeDeclaration, TypeBuilder dataClass, ModuleBuilder module, string moduleName, string declarationName)
         {
-            return type.AcceptVisitor(new TypeCompiler(module, moduleName, declarationName));
+            return typeDeclaration.AcceptVisitor(new TypeCompiler(module, dataClass, moduleName, declarationName));
         }
 
-        public ITypeInfo VisitArrow(Types.ArrowType t)
+        public ITypeInfo VisitBox(TypeDeclarations.BoxedTypeDeclaration t)
         {
-            return BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
+            var typeInfo = BoxedTypeCreator.CreateBoxedType(t.Type, module, moduleName, name, t.TypeParameters);
+
+            TypeContainer.Add(name, typeInfo);
+
+            var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
+
+            var boxType = new Types.ArrowType(t.Type, synonym);
+            var unboxType = new Types.ArrowType(synonym, t.Type);
+
+            MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.BoxFunctionConstructor,
+                boxType, t.TypeParameters);
+            MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.UnboxFunctionConstructor,
+                unboxType, t.TypeParameters);
+
+            return typeInfo;
         }
 
-        public ITypeInfo VisitSynonym(Types.TypeSynonym t)
+        public ITypeInfo VisitLFix(TypeDeclarations.LFixTypeDeclaration t)
         {
-            return BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
-        }
-
-        public ITypeInfo VisitProduct(Types.ProductType t)
-        {
-            return BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
-        }
-
-        public ITypeInfo VisitSum(Types.SumType t)
-        {
-            return BoxedTypeCreator.CreateBoxedType(t, module, moduleName, name);
-        }
-
-        public ITypeInfo VisitLFix(Types.LFixType t)
-        {
-            t.Identifier = name;
-
             var functorClass = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
 
-            var fmap = t.Functor.Compile(functorClass);
+            var fmap = t.Functor.Compile(functorClass, t.TypeParameters);
             var named = new Named<IFunctor>(name, t.Functor);
-            var compiler = new LFixCompiler(named, module, functorClass, fmap, moduleName);
+            var compiler = new LFixCompiler(named, module, functorClass, fmap, moduleName, t.TypeParameters);
+
             compiler.Compile();
 
-            return compiler.TypeInfo;
+            var typeInfo = compiler.TypeInfo;
+
+            TypeContainer.Add(name, typeInfo);
+
+            var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
+
+            var fSynonym = FunctorApplication.Map(t.Functor, synonym);
+            var constructorType = new Types.ArrowType(fSynonym, synonym);
+            var destructorType = new Types.ArrowType(synonym, fSynonym);
+
+            var cataParameter = new Types.TypeParameter(Constants.CataFunction1ClassGenericParameterName);
+            var fCataParameter = FunctorApplication.Map(t.Functor, cataParameter);
+            var cataType = new Types.ArrowType(new Types.ArrowType(fCataParameter, cataParameter), new Types.ArrowType(synonym, cataParameter));
+
+            MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.OutFunctionConstructor,
+                constructorType, t.TypeParameters);
+            MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.InFunctionConstructor,
+                destructorType, t.TypeParameters);
+            MethodCompiler.Compile(t.CataFunctionName, dataClass, typeInfo.CataFunction1Constructor,
+                cataType, new[] { Constants.CataFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray());
+
+            return typeInfo;
         }
 
-        public ITypeInfo VisitGFix(Types.GFixType t)
+        public ITypeInfo VisitGFix(TypeDeclarations.GFixTypeDeclaration t)
         {
-            t.Identifier = name;
-
             var functorClass = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
 
-            var fmap = t.Functor.Compile(functorClass);
+            var fmap = t.Functor.Compile(functorClass, t.TypeParameters);
             var named = new Named<IFunctor>(name, t.Functor);
-            var compiler = new GFixCompiler(named, module, functorClass, fmap, moduleName);
+            var compiler = new GFixCompiler(named, module, functorClass, fmap, moduleName, t.TypeParameters);
+
             compiler.Compile();
 
-            return compiler.TypeInfo;
-        }
+            var typeInfo = compiler.TypeInfo;
 
-        public ITypeInfo VisitParameter(Types.TypeParameter t)
-        {
-            throw new CompilerException(ErrorMessages.UnexpectedVariable);
+            TypeContainer.Add(name, typeInfo);
+
+            var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
+
+            var fSynonym = FunctorApplication.Map(t.Functor, synonym);
+            var constructorType = new Types.ArrowType(fSynonym, synonym);
+            var destructorType = new Types.ArrowType(synonym, fSynonym);
+
+            var anaParameter = new Types.TypeParameter(Constants.AnaFunction1ClassGenericParameterName);
+            var fAnaParameter = FunctorApplication.Map(t.Functor, anaParameter);
+            var anaType = new Types.ArrowType(new Types.ArrowType(anaParameter, fAnaParameter), new Types.ArrowType(anaParameter, synonym));
+
+            MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.OutFunctionConstructor,
+                constructorType, t.TypeParameters);
+            MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.InFunctionConstructor,
+                destructorType, t.TypeParameters);
+            MethodCompiler.Compile(t.AnaFunctionName, dataClass, typeInfo.AnaFunction1Constructor,
+                anaType, new[] { Constants.AnaFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray());
+
+            return typeInfo;
         }
     }
 }

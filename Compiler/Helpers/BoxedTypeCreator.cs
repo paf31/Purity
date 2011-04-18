@@ -12,14 +12,16 @@ namespace Purity.Compiler.Helpers
 {
     public static class BoxedTypeCreator
     {
-        public static BoxedTypeInfo CreateBoxedType(IType type, ModuleBuilder module, string moduleName, string name)
+        public static BoxedTypeInfo CreateBoxedType(IType type, ModuleBuilder module, string moduleName, string name, string[] typeParameters)
         {
             var boxedTypeInfo = new BoxedTypeInfo();
 
-            var containedType = new TypeConverter(null).Convert(type);
-
             boxedTypeInfo.Type = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Sealed);
+
+            var genericParameters = typeParameters.Any() ? boxedTypeInfo.Type.DefineGenericParameters(typeParameters) : Type.EmptyTypes;
+
+            var containedType = new TypeConverter(genericParameters).Convert(type);
 
             boxedTypeInfo.Field = boxedTypeInfo.Type.DefineField(Constants.BoxedTypeValueFieldName, containedType, FieldAttributes.Public);
 
@@ -36,51 +38,71 @@ namespace Purity.Compiler.Helpers
             var methodsType = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Sealed | TypeAttributes.Abstract);
 
-            CompileBoxFunction(boxedTypeInfo, methodsType, moduleName, name, containedType);
-            CompileUnboxFunction(boxedTypeInfo, methodsType, moduleName, name, containedType);
+            CompileBoxFunction(type, boxedTypeInfo, methodsType, moduleName, name, typeParameters);
+            CompileUnboxFunction(type, boxedTypeInfo, methodsType, moduleName, name, typeParameters);
 
             return boxedTypeInfo;
         }
 
-        private static void CompileBoxFunction(BoxedTypeInfo typeInfo, TypeBuilder methodsType, string moduleName, string name, Type containedType)
+        private static void CompileBoxFunction(IType type, BoxedTypeInfo typeInfo, TypeBuilder methodsType, string moduleName, string name, string[] typeParameters)
         {
-            typeInfo.BoxFunction = methodsType.DefineNestedType(Constants.BoxFunctionClassName,
+            var boxFunction = methodsType.DefineNestedType(Constants.BoxFunctionClassName,
                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.Class,
-               null, new[] { typeof(IFunction<,>).MakeGenericType(containedType, typeInfo.Type) });
+               null, Type.EmptyTypes);
 
-            typeInfo.BoxFunctionConstructor = typeInfo.BoxFunction.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
+            var genericParameters = typeParameters.Any() ? boxFunction.DefineGenericParameters(typeParameters) : Type.EmptyTypes;
+
+            var containedType = new TypeConverter(genericParameters).Convert(type);
+
+            boxFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(containedType, typeInfo.Type));
+
+            typeInfo.BoxFunction = boxFunction;
+
+            typeInfo.BoxFunctionConstructor = boxFunction.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
             var ctorBody = typeInfo.BoxFunctionConstructor.GetILGenerator();
             ctorBody.Emit(OpCodes.Ldarg_0);
             ctorBody.Emit(OpCodes.Call, typeof(object).GetConstructors()[0]);
             ctorBody.Emit(OpCodes.Ret);
 
-            var call = typeInfo.BoxFunction.DefineMethod(Constants.CallMethodName, MethodAttributes.Public | MethodAttributes.Virtual,
+            var call = boxFunction.DefineMethod(Constants.CallMethodName, MethodAttributes.Public | MethodAttributes.Virtual,
                 typeInfo.Type, new Type[] { containedType });
 
             var callBody = call.GetILGenerator();
             callBody.Emit(OpCodes.Ldarg_1);
-            callBody.Emit(OpCodes.Newobj, typeInfo.Constructor);
+            callBody.Emit(OpCodes.Newobj, typeParameters.Any()
+                ? TypeBuilder.GetConstructor(typeInfo.Type.MakeGenericType(genericParameters), typeInfo.Constructor)
+                : typeInfo.Constructor);
             callBody.Emit(OpCodes.Ret);
         }
 
-        private static void CompileUnboxFunction(BoxedTypeInfo typeInfo, TypeBuilder methodsType, string moduleName, string name, Type containedType)
+        private static void CompileUnboxFunction(IType type, BoxedTypeInfo typeInfo, TypeBuilder methodsType, string moduleName, string name, string[] typeParameters)
         {
-            typeInfo.UnboxFunction = methodsType.DefineNestedType(Constants.UnboxFunctionClassName,
+            var unboxFunction = methodsType.DefineNestedType(Constants.UnboxFunctionClassName,
                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.Class,
-               null, new[] { typeof(IFunction<,>).MakeGenericType(typeInfo.Type, containedType) });
+               null, Type.EmptyTypes);
 
-            typeInfo.UnboxFunctionConstructor = typeInfo.UnboxFunction.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
+            var genericParameters = typeParameters.Any() ? unboxFunction.DefineGenericParameters(typeParameters) : Type.EmptyTypes;
+
+            var containedType = new TypeConverter(genericParameters).Convert(type);
+
+            unboxFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(typeInfo.Type, containedType));
+
+            typeInfo.UnboxFunction = unboxFunction;
+
+            typeInfo.UnboxFunctionConstructor = unboxFunction.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
             var ctorBody = typeInfo.UnboxFunctionConstructor.GetILGenerator();
             ctorBody.Emit(OpCodes.Ldarg_0);
             ctorBody.Emit(OpCodes.Call, typeof(object).GetConstructors()[0]);
             ctorBody.Emit(OpCodes.Ret);
 
-            var call = typeInfo.UnboxFunction.DefineMethod(Constants.CallMethodName, MethodAttributes.Public | MethodAttributes.Virtual,
+            var call = unboxFunction.DefineMethod(Constants.CallMethodName, MethodAttributes.Public | MethodAttributes.Virtual,
                 containedType, new Type[] { typeInfo.Type });
 
             var callBody = call.GetILGenerator();
             callBody.Emit(OpCodes.Ldarg_1);
-            callBody.Emit(OpCodes.Ldfld, typeInfo.Field);
+            callBody.Emit(OpCodes.Ldfld, typeParameters.Any() 
+                ? TypeBuilder.GetField(typeInfo.Type.MakeGenericType(genericParameters), typeInfo.Field)
+                : typeInfo.Field);
             callBody.Emit(OpCodes.Ret);
         }
     }

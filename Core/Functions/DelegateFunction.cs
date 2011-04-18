@@ -5,6 +5,14 @@ using System.Text;
 
 namespace Purity.Core.Functions
 {
+    public static class DelegateFunction
+    {
+        public static IFunction<A, B> Create<A, B>(Func<A, B> f)
+        {
+            return new DelegateFunction<A, B>(f);
+        }
+    }
+
     public class DelegateFunction<A, B> : IFunction<A, B>
     {
         private readonly Func<A, B> f;

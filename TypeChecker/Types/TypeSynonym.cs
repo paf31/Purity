@@ -12,9 +12,12 @@ namespace Purity.Compiler.Typechecker.Types
     {
         public string Identifier { get; set; }
 
-        public TypeSynonym(string identifier)
+        public IPartialType[] TypeParameters { get; set; }
+
+        public TypeSynonym(string identifier, IPartialType[] typeParameters)
         {
             Identifier = identifier;
+            TypeParameters = typeParameters;
         }
 
         public void AcceptVisitor(IPartialTypeVisitor visitor)

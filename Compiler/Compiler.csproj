@@ -51,7 +51,10 @@
     <Compile Include="Helpers\AbstractionElimination.cs" />
     <Compile Include="Helpers\BoxedTypeCreator.cs" />
     <Compile Include="Helpers\FunctorApplication.cs" />
+    <Compile Include="Helpers\ConstantExpressions.cs" />
+    <Compile Include="Helpers\MethodCompiler.cs" />
     <Compile Include="Helpers\ReplaceTypeParameters.cs" />
+    <Compile Include="Helpers\TypeOfTypedExpression.cs" />
     <Compile Include="Helpers\TypeParameterCollector.cs" />
     <Compile Include="Helpers\VariableElimination.cs" />
     <Compile Include="Helpers\GFixCompiler.cs" />

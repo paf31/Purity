@@ -10,19 +10,19 @@ namespace Purity.Compiler.Modules
     {
         public ProgramElementType ElementType { get; set; }
 
-        public Named<IFunctor> Functor { get; set; }
+        public Named<FunctorDeclaration> Functor { get; set; }
         
-        public Named<IType> Type { get; set; }
+        public Named<ITypeDeclaration> Type { get; set; }
         
         public Named<DataDeclaration> Data { get; set; }
 
-        public ProgramElement(Named<IFunctor> functor)
+        public ProgramElement(Named<FunctorDeclaration> functor)
         {
             ElementType = ProgramElementType.Functor;
             Functor = functor;
         }
 
-        public ProgramElement(Named<IType> type)
+        public ProgramElement(Named<ITypeDeclaration> type)
         {
             ElementType = ProgramElementType.Type;
             Type = type;

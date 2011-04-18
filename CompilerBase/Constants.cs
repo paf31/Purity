@@ -18,6 +18,10 @@ namespace Purity.Compiler
         public const char OpeningBracket = '(';
         public const char ClosingBracket = ')';
 
+        public const char OpenTypeDeclaration = '(';
+        public const char CloseTypeDeclaration = ')';
+        public const char TypeDeclarationSeparator = ',';
+
         public const char DataTypeIntroduction = ':';
 
         public const char TypeParameterIndicator = '?';
@@ -33,12 +37,6 @@ namespace Purity.Compiler
         public const char SplitClosingBrace = ')';
         public const char SplitSeparator = ',';
 
-        public const string AnaOpeningBrace = "{|";
-        public const string AnaClosingBrace = "|}";
-
-        public const string CataOpeningBrace = "(|";
-        public const string CataClosingBrace = "|)";
-
         public const string Inl = "inl";
         public const string Inr = "inr";
 
@@ -50,12 +48,6 @@ namespace Purity.Compiler
         public const string LambdaOperator = "=>";
 
         public const string Id = "id";
-
-        public const string In = "in";
-        public const string Out = "out";
-
-        public const char Box = '&';
-        public const char Unbox = '^';
 
         public const string Curry = "curry";
         public const string Uncurry = "uncurry";
@@ -98,8 +90,8 @@ namespace Purity.Compiler
         public const string AnaMethodGenericParameterName = "T";
 
         public const string FMapMethodName = "FMap";
-        public const string FMapMethodInputParameterName = "A";
-        public const string FMapMethodOutputParameterName = "B";
+        public const string FMapMethodInputParameterName = "_T1";
+        public const string FMapMethodOutputParameterName = "_T2";
         
         public const string OutMethodName = "Out";
        

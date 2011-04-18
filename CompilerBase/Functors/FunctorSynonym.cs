@@ -12,9 +12,12 @@ namespace Purity.Compiler.Functors
     {
         public string Identifier { get; set; }
 
-        public FunctorSynonym(string identifier)
+        public IType[] TypeParameters { get; set; }
+
+        public FunctorSynonym(string identifier, IType[] typeParameters)
         {
             Identifier = identifier;
+            TypeParameters = typeParameters;
         }
 
         public void AcceptVisitor(Interfaces.IFunctorVisitor visitor)

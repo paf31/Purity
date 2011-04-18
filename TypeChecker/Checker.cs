@@ -22,23 +22,18 @@ namespace Purity.Compiler.Typechecker
             CycleDetector.ThrowOnCycleDetected(visitor.Constraints);
 
             Tableau tableau = new Tableau(visitor.TypeIndex, visitor.FunctorIndex);
-            
-            if (decl.Type != null)
-            {
-                tableau.Types[rootIndex] = PartialTypeCreator.Convert(decl.Type);
-            }
 
             foreach (var type in visitor.KnownTypes)
             {
                 if (type.Value != null)
                 {
-                    tableau.Types[type.Key] = type.Value;
+                    TableauUtilities.SetTypeInTableau(tableau, type.Key, type.Value);
                 }
             }
 
-            foreach (var application in visitor.KnownFunctorApplications)
+            if (decl.Type != null)
             {
-                tableau.FunctorApplications[application.Key] = application.Value;
+                TableauUtilities.SetTypeInTableau(tableau, rootIndex, PartialTypeCreator.Convert(decl.Type, null));
             }
 
             EnforceConstraints(tableau, visitor.Constraints);

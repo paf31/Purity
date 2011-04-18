@@ -5,18 +5,16 @@ using System.Text;
 
 namespace Purity.Compiler.Interfaces
 {
-    public interface IFixedPointType : IType
+    public interface ITypeDeclaration
     {
-        string Identifier
+        string[] TypeParameters
         {
             get;
             set;
         }
 
-        IFunctor Functor
-        {
-            get;
-            set;
-        }
+        void AcceptVisitor(ITypeDeclarationVisitor visitor);
+
+        R AcceptVisitor<R>(ITypeDeclarationVisitor<R> visitor);
     }
 }

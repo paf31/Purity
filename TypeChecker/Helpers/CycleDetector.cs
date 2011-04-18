@@ -52,18 +52,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             ThrowOnCycleDetected(c.Right);
         }
 
-        public void VisitFix(Constraints.FixConstraint c)
-        {
-        }
-
-        public void VisitLFix(Constraints.LFixConstraint c)
-        {
-        }
-
-        public void VisitGFix(Constraints.GFixConstraint c)
-        {
-        }
-
         public void VisitProduct(Constraints.ProductConstraint c)
         {
             ThrowOnCycleDetected(c.Left);
@@ -74,11 +62,6 @@ namespace Purity.Compiler.Typechecker.Helpers
         {
             ThrowOnCycleDetected(c.Left);
             ThrowOnCycleDetected(c.Right);
-        }
-
-        public void VisitSynonym(Constraints.SynonymConstraint c)
-        {
-            ThrowOnCycleDetected(c.Target);
         }
     }
 }

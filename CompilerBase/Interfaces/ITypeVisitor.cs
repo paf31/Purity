@@ -16,10 +16,6 @@ namespace Purity.Compiler.Interfaces
 
         void VisitSum(SumType t);
 
-        void VisitLFix(LFixType t);
-
-        void VisitGFix(GFixType t);
-
         void VisitParameter(TypeParameter t);
     }
 
@@ -32,10 +28,6 @@ namespace Purity.Compiler.Interfaces
         R VisitProduct(ProductType t);
 
         R VisitSum(SumType t);
-
-        R VisitLFix(LFixType t);
-
-        R VisitGFix(GFixType t);
 
         R VisitParameter(TypeParameter t);
     }

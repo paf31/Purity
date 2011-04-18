@@ -22,7 +22,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public IType VisitSynonym(Types.TypeSynonym t)
         {
-            return new Purity.Compiler.Types.TypeSynonym(t.Identifier);
+            return new Purity.Compiler.Types.TypeSynonym(t.Identifier, t.TypeParameters.Select(Convert).ToArray());
         }
 
         public IType VisitProduct(Types.ProductType t)
@@ -33,30 +33,6 @@ namespace Purity.Compiler.Typechecker.Helpers
         public IType VisitSum(Types.SumType t)
         {
             return new Purity.Compiler.Types.SumType(Convert(t.Left), Convert(t.Right));
-        }
-
-        public IType VisitLFix(Types.LFixType t)
-        {
-            if (t.Identifier == null)
-            {
-                throw new CompilerException(ErrorMessages.UnableToInferFunctor);
-            }
-
-            var result = new Purity.Compiler.Types.LFixType(FunctorConverter.Convert(t.Functor));
-            result.Identifier = t.Identifier;
-            return result;
-        }
-
-        public IType VisitGFix(Types.GFixType t)
-        {
-            if (t.Identifier == null)
-            {
-                throw new CompilerException(ErrorMessages.UnableToInferFunctor);
-            }
-
-            var result = new Purity.Compiler.Types.GFixType(FunctorConverter.Convert(t.Functor));
-            result.Identifier = t.Identifier;
-            return result;
         }
 
         public IType VisitParameter(Types.TypeParameter t)

@@ -5,10 +5,11 @@ using System.Text;
 using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Exceptions;
 using Purity.Compiler.Typechecker.Types;
+using Purity.Compiler.Typechecker.Utilities;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
-    public class TypeReplacer : IPartialTypeVisitor, IPartialFunctorVisitor
+    public class TypeReplacer : IPartialTypeVisitor
     {
         private readonly int index;
         private readonly Tableau tableau;
@@ -57,6 +58,17 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public void VisitSynonym(Types.TypeSynonym t)
         {
+            for (int i = 0; i< t.TypeParameters.Length; i++)
+            {
+                if (t.TypeParameters[i] is UnknownType && (t.TypeParameters[i] as UnknownType).Index == index)
+                {
+                    var unknown = replacement as UnknownType;
+                    HasChanges |= !(unknown != null && unknown.Index == index);
+                    t.TypeParameters[i] = replacement;
+                }
+
+                t.TypeParameters[i].AcceptVisitor(this);
+            }
         }
 
         public void VisitProduct(Types.ProductType t)
@@ -99,66 +111,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             t.Right.AcceptVisitor(this);
         }
 
-        public void VisitLFix(Types.LFixType t)
-        {
-            t.Functor.AcceptVisitor(this);
-        }
-
-        public void VisitGFix(Types.GFixType t)
-        {
-            t.Functor.AcceptVisitor(this);
-        }
-
         public void VisitUnknown(Types.UnknownType t)
-        {
-        }
-
-        public void VisitArrow(Functors.ArrowFunctor f)
-        {
-            if (f.Left is UnknownType && (f.Left as UnknownType).Index == index)
-            {
-                var unknown = replacement as UnknownType;
-                HasChanges |= !(unknown != null && unknown.Index == index);
-                f.Left = replacement;
-            }
-
-            f.Left.AcceptVisitor(this);
-            f.Right.AcceptVisitor(this);
-        }
-
-        public void VisitConstant(Functors.ConstantFunctor f)
-        {
-            if (f.Value is UnknownType && (f.Value as UnknownType).Index == index)
-            {
-                var unknown = replacement as UnknownType;
-                HasChanges |= !(unknown != null && unknown.Index == index);
-                f.Value = replacement;
-            }
-
-            f.Value.AcceptVisitor(this);
-        }
-
-        public void VisitIdentity(Functors.IdentityFunctor f)
-        {
-        }
-
-        public void VisitProduct(Functors.ProductFunctor f)
-        {
-            f.Left.AcceptVisitor(this);
-            f.Right.AcceptVisitor(this);
-        }
-
-        public void VisitSum(Functors.SumFunctor f)
-        {
-            f.Left.AcceptVisitor(this);
-            f.Right.AcceptVisitor(this);
-        }
-
-        public void VisitUnknown(Functors.UnknownFunctor f)
-        {
-        }
-
-        public void VisitSynonym(Functors.FunctorSynonym f)
         {
         }
 

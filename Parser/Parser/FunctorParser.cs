@@ -11,7 +11,14 @@ namespace Purity.Compiler.Parser
     public static class FunctorParser
     {
         static Parser<string, IFunctor> ParseFunctorSynonym =
-            Parsers.Identifier.Select(i => (IFunctor)new FunctorSynonym(i));
+            from ident in Parsers.Identifier
+            from typeParameters in
+                (
+                    from ws in Parsers.WSChar.Rep1()
+                    from typeParameter in TypeParser.ParseType
+                    select typeParameter
+                ).Rep()
+            select(IFunctor)new FunctorSynonym(ident, typeParameters.ToArray());
 
         static Parser<string, IFunctor> ParseConstant =
             from open in Parsers.Match(Constants.Const)

@@ -9,11 +9,22 @@ namespace Purity.Compiler.Types
 {
     public class TypeSynonym : IType
     {
-        public string Identifier { get; set; }
+        public string Identifier
+        {
+            get;
+            set;
+        }
 
-        public TypeSynonym(string identifier)
+        public IType[] TypeParameters
+        {
+            get;
+            set;
+        }
+
+        public TypeSynonym(string identifier, IType[] typeParameters)
         {
             Identifier = identifier;
+            TypeParameters = typeParameters;
         }
 
         public void AcceptVisitor(ITypeVisitor visitor)

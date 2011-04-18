@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Exceptions;
-using Purity.Compiler.Typechecker.Functors;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
@@ -52,9 +51,27 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
             else if (replacement is Types.TypeSynonym)
             {
-                if (t.Identifier.Equals((replacement as Types.TypeSynonym).Identifier))
+                var synonym = replacement as Types.TypeSynonym;
+
+                if (t.Identifier.Equals(synonym.Identifier))
                 {
-                    return null;
+                    bool changed = false;
+
+                    IPartialType[] parameters = new IPartialType[t.TypeParameters.Length];
+
+                    for (int i = 0; i < t.TypeParameters.Length; i++) 
+                    {
+                        var merged = Merge(t.TypeParameters[i], synonym.TypeParameters[i], tableau);
+
+                        if (merged != null) 
+                        {
+                            changed = true; 
+                        }
+
+                        parameters[i] = merged ?? t.TypeParameters[i];
+                    }
+
+                    return changed ? new Types.TypeSynonym(t.Identifier, parameters) : null;
                 }
                 else
                 {
@@ -105,60 +122,6 @@ namespace Purity.Compiler.Typechecker.Helpers
             }
         }
 
-        public IPartialType VisitLFix(Types.LFixType t)
-        {
-            if (replacement is Types.UnknownType)
-            {
-                return null;
-            }
-            else if (replacement is Types.LFixType)
-            {
-                var t1 = replacement as Types.LFixType;
-                var functor = MergeFunctorsVisitor.Merge(t.Functor, t1.Functor, tableau);
-                if (functor == null)
-                {
-                    return null;
-                }
-                else
-                {
-                    var result = new Types.LFixType(functor);
-                    result.Identifier = t.Identifier ?? t1.Identifier;
-                    return string.Equals(result.Identifier, t.Identifier) ? null : result;
-                }
-            }
-            else
-            {
-                throw new CompilerException(ErrorMessages.ExpectedLFixType);
-            }
-        }
-
-        public IPartialType VisitGFix(Types.GFixType t)
-        {
-            if (replacement is Types.UnknownType)
-            {
-                return null;
-            }
-            else if (replacement is Types.GFixType)
-            {
-                var t1 = replacement as Types.GFixType;
-                var functor = MergeFunctorsVisitor.Merge(t.Functor, t1.Functor, tableau);
-                if (functor == null)
-                {
-                    return null;
-                }
-                else
-                {
-                    var result = new Types.GFixType(functor);
-                    result.Identifier = t.Identifier ?? t1.Identifier;
-                    return string.Equals(result.Identifier, t.Identifier) ? null : result;
-                }
-            }
-            else
-            {
-                throw new CompilerException(ErrorMessages.ExpectedGFixType);
-            }
-        }
-
         public IPartialType VisitUnknown(Types.UnknownType t)
         {
             var unknown = replacement as Types.UnknownType;
@@ -168,12 +131,17 @@ namespace Purity.Compiler.Typechecker.Helpers
                 if (unknown.Index != t.Index)
                 {
                     tableau.AddCollision(unknown.Index, t.Index);
-                }
+                }               
 
                 return null;
             }
             else
             {
+                if (tableau.Types[t.Index] is Types.UnknownType)
+                {
+                    tableau.Types[t.Index] = replacement;
+                }
+
                 return replacement;
             }
         }

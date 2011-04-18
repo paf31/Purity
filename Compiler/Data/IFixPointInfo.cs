@@ -20,6 +20,18 @@ namespace Purity.Compiler.Data
             set;
         }
 
+        TypeBuilder InFunction
+        {
+            get;
+            set;
+        }
+
+        TypeBuilder OutFunction
+        {
+            get;
+            set;
+        }
+
         ConstructorBuilder OutFunctionConstructor
         {
             get;

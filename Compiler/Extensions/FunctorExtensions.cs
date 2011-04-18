@@ -14,18 +14,24 @@ namespace Purity.Compiler.Extensions
 {
     public static class FunctorExtensions
     {
-        public static MethodBuilder Compile(this IFunctor functor, TypeBuilder utilityClass)
+        public static MethodBuilder Compile(this IFunctor functor, TypeBuilder utilityClass, string[] genericParameters)
         {
+            var genericParameterNames = new[] 
+            { 
+                Constants.FMapMethodInputParameterName, 
+                Constants.FMapMethodOutputParameterName 
+            }.Concat(genericParameters).ToArray();
+
             var fmap = utilityClass.DefineMethod(Constants.FMapMethodName, MethodAttributes.Public | MethodAttributes.Static);
-            var fmapParameters = fmap.DefineGenericParameters(Constants.FMapMethodInputParameterName, Constants.FMapMethodOutputParameterName);
+            var fmapParameters = fmap.DefineGenericParameters(genericParameterNames);
 
-            fmap.SetReturnType(typeof(IFunction<,>).MakeGenericType(fmapParameters.Select(t => new FunctorTypeMapper(t).Map(functor)).ToArray()));
+            fmap.SetReturnType(typeof(IFunction<,>).MakeGenericType(fmapParameters.Take(2).Select(t => new FunctorTypeMapper(t, fmapParameters).Map(functor)).ToArray()));
 
-            fmap.SetParameters(typeof(IFunction<,>).MakeGenericType(fmapParameters));
+            fmap.SetParameters(typeof(IFunction<,>).MakeGenericType(fmapParameters.Take(2).ToArray()));
 
             var fmapBody = fmap.GetILGenerator();
 
-            functor.AcceptVisitor(new FmapCompiler(fmapBody, fmapParameters[0], fmapParameters[1]));
+            functor.AcceptVisitor(new FmapCompiler(fmapBody, fmapParameters));
 
             fmapBody.Emit(OpCodes.Ret);
 

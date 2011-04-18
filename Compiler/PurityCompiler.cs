@@ -68,11 +68,10 @@ namespace Purity.Compiler
                         case ProgramElementType.Type:
                             {
                                 declarationName = element.Type.Name;
-                                var type = element.Type.Value;
-                                var typeInfo = TypeCompiler.Compile(type, module, moduleName, declarationName); 
+                                var typeDeclaration = element.Type.Value;
+                                TypeCompiler.Compile(typeDeclaration, dataClass, module, moduleName, declarationName);
 
-                                Container.Add(declarationName, type);
-                                TypeContainer.Add(declarationName, typeInfo);
+                                Container.Add(declarationName, typeDeclaration);
                                 break;
                             }
                         case ProgramElementType.Data:
@@ -86,7 +85,7 @@ namespace Purity.Compiler
                                 data.Type.AcceptVisitor(collector);
                                 data.TypeParameters = collector.Parameters.ToArray();
 
-                                DataCompiler.CompileMethod(declarationName, dataClass, typedExpression, data);
+                                MethodCompiler.Compile(declarationName, dataClass, typedExpression, data);
                                 break;
                             }
                     }

@@ -12,10 +12,12 @@ namespace Purity.Compiler.Helpers
     public class FunctorTypeMapper : IFunctorVisitor<Type>
     {
         private readonly Type t;
+        private readonly Type[] genericParameters;
 
-        public FunctorTypeMapper(Type t)
+        public FunctorTypeMapper(Type t, Type[] genericParameters)
         {
             this.t = t;
+            this.genericParameters = genericParameters;
         }
 
         public Type Map(IFunctor f)
@@ -25,17 +27,18 @@ namespace Purity.Compiler.Helpers
 
         public Type VisitArrow(Functors.ArrowFunctor f)
         {
-            return typeof(IFunction<,>).MakeGenericType(new TypeConverter(null).Convert(f.Left), Map(f.Right));
+            var left = new TypeConverter(genericParameters).Convert(f.Left);
+            return typeof(IFunction<,>).MakeGenericType(left, Map(f.Right));
         }
 
         public Type VisitConstant(Functors.ConstantFunctor f)
         {
-            return new TypeConverter(null).Convert(f.Value);
+            return new TypeConverter(genericParameters).Convert(f.Value);
         }
 
         public Type VisitSynonym(Functors.FunctorSynonym f)
         {
-            return Map(Container.ResolveFunctor(f.Identifier));
+            return Map(Container.ResolveFunctor(f.Identifier).Functor);
         }
 
         public Type VisitIdentity(Functors.IdentityFunctor f)

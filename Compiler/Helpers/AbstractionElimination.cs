@@ -9,10 +9,6 @@ namespace Purity.Compiler.Helpers
 {
     public class AbstractionElimination : ITypedExpressionVisitor
     {
-        public void VisitAna(TypedExpressions.Ana d)
-        {
-        }
-
         public void VisitApplication(TypedExpressions.Application d)
         {
             d.Left.AcceptVisitor(this);
@@ -23,10 +19,6 @@ namespace Purity.Compiler.Helpers
         {
             d.Left.AcceptVisitor(this);
             d.Right.AcceptVisitor(this);
-        }
-
-        public void VisitCata(TypedExpressions.Cata d)
-        {
         }
 
         public void VisitComposition(TypedExpressions.Composition d)
@@ -66,14 +58,6 @@ namespace Purity.Compiler.Helpers
             d.Right.AcceptVisitor(this);
         }
 
-        public void VisitIn(TypedExpressions.In d)
-        {
-        }
-
-        public void VisitOut(TypedExpressions.Out d)
-        {
-        }
-
         public void VisitUncurry(TypedExpressions.Uncurried d)
         {
             d.Function.AcceptVisitor(this);
@@ -85,14 +69,6 @@ namespace Purity.Compiler.Helpers
         }
 
         public void VisitSynonym(TypedExpressions.DataSynonym d)
-        {
-        }
-
-        public void VisitBox(TypedExpressions.Box d)
-        {
-        }
-
-        public void VisitUnbox(TypedExpressions.Unbox d)
         {
         }
 

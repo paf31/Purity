@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Parser\TypeDeclarationParser.cs" />
     <Compile Include="Parser\DataParser.cs" />
     <Compile Include="Parser\FunctorParser.cs" />
     <Compile Include="Parser\ModuleParser.cs" />
