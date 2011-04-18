@@ -51,7 +51,8 @@ namespace Repl.Helpers
 
                 var type = (declaration as BoxedTypeDeclaration).Type;
 
-                return string.Format("[{0}]", Print(unboxed, type, maxDepth));
+                return string.Format("{0} ({1})", (declaration as BoxedTypeDeclaration).ConstructorFunctionName,
+                    Print(unboxed, type, maxDepth));
             }
             else if (typeInfo is LFixTypeInfo)
             {
@@ -60,7 +61,8 @@ namespace Repl.Helpers
 
                 var functor = (declaration as LFixTypeDeclaration).Functor;
                 var flfix = FunctorApplication.Map(functor, t);
-                return string.Format("out ({0})", Print(unpacked, flfix, maxDepth - 1));
+                return string.Format("{0} ({1})", (declaration as LFixTypeDeclaration).ConstructorFunctionName,
+                    Print(unpacked, flfix, maxDepth - 1));
             }
             else if (typeInfo is GFixTypeInfo)
             {
@@ -69,7 +71,8 @@ namespace Repl.Helpers
 
                 var functor = (declaration as GFixTypeDeclaration).Functor;
                 var flfix = FunctorApplication.Map(functor, t);
-                return string.Format("out ({0})", Print(unpacked, flfix, maxDepth - 1));
+                return string.Format("{0} ({1})", (declaration as GFixTypeDeclaration).ConstructorFunctionName, 
+                    Print(unpacked, flfix, maxDepth - 1));
             }
 
             throw new CompilerException("Unknown type declaration.");
