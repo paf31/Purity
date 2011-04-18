@@ -22,35 +22,40 @@ namespace Purity.Compiler
 {
     public class PurityCompiler
     {
-        public string Program
+        private readonly ModuleBuilder module;
+        private readonly TypeBuilder dataClass;
+        private readonly string moduleName;
+
+        public PurityCompiler(string moduleName, ModuleBuilder module, TypeBuilder dataClass)
         {
-            get;
-            set;
+            this.module = module;
+            this.dataClass = dataClass;
+            this.moduleName = moduleName;
         }
 
-        public PurityCompiler(string program)
+        public void CloseTypes()
         {
-            Program = program;
+            foreach (var type in module.GetTypes().OfType<TypeBuilder>())
+            {
+                type.CreateType();
+            }
         }
 
-        public void Compile(string filename, string moduleName)
+        public void Compile(string program)
         {
-            var parseResult = ModuleParser.ParseModule(Program);
+            var parseResult = ModuleParser.ParseModule(program);
 
             if (parseResult == null)
             {
                 throw new CompilerException(ErrorMessages.UnableToParse);
             }
 
-            var name = new AssemblyName(moduleName);
-            AppDomain domain = AppDomain.CurrentDomain;
-            var assembly = domain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Save);
-            var module = assembly.DefineDynamicModule(moduleName, filename);
+            Compile(parseResult.Output);
+        }
 
-            var dataClass = module.DefineType(moduleName + '.' + Constants.DataClassName,
-                TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract);
-
-            foreach (var element in parseResult.Output.Elements)
+        public void Compile(Modules.Module moduleDefinition)
+        {
+            foreach (var element in moduleDefinition.Elements)
             {
                 string declarationName = null;
 
@@ -68,24 +73,16 @@ namespace Purity.Compiler
                         case ProgramElementType.Type:
                             {
                                 declarationName = element.Type.Name;
-                                var typeDeclaration = element.Type.Value;
-                                TypeCompiler.Compile(typeDeclaration, dataClass, module, moduleName, declarationName);
-
-                                Container.Add(declarationName, typeDeclaration);
-                                break;
+                                var type = element.Type.Value;
+                                TypeCompiler.Compile(type, dataClass, module, moduleName, declarationName);
+                                Container.Add(declarationName, type);
+                              break;
                             }
                         case ProgramElementType.Data:
                             {
                                 declarationName = element.Data.Name;
                                 var data = element.Data.Value;
-                                var typedExpression = Checker.CreateTypedExpression(data);
-                                typedExpression.AcceptVisitor(new AbstractionElimination());
-                                
-                                var collector = new TypeParameterCollector();
-                                data.Type.AcceptVisitor(collector);
-                                data.TypeParameters = collector.Parameters.ToArray();
-
-                                MethodCompiler.Compile(declarationName, dataClass, typedExpression, data);
+                                Compile(declarationName, data);
                                 break;
                             }
                     }
@@ -95,13 +92,30 @@ namespace Purity.Compiler
                     throw new CompilerException(string.Format(ErrorMessages.ErrorInDeclaration, declarationName, ex.Message), ex);
                 }
             }
+        }
 
-            foreach (var type in module.GetTypes().OfType<TypeBuilder>())
+        public DataInfo Compile(string declarationName, string data)
+        {
+            var parseResult = DataParser.ParseData(data);
+
+            if (parseResult == null)
             {
-                type.CreateType();
+                throw new CompilerException(ErrorMessages.UnableToParse);
             }
 
-            assembly.Save(filename);
+            return Compile(declarationName, new DataDeclaration(parseResult.Output));
+        }
+
+        public DataInfo Compile(string declarationName, DataDeclaration data)
+        {
+            var typedExpression = Checker.CreateTypedExpression(data);
+            typedExpression.AcceptVisitor(new AbstractionElimination());
+
+            var collector = new TypeParameterCollector();
+            data.Type.AcceptVisitor(collector);
+            data.TypeParameters = collector.Parameters.ToArray();
+
+            return MethodCompiler.Compile(declarationName, dataClass, typedExpression, data);
         }
     }
 }

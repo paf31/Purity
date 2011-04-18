@@ -5,6 +5,8 @@ using System.IO;
 using System.Text;
 using Purity.Compiler;
 using Purity.Compiler.Exceptions;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace CommandLineCompiler
 {
@@ -57,7 +59,20 @@ namespace CommandLineCompiler
 
                 try
                 {
-                    new PurityCompiler(program.ToString()).Compile(output, moduleName);
+                    var name = new AssemblyName(moduleName);
+                    AppDomain domain = AppDomain.CurrentDomain;
+                    var assembly = domain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Save);
+                    var module = assembly.DefineDynamicModule(moduleName, output);
+
+                    var dataClass = module.DefineType(moduleName + '.' + Constants.DataClassName,
+                        TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract);
+
+                    var compiler = new PurityCompiler(moduleName, module, dataClass);
+
+                    compiler.Compile(program.ToString());
+                    compiler.CloseTypes();
+
+                    assembly.Save(output);
                 }
                 catch (CompilerException ex)
                 {

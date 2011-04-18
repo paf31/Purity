@@ -33,5 +33,10 @@ namespace Purity.Compiler
 
             data[name] = value;
         }
+
+        public static void Clear()
+        {
+            data.Clear();
+        }
     }
 }

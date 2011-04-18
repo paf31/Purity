@@ -63,5 +63,10 @@ namespace Purity.Compiler
 
             types[name] = value;
         }
+
+        public static void Clear()
+        {
+            types.Clear();
+        }
     }
 }

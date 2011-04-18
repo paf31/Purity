@@ -51,6 +51,11 @@ namespace Purity.Compiler
             return data[identifier];
         }
 
+        public static IEnumerable<KeyValuePair<string, DataDeclaration>> Values()
+        {
+            return data;
+        }
+
         public static void Add(string identifier, ITypeDeclaration value)
         {
             types[identifier] = value;
@@ -64,6 +69,13 @@ namespace Purity.Compiler
         public static void Add(string identifier, DataDeclaration value)
         {
             data[identifier] = value;
+        }
+
+        public static void Clear()
+        {
+            data.Clear();
+            types.Clear();
+            functors.Clear();
         }
     }
 }
