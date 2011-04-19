@@ -43,11 +43,17 @@ namespace Purity.Compiler.Helpers
             var boxType = new Types.ArrowType(t.Type, synonym);
             var unboxType = new Types.ArrowType(synonym, t.Type);
 
-            MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.BoxFunctionConstructor,
-                boxType, t.TypeParameters);
-            MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.UnboxFunctionConstructor,
-                unboxType, t.TypeParameters);
+            if (t.ConstructorFunctionName != null)
+            {
+                MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.BoxFunctionConstructor,
+                    boxType, t.TypeParameters);
+            }
 
+            if (t.DestructorFunctionName != null)
+            {
+                MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.UnboxFunctionConstructor,
+                    unboxType, t.TypeParameters);
+            }
             return typeInfo;
         }
 
@@ -75,13 +81,24 @@ namespace Purity.Compiler.Helpers
             var cataParameter = new Types.TypeParameter(Constants.CataFunction1ClassGenericParameterName);
             var fCataParameter = FunctorApplication.Map(t.Functor, cataParameter);
             var cataType = new Types.ArrowType(new Types.ArrowType(fCataParameter, cataParameter), new Types.ArrowType(synonym, cataParameter));
+            
+            if (t.ConstructorFunctionName != null)
+            {
+                MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.OutFunctionConstructor,
+                    constructorType, t.TypeParameters);
+            }
 
-            MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.OutFunctionConstructor,
-                constructorType, t.TypeParameters);
-            MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.InFunctionConstructor,
-                destructorType, t.TypeParameters);
-            MethodCompiler.Compile(t.CataFunctionName, dataClass, typeInfo.CataFunction1Constructor,
-                cataType, new[] { Constants.CataFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray());
+            if (t.DestructorFunctionName != null)
+            {
+                MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.InFunctionConstructor,
+                    destructorType, t.TypeParameters);
+            }
+
+            if (t.CataFunctionName != null)
+            {
+                MethodCompiler.Compile(t.CataFunctionName, dataClass, typeInfo.CataFunction1Constructor,
+                    cataType, new[] { Constants.CataFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray());
+            }
 
             return typeInfo;
         }
@@ -111,12 +128,23 @@ namespace Purity.Compiler.Helpers
             var fAnaParameter = FunctorApplication.Map(t.Functor, anaParameter);
             var anaType = new Types.ArrowType(new Types.ArrowType(anaParameter, fAnaParameter), new Types.ArrowType(anaParameter, synonym));
 
-            MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.OutFunctionConstructor,
-                constructorType, t.TypeParameters);
-            MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.InFunctionConstructor,
-                destructorType, t.TypeParameters);
-            MethodCompiler.Compile(t.AnaFunctionName, dataClass, typeInfo.AnaFunction1Constructor,
-                anaType, new[] { Constants.AnaFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray());
+            if (t.ConstructorFunctionName != null)
+            {
+                MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.OutFunctionConstructor,
+                   constructorType, t.TypeParameters);
+            }
+
+            if (t.DestructorFunctionName != null)
+            {
+                MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.InFunctionConstructor,
+                    destructorType, t.TypeParameters);
+            }
+
+            if (t.AnaFunctionName != null)
+            {
+                MethodCompiler.Compile(t.AnaFunctionName, dataClass, typeInfo.AnaFunction1Constructor,
+                    anaType, new[] { Constants.AnaFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray());
+            }
 
             return typeInfo;
         }

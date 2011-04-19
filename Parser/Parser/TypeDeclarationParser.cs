@@ -30,9 +30,9 @@ namespace Purity.Compiler.Parser
                     select typeParameter
                 ).Rep()
             from sc1 in Parsers.Whitespace.Then(Parsers.Match(Constants.TypeDeclarationSeparator)).Then(Parsers.Whitespace)
-            from boxFunctionName in Parsers.Identifier
+            from boxFunctionName in Parsers.Identifier.Or(Parsers.Return<string, string>(default(string)))
             from sc2 in Parsers.Whitespace.Then(Parsers.Match(Constants.TypeDeclarationSeparator)).Then(Parsers.Whitespace)
-            from unboxFunctionName in Parsers.Identifier
+            from unboxFunctionName in Parsers.Identifier.Or(Parsers.Return<string, string>(default(string)))
             from ws2 in Parsers.Whitespace
             from closingBracket in Parsers.Match(Constants.CloseTypeDeclaration)
             from ws3 in Parsers.Whitespace
@@ -54,11 +54,11 @@ namespace Purity.Compiler.Parser
                     select typeParameter
                 ).Rep()
             from sc1 in Parsers.Whitespace.Then(Parsers.Match(Constants.TypeDeclarationSeparator)).Then(Parsers.Whitespace)
-            from boxFunctionName in Parsers.Identifier
+            from boxFunctionName in Parsers.Identifier.Or(Parsers.Return<string, string>(default(string)))
             from sc2 in Parsers.Whitespace.Then(Parsers.Match(Constants.TypeDeclarationSeparator)).Then(Parsers.Whitespace)
-            from unboxFunctionName in Parsers.Identifier
+            from unboxFunctionName in Parsers.Identifier.Or(Parsers.Return<string, string>(default(string)))
             from sc3 in Parsers.Whitespace.Then(Parsers.Match(Constants.TypeDeclarationSeparator)).Then(Parsers.Whitespace)
-            from cataFunctionName in Parsers.Identifier
+            from cataFunctionName in Parsers.Identifier.Or(Parsers.Return<string, string>(default(string)))
             from ws2 in Parsers.Whitespace
             from closingBracket in Parsers.Match(Constants.CloseTypeDeclaration)
             from ws3 in Parsers.Whitespace
@@ -82,11 +82,11 @@ namespace Purity.Compiler.Parser
                     select typeParameter
                 ).Rep()
             from sc1 in Parsers.Whitespace.Then(Parsers.Match(Constants.TypeDeclarationSeparator)).Then(Parsers.Whitespace)
-            from boxFunctionName in Parsers.Identifier
+            from boxFunctionName in Parsers.Identifier.Or(Parsers.Return<string, string>(default(string)))
             from sc2 in Parsers.Whitespace.Then(Parsers.Match(Constants.TypeDeclarationSeparator)).Then(Parsers.Whitespace)
-            from unboxFunctionName in Parsers.Identifier
+            from unboxFunctionName in Parsers.Identifier.Or(Parsers.Return<string, string>(default(string)))
             from sc3 in Parsers.Whitespace.Then(Parsers.Match(Constants.TypeDeclarationSeparator)).Then(Parsers.Whitespace)
-            from anaFunctionName in Parsers.Identifier
+            from anaFunctionName in Parsers.Identifier.Or(Parsers.Return<string, string>(default(string)))
             from ws2 in Parsers.Whitespace
             from closingBracket in Parsers.Match(Constants.CloseTypeDeclaration)
             from ws3 in Parsers.Whitespace

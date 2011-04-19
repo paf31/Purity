@@ -115,5 +115,11 @@ namespace Purity.Compiler.Data
             get; 
             set; 
         }
+
+        public TypeBuilder InClass 
+        {
+            get;
+            set; 
+        }
     }
 }
