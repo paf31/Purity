@@ -14,6 +14,11 @@ namespace Purity.Compiler.Typechecker.Data
             set;
         }
 
+        public Identity(IPartialType type)
+        {
+            Type = type;
+        }
+
         public void AcceptVisitor(IConstrainedDataVisitor visitor)
         {
             visitor.VisitIdentity(this);

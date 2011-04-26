@@ -30,5 +30,12 @@ namespace Purity.Compiler.Typechecker.Data
         {
             return visitor.VisitOutr(this);
         }
+
+        public Outr(IPartialType leftType, IPartialType rightType)
+        {
+            // TODO: Complete member initialization
+            this.LeftType = leftType;
+            this.RightType = rightType;
+        }
     }
 }

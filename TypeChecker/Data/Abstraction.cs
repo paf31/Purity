@@ -32,10 +32,12 @@ namespace Purity.Compiler.Typechecker.Data
             set;
         }
 
-        public Abstraction(string variable, IConstrainedData body)
+        public Abstraction(string variable, IConstrainedData body, IPartialType variableType, IPartialType bodyType)
         {
             Variable = variable;
             Body = body;
+            VariableType = variableType;
+            BodyType = bodyType;
         }
 
         public void AcceptVisitor(IConstrainedDataVisitor visitor)

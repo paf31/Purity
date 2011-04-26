@@ -2,21 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Purity.Compiler.Modules;
 using System.Reflection;
 using Purity.Compiler.Parser;
 using System.Reflection.Emit;
+using Purity.Core;
+using Purity.Compiler.Data;
+using Purity.Compiler.Exceptions;
+using Purity.Compiler.Modules;
 using Purity.Compiler.Extensions;
 using Purity.Compiler.Helpers;
 using Purity.Compiler.Functors;
 using Purity.Compiler.Interfaces;
-using Purity.Compiler.Typechecker;
 using Purity.Compiler.Types;
-using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Typechecker.Helpers;
-using Purity.Compiler.Exceptions;
-using Purity.Compiler.Data;
-using Purity.Core;
+using Purity.Compiler.Typechecker.Interfaces;
+using Purity.Compiler.Typechecker.Utilities;
 
 namespace Purity.Compiler
 {
@@ -108,7 +108,11 @@ namespace Purity.Compiler
 
         public DataInfo Compile(string declarationName, DataDeclaration data)
         {
-            var typedExpression = Checker.CreateTypedExpression(data);
+            var result = TypeChecker.CreateTypedExpression(data);
+
+            data.Type = result.Item1;
+
+            var typedExpression = result.Item2;
             typedExpression.AcceptVisitor(new AbstractionElimination());
 
             var collector = new TypeParameterCollector();

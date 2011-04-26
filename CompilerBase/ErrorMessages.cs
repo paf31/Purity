@@ -32,8 +32,9 @@ namespace Purity.Compiler
         public const string ExpectedNamedType = "Expected named type.";
         public const string ExpectedLFixType = "Expected least fixed point type.";
         public const string ExpectedGFixType = "Expected greatest fixed point type.";
-        public const string Expected = "Expected '{0}'.";
+        public const string Expected = "Expected '{0}', found '{1}'.";
         public const string UnexpectedVariable = "Unexpected variable '{0}'.";
         public const string CycleDetected = "Infinite type detected.";
+        public const string UnknownTypeParameter = "Universal types must be quantified at the outermost level.";
     }
 }

@@ -32,10 +32,12 @@ namespace Purity.Compiler.Typechecker.Data
             set;
         }
 
-        public Application(IConstrainedData left, IConstrainedData right)
+        public Application(IConstrainedData left, IConstrainedData right, IPartialType leftType, IPartialType rightType)
         {
             Left = left;
             Right = right;
+            LeftType = leftType;
+            RightType = rightType;
         }
 
         public void AcceptVisitor(IConstrainedDataVisitor visitor)

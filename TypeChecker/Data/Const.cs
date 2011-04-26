@@ -26,9 +26,11 @@ namespace Purity.Compiler.Typechecker.Data
             set;
         }
 
-        public Const(IConstrainedData value)
+        public Const(IConstrainedData value, IPartialType inputType, IPartialType outputType)
         {
             Value = value;
+            InputType = inputType;
+            OutputType = outputType;
         }
 
         public void AcceptVisitor(IConstrainedDataVisitor visitor)

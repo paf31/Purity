@@ -38,10 +38,13 @@ namespace Purity.Compiler.Typechecker.Data
             set;
         }
 
-        public Composition(IConstrainedData left, IConstrainedData right)
+        public Composition(IConstrainedData left, IConstrainedData right, IPartialType leftType, IPartialType middleType, IPartialType rightType)
         {
             Left = left;
             Right = right;
+            LeftType = leftType;
+            MiddleType = middleType;
+            RightType = rightType;
         }
 
         public void AcceptVisitor(IConstrainedDataVisitor visitor)

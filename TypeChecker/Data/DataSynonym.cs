@@ -8,12 +8,6 @@ namespace Purity.Compiler.Typechecker.Data
 {
     public class DataSynonym : IConstrainedData
     {
-        public DataSynonym(string identifier)
-        {
-            Identifier = identifier;
-            TypeParameters = new Dictionary<string, IPartialType>();
-        }
-
         public string Identifier
         {
             get;
@@ -24,6 +18,12 @@ namespace Purity.Compiler.Typechecker.Data
         {
             get;
             set;
+        }
+
+        public DataSynonym(string identifier, IDictionary<string, IPartialType> typeParameters)
+        {
+            Identifier = identifier;
+            TypeParameters = typeParameters;
         }
 
         public void AcceptVisitor(IConstrainedDataVisitor visitor)

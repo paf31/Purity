@@ -39,10 +39,13 @@ namespace Purity.Compiler.Typechecker.Data
             set;
         }
 
-        public Split(IConstrainedData left, IConstrainedData right)
+        public Split(IConstrainedData left, IConstrainedData right, IPartialType leftType, IPartialType rightType, IPartialType inputType)
         {
             Left = left;
             Right = right;
+            LeftType = leftType;
+            RightType = rightType;
+            InputType = inputType;
         }
 
         public void AcceptVisitor(IConstrainedDataVisitor visitor)

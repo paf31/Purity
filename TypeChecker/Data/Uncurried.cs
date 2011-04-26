@@ -8,18 +8,37 @@ namespace Purity.Compiler.Typechecker.Data
 {
     public class Uncurried : IConstrainedData
     {
-        public IConstrainedData Function { get; set; }
-
-        public Uncurried(IConstrainedData function)
+        public IConstrainedData Function
         {
-            Function = function;
+            get;
+            set;
         }
 
-        public IPartialType First { get; set; }
+        public Uncurried(IConstrainedData function, IPartialType first, IPartialType second, IPartialType output)
+        {
+            Function = function;
+            First = first;
+            Second = second;
+            Output = output;
+        }
 
-        public IPartialType Second { get; set; }
+        public IPartialType First
+        {
+            get;
+            set;
+        }
 
-        public IPartialType Output { get; set; }
+        public IPartialType Second
+        {
+            get;
+            set;
+        }
+
+        public IPartialType Output
+        {
+            get;
+            set;
+        }
 
         public void AcceptVisitor(IConstrainedDataVisitor visitor)
         {

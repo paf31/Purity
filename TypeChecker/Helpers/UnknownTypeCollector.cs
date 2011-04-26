@@ -21,6 +21,13 @@ namespace Purity.Compiler.Typechecker.Helpers
             Unknowns = new List<int>();
         }
 
+        public static IEnumerable<int> Collect(IPartialType type)
+        {
+            var collector = new UnknownTypeCollector();
+            type.AcceptVisitor(collector);
+            return collector.Unknowns;
+        }
+
         public void VisitArrow(ArrowType t)
         {
             t.Left.AcceptVisitor(this);

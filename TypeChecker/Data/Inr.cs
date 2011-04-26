@@ -21,6 +21,12 @@ namespace Purity.Compiler.Typechecker.Data
             set;
         }
 
+        public Inr(IPartialType leftType, IPartialType rightType)
+        {
+            this.LeftType = leftType;
+            this.RightType = rightType;
+        }
+
         public void AcceptVisitor(IConstrainedDataVisitor visitor)
         {
             visitor.VisitInr(this);

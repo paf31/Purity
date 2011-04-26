@@ -20,9 +20,10 @@ namespace Purity.Compiler.Typechecker.Data
             set;
         }
 
-        public Variable(string name)
+        public Variable(string name, IPartialType type)
         {
             Name = name;
+            Type = type;
         }
 
         public void AcceptVisitor(IConstrainedDataVisitor visitor)

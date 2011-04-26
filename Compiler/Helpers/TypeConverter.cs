@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using Purity.Compiler.Functors;
 using Purity.Compiler.Data;
 using Purity.Core.Types;
+using Purity.Compiler.Exceptions;
 
 namespace Purity.Compiler.Helpers
 {
@@ -49,7 +50,14 @@ namespace Purity.Compiler.Helpers
 
         public Type VisitParameter(Types.TypeParameter t)
         {
-            return genericMethodParameters.First(p => p.Name.Equals(t.Identifier));
+            var genericParameter = genericMethodParameters.FirstOrDefault(p => p.Name.Equals(t.Identifier));
+
+            if (genericParameter == null) 
+            {
+                throw new CompilerException(ErrorMessages.UnknownTypeParameter);
+            }
+
+            return genericParameter;
         }
     }
 }

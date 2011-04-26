@@ -38,10 +38,13 @@ namespace Purity.Compiler.Typechecker.Data
             set;
         }
 
-        public Case(IConstrainedData left, IConstrainedData right)
+        public Case(IConstrainedData left, IConstrainedData right, IPartialType leftType, IPartialType rightType, IPartialType resultType)
         {
             Left = left;
             Right = right;
+            LeftType = leftType;
+            RightType = rightType;
+            ResultType = resultType;
         }
 
         public void AcceptVisitor(IConstrainedDataVisitor visitor)

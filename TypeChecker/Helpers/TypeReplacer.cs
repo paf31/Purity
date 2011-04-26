@@ -6,117 +6,60 @@ using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Exceptions;
 using Purity.Compiler.Typechecker.Types;
 using Purity.Compiler.Typechecker.Utilities;
+using Purity.Compiler.Typechecker.Classes;
 
 namespace Purity.Compiler.Typechecker.Helpers
 {
-    public class TypeReplacer : IPartialTypeVisitor
+    public class TypeReplacer : IPartialTypeVisitor<IPartialType>
     {
-        private readonly int index;
-        private readonly Tableau tableau;
-        private readonly IPartialType replacement;
+        private readonly Constraint constraint;
 
-        public bool HasChanges
+        public static IPartialType Replace(IPartialType type, Constraint constraint)
         {
-            get;
-            set;
+            var visitor = new TypeReplacer(constraint);
+            return type.AcceptVisitor(visitor);
         }
 
-        public static bool Replace(IPartialType type, Tableau tableau, int index, IPartialType replacement)
+        public TypeReplacer(Constraint constraint)
         {
-            var visitor = new TypeReplacer(index, tableau, replacement);
-            type.AcceptVisitor(visitor);
-            return visitor.HasChanges;
+            this.constraint = constraint;
         }
 
-        public TypeReplacer(int index, Tableau tableau, IPartialType replacement)
+        public IPartialType VisitArrow(Types.ArrowType t)
         {
-            this.index = index;
-            this.tableau = tableau;
-            this.replacement = replacement;
-            this.HasChanges = false;
+            return new ArrowType(t.Left.AcceptVisitor(this), t.Right.AcceptVisitor(this));
         }
 
-        public void VisitArrow(Types.ArrowType t)
+        public IPartialType VisitSynonym(TypeSynonym t)
         {
-            if (t.Left is UnknownType && (t.Left as UnknownType).Index == index)
+            return new TypeSynonym(t.Identifier, t.TypeParameters.Select(p => p.AcceptVisitor(this)).ToArray());
+        }
+
+        public IPartialType VisitProduct(ProductType t)
+        {
+            return new ProductType(t.Left.AcceptVisitor(this), t.Right.AcceptVisitor(this));
+        }
+
+        public IPartialType VisitSum(SumType t)
+        {
+            return new SumType(t.Left.AcceptVisitor(this), t.Right.AcceptVisitor(this));
+        }
+
+        public IPartialType VisitUnknown(UnknownType t)
+        {
+            if (t.Index == constraint.Index)
             {
-                var unknown = replacement as UnknownType;
-                HasChanges |= !(unknown != null && unknown.Index == index);
-                t.Left = replacement;
+                return constraint.Type;
             }
-
-            if (t.Right is UnknownType && (t.Right as UnknownType).Index == index)
+            else
             {
-                var unknown = replacement as UnknownType;
-                HasChanges |= !(unknown != null && unknown.Index == index);
-                t.Right = replacement;
-            }
-
-            t.Left.AcceptVisitor(this);
-            t.Right.AcceptVisitor(this);
-        }
-
-        public void VisitSynonym(Types.TypeSynonym t)
-        {
-            for (int i = 0; i< t.TypeParameters.Length; i++)
-            {
-                if (t.TypeParameters[i] is UnknownType && (t.TypeParameters[i] as UnknownType).Index == index)
-                {
-                    var unknown = replacement as UnknownType;
-                    HasChanges |= !(unknown != null && unknown.Index == index);
-                    t.TypeParameters[i] = replacement;
-                }
-
-                t.TypeParameters[i].AcceptVisitor(this);
+                return t;
             }
         }
 
-        public void VisitProduct(Types.ProductType t)
+        public IPartialType VisitParameter(TypeParameter t)
         {
-            if (t.Left is UnknownType && (t.Left as UnknownType).Index == index)
-            {
-                var unknown = replacement as UnknownType;
-                HasChanges |= !(unknown != null && unknown.Index == index);
-                t.Left = replacement;
-            }
-
-            if (t.Right is UnknownType && (t.Right as UnknownType).Index == index)
-            {
-                var unknown = replacement as UnknownType;
-                HasChanges |= !(unknown != null && unknown.Index == index);
-                t.Right = replacement;
-            }
-
-            t.Left.AcceptVisitor(this);
-            t.Right.AcceptVisitor(this);
-        }
-
-        public void VisitSum(Types.SumType t)
-        {
-            if (t.Left is UnknownType && (t.Left as UnknownType).Index == index)
-            {
-                var unknown = replacement as UnknownType;
-                HasChanges |= !(unknown != null && unknown.Index == index);
-                t.Left = replacement;
-            }
-
-            if (t.Right is UnknownType && (t.Right as UnknownType).Index == index)
-            {
-                var unknown = replacement as UnknownType;
-                HasChanges |= !(unknown != null && unknown.Index == index);
-                t.Right = replacement;
-            }
-
-            t.Left.AcceptVisitor(this);
-            t.Right.AcceptVisitor(this);
-        }
-
-        public void VisitUnknown(Types.UnknownType t)
-        {
-        }
-
-        public void VisitParameter(TypeParameter t)
-        {
+            return t;
         }
     }
 }

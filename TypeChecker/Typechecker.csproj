@@ -40,23 +40,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Constraints\ArrowConstraint.cs" />
-    <Compile Include="Constraints\ProductConstraint.cs" />
+    <Compile Include="Classes\Constraint.cs" />
+    <Compile Include="Classes\SolutionSet.cs" />
+    <Compile Include="Helpers\ApplySolutionSet.cs" />
+    <Compile Include="Helpers\TypeReplacer.cs" />
+    <Compile Include="Utilities\TypeChecker.cs" />
+    <Compile Include="Classes\TypeCheckingEnvironment.cs" />
+    <Compile Include="Classes\TypeCheckingContext.cs" />
+    <Compile Include="Classes\TypeCheckingResult.cs" />
     <Compile Include="Data\Abstraction.cs" />
     <Compile Include="Data\DataSynonym.cs" />
     <Compile Include="Data\Uncurried.cs" />
     <Compile Include="Data\Variable.cs" />
-    <Compile Include="Helpers\CycleDetector.cs" />
-    <Compile Include="Helpers\ReplaceTypeSynonymParameters.cs" />
+    <Compile Include="Helpers\OccursCheck.cs" />
+    <Compile Include="Helpers\Unification.cs" />
     <Compile Include="Helpers\UnknownTypeCollector.cs" />
-    <Compile Include="Helpers\ConstraintEnforcer.cs" />
     <Compile Include="Data\Curried.cs" />
-    <Compile Include="Helpers\MergeTypesVisitor.cs" />
     <Compile Include="Helpers\PartialTypeCreator.cs" />
-    <Compile Include="Helpers\TableauMerger.cs" />
-    <Compile Include="Helpers\TypeReplacer.cs" />
-    <Compile Include="Interfaces\IConstraint.cs" />
-    <Compile Include="Constraints\SumConstraint.cs" />
+    <Compile Include="Helpers\ConstraintCreator.cs" />
     <Compile Include="Data\Application.cs" />
     <Compile Include="Data\Case.cs" />
     <Compile Include="Data\Composition.cs" />
@@ -67,24 +68,23 @@
     <Compile Include="Data\Outl.cs" />
     <Compile Include="Data\Outr.cs" />
     <Compile Include="Data\Split.cs" />
-    <Compile Include="Helpers\ConstrainedDataCreator.cs" />
     <Compile Include="Helpers\TypeConverter.cs" />
-    <Compile Include="Helpers\TypedExpressionCreator.cs" />
-    <Compile Include="Interfaces\IConstraintVisitor.cs" />
+    <Compile Include="Helpers\DataConverter.cs" />
     <Compile Include="Interfaces\IConstrainedData.cs" />
     <Compile Include="Interfaces\IConstrainedDataVisitor.cs" />
     <Compile Include="Interfaces\IPartialType.cs" />
     <Compile Include="Interfaces\IPartialTypeVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tableau.cs" />
-    <Compile Include="Checker.cs" />
     <Compile Include="Types\ArrowType.cs" />
     <Compile Include="Types\TypeParameter.cs" />
     <Compile Include="Types\ProductType.cs" />
     <Compile Include="Types\SumType.cs" />
     <Compile Include="Types\TypeSynonym.cs" />
     <Compile Include="Types\UnknownType.cs" />
-    <Compile Include="Utilities\TableauUtilities.cs" />
+    <Compile Include="Utilities\Constraints.cs" />
+    <Compile Include="Utilities\ConstraintSolver.cs" />
+    <Compile Include="Utilities\EnumerableExtensions.cs" />
+    <Compile Include="Utilities\Environments.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CompilerBase\CompilerBase.csproj">
