@@ -81,12 +81,12 @@ namespace Purity.Compiler.Typechecker.Helpers
             var w1 = CreateConstraints(environment, context, d.Left);
             var w2 = CreateConstraints(environment, context, d.Right);
 
-            var s1 = Unification.Unify(w1.Type, new Types.ArrowType(first, second));
-            var s2 = Unification.Unify(w2.Type, new Types.ArrowType(second, third));
+            var s1 = Unification.Unify(w1.Type, new Types.ArrowType(second, third));
+            var s2 = Unification.Unify(w2.Type, new Types.ArrowType(first, second));
 
             var s = w1.Constraints.Concat(w2.Constraints).Concat(s1).Concat(s2);
 
-            return new TypeCheckingResult(new Data.Composition(w1.Data, w2.Data, first, second, third), composition, s, context.Index);
+            return new TypeCheckingResult(new Data.Composition(w1.Data, w2.Data, third, second, first), composition, s, context.Index);
         }
 
         public TypeCheckingResult VisitConst(Const d)
