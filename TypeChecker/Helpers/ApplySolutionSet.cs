@@ -142,8 +142,8 @@ namespace Purity.Compiler.Typechecker.Helpers
             return new Abstraction(
                 d.Variable, 
                 d.Body.AcceptVisitor(this), 
-                d.BodyType.AcceptVisitor(this), 
-                d.VariableType.AcceptVisitor(this));
+                d.VariableType.AcceptVisitor(this), 
+                d.BodyType.AcceptVisitor(this));
         }
 
         public IConstrainedData VisitVariable(Data.Variable d)
