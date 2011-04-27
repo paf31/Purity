@@ -86,7 +86,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
             var s = w1.Constraints.Concat(w2.Constraints).Concat(s1).Concat(s2);
 
-            return new TypeCheckingResult(new Data.Composition(w1.Data, w2.Data, third, second, first), composition, s, context.Index);
+            return new TypeCheckingResult(new Data.Composition(w1.Data, w2.Data, first, second, third), composition, s, context.Index);
         }
 
         public TypeCheckingResult VisitConst(Const d)
