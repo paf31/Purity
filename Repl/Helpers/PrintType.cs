@@ -20,7 +20,7 @@ namespace Repl.Helpers
 
         public string VisitSynonym(Purity.Compiler.Types.TypeSynonym t)
         {
-            return t.Identifier;
+            return string.Format("{0} {1}", t.Identifier, string.Join(" ", t.TypeParameters.Select(p => p.AcceptVisitor(this)).ToArray()));
         }
 
         public string VisitProduct(Purity.Compiler.Types.ProductType t)
