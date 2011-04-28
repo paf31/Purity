@@ -56,6 +56,9 @@ namespace Purity.Compiler
         public const string TypeKeyword = "type";
         public const string DataKeyword = "data";
 
+        public const string ModuleKeyword = "module";
+        public const string ImportKeyword = "import";
+
         public const char TypeOperatorSum = '+';
         public const char TypeOperatorProduct = '.';
         public const string TypeOperatorArrow = "->";

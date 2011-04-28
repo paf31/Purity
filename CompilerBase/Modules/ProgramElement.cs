@@ -8,13 +8,35 @@ namespace Purity.Compiler.Modules
 {
     public class ProgramElement
     {
-        public ProgramElementType ElementType { get; set; }
+        public ProgramElementType ElementType
+        {
+            get;
+            set;
+        }
 
-        public Named<FunctorDeclaration> Functor { get; set; }
-        
-        public Named<ITypeDeclaration> Type { get; set; }
-        
-        public Named<DataDeclaration> Data { get; set; }
+        public Named<FunctorDeclaration> Functor
+        {
+            get;
+            set;
+        }
+
+        public Named<ITypeDeclaration> Type
+        {
+            get;
+            set;
+        }
+
+        public Named<DataDeclaration> Data
+        {
+            get;
+            set;
+        }
+
+        public ImportStatement Import
+        {
+            get;
+            set;
+        }
 
         public ProgramElement(Named<FunctorDeclaration> functor)
         {
@@ -32,6 +54,12 @@ namespace Purity.Compiler.Modules
         {
             ElementType = ProgramElementType.Data;
             Data = data;
+        }
+
+        public ProgramElement(ImportStatement import)
+        {
+            ElementType = ProgramElementType.Import;
+            Import = import;
         }
     }
 }

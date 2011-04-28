@@ -55,6 +55,10 @@
       <Project>{4CF2B45C-8934-41F7-866E-1B5C95FF590D}</Project>
       <Name>Compiler</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Parser\Parser.csproj">
+      <Project>{EF1C2202-B7E4-436F-B466-E0B4671C942F}</Project>
+      <Name>Parser</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

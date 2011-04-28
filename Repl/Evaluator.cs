@@ -23,7 +23,7 @@ namespace Repl
             var evalClass = module.DefineType(name,
                 TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract);
 
-            var compiler = new PurityCompiler(moduleName, module, evalClass);
+            var compiler = new PurityCompiler(module, evalClass);
 
             DataInfo dataInfo = compiler.Compile(name, expression);
 

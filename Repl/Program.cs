@@ -10,6 +10,7 @@ using Purity.Compiler.Modules;
 using Repl.Helpers;
 using Purity.Core.Types;
 using Purity.Compiler.Data;
+using Purity.Compiler.Parser;
 
 namespace Repl
 {
@@ -89,11 +90,18 @@ namespace Repl
                             var dataClass = module.DefineType(Constants.DataClassName + index++,
                                 TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract);
 
-                            var compiler = new PurityCompiler(AssemblyName, module, dataClass);
+                            var compiler = new PurityCompiler(module, dataClass);
+
+                            var parseResult = ModuleParser.ParseProgramElement(line);
+
+                            if (parseResult == null)
+                            {
+                                throw new CompilerException(ErrorMessages.UnableToParse);
+                            }
 
                             try
                             {
-                                compiler.Compile(line);
+                                compiler.Compile(parseResult.Output, module.Name);
                             }
                             catch (CompilerException ex)
                             {

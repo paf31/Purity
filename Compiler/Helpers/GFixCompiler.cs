@@ -10,6 +10,7 @@ using Purity.Core;
 using Purity.Compiler.Modules;
 using Purity.Compiler.Data;
 using System.Runtime.CompilerServices;
+using Purity.Core.Attributes;
 
 namespace Purity.Compiler.Helpers
 {
@@ -60,9 +61,11 @@ namespace Purity.Compiler.Helpers
             TypeInfo.Type = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + functor.Name,
                 TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
 
-            var typeGenericParameters = typeParameters.Any() ? TypeInfo.Type.DefineGenericParameters(typeParameters) : Type.EmptyTypes;
+            ((TypeBuilder)TypeInfo.Type).SetCustomAttribute(new CustomAttributeBuilder(typeof(ExportAttribute).GetConstructors()[0], new object[0]));
 
-            TypeInfo.GreatestFixedPointApplyMethod = TypeInfo.Type.DefineMethod(Constants.ApplyMethodName,
+            var typeGenericParameters = typeParameters.Any() ? ((TypeBuilder)TypeInfo.Type).DefineGenericParameters(typeParameters) : Type.EmptyTypes;
+
+            TypeInfo.GreatestFixedPointApplyMethod = ((TypeBuilder)TypeInfo.Type).DefineMethod(Constants.ApplyMethodName,
                 MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.Virtual);
 
             var resultTypeGfix = TypeInfo.GreatestFixedPointApplyMethod.DefineGenericParameters(Constants.GFixFunctionClassGenericParameterName)[0];

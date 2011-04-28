@@ -10,10 +10,21 @@ namespace Purity.Compiler.Modules
 {
     public class Module
     {
-        public IEnumerable<ProgramElement> Elements { get; set; }
-
-        public Module(IEnumerable<ProgramElement> elements)
+        public string Name
         {
+            get;
+            set;
+        }
+
+        public IEnumerable<ProgramElement> Elements
+        {
+            get;
+            set;
+        }
+
+        public Module(string name, IEnumerable<ProgramElement> elements)
+        {
+            Name = name;
             Elements = elements;
         }
     }

@@ -62,6 +62,10 @@
       <Project>{DF720C6A-063F-451B-ADE9-9D2D9BDCBE72}</Project>
       <Name>PurityCore</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Parser\Parser.csproj">
+      <Project>{EF1C2202-B7E4-436F-B466-E0B4671C942F}</Project>
+      <Name>Parser</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

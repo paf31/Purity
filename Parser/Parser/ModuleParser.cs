@@ -55,15 +55,23 @@ namespace Purity.Compiler.Parser
                      select new Named<DataDeclaration>(ident, new DataDeclaration(data)))
             select rest;
 
-        static Parser<string, ProgramElement> ParseProgramElement =
+        static Parser<string, ImportStatement> ParseImportStatement =
+            from decl in Parsers.Match(Constants.ImportKeyword)
+            from ws1 in Parsers.WSChar.Rep1()
+            from moduleName in Parsers.Identifier
+            select new ImportStatement(moduleName);
+
+        public static Parser<string, ProgramElement> ParseProgramElement =
             (from functor in ParseNamedFunctor
              select new ProgramElement(functor)).Or(
              from type in TypeDeclarationParser.ParseTypeDeclaration
              select new ProgramElement(type)).Or(
              from data in ParseNamedUntypedData
-             select new ProgramElement(data));
+             select new ProgramElement(data)).Or(
+             from import in ParseImportStatement
+             select new ProgramElement(import));
 
-        static Parser<string, IEnumerable<ProgramElement>> ParseManyProgramElements =
+        public static Parser<string, IEnumerable<ProgramElement>> ParseManyProgramElements =
             from p in ParseProgramElement
             from ps in
                 (from ws in Parsers.WSChar.Rep1()
@@ -72,6 +80,11 @@ namespace Purity.Compiler.Parser
             select new[] { p }.Concat(ps);
 
         public static Parser<string, Module> ParseModule =
-            ParseManyProgramElements.Select(es => new Module(es));
+            from header in Parsers.Match(Constants.ModuleKeyword)
+            from ws1 in Parsers.WSChar.Rep1()
+            from moduleName in Parsers.Identifier
+            from ws3 in Parsers.WSChar.Rep1()
+            from elements in ParseManyProgramElements
+            select new Module(moduleName, elements);
     }
 }

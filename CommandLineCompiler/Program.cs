@@ -7,6 +7,7 @@ using Purity.Compiler;
 using Purity.Compiler.Exceptions;
 using System.Reflection;
 using System.Reflection.Emit;
+using Purity.Compiler.Parser;
 
 namespace CommandLineCompiler
 {
@@ -22,22 +23,6 @@ namespace CommandLineCompiler
             {
                 var input = args[0];
                 var output = args.Length >= 2 ? args[1] : "output.dll";
-
-                string moduleName;
-
-                if (input.Contains('.'))
-                {
-                    moduleName = input.Substring(0, input.IndexOf('.'));
-                }
-                else
-                {
-                    moduleName = input;
-                }
-
-                if (string.IsNullOrEmpty(moduleName))
-                {
-                    moduleName = "output";
-                }
 
                 StringBuilder program = new StringBuilder();
 
@@ -59,17 +44,26 @@ namespace CommandLineCompiler
 
                 try
                 {
-                    var name = new AssemblyName(moduleName);
+                    var parseResult = ModuleParser.ParseModule(program.ToString());
+
+                    if (parseResult == null)
+                    {
+                        throw new CompilerException(ErrorMessages.UnableToParse);
+                    }
+
+                    var moduleDefinition = parseResult.Output;
+
+                    var name = new AssemblyName(moduleDefinition.Name);
                     AppDomain domain = AppDomain.CurrentDomain;
                     var assembly = domain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Save);
-                    var module = assembly.DefineDynamicModule(moduleName, output);
+                    var module = assembly.DefineDynamicModule(moduleDefinition.Name, output);
 
-                    var dataClass = module.DefineType(moduleName + '.' + Constants.DataClassName,
+                    var dataClass = module.DefineType(moduleDefinition.Name + '.' + Constants.DataClassName,
                         TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract);
 
-                    var compiler = new PurityCompiler(moduleName, module, dataClass);
+                    var compiler = new PurityCompiler(module, dataClass);
 
-                    compiler.Compile(program.ToString());
+                    compiler.Compile(moduleDefinition);
                     compiler.CloseTypes();
 
                     assembly.Save(output);

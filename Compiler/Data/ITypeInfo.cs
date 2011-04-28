@@ -9,7 +9,7 @@ namespace Purity.Compiler.Data
 {
     public interface ITypeInfo
     {
-        TypeBuilder Type
+        Type Type
         {
             get;
             set;

@@ -47,12 +47,14 @@
     <Compile Include="Data\Uncurried.cs" />
     <Compile Include="Data\Curried.cs" />
     <Compile Include="ErrorMessages.cs" />
+    <Compile Include="Exceptions\ModuleImportException.cs" />
     <Compile Include="Interfaces\ITypeDeclarationVisitor.cs" />
     <Compile Include="Interfaces\ITypeDeclaration.cs" />
     <Compile Include="Interfaces\IFixedPointType.cs" />
     <Compile Include="Interfaces\ITypedExpressionVisitor.cs" />
     <Compile Include="Interfaces\ITypedExpression.cs" />
     <Compile Include="Modules\FunctorDeclaration.cs" />
+    <Compile Include="Modules\ImportStatement.cs" />
     <Compile Include="Modules\ProgramElement.cs" />
     <Compile Include="Modules\ProgramElementType.cs" />
     <Compile Include="TypeDeclarations\BoxedTypeDeclaration.cs" />

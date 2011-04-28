@@ -5,19 +5,19 @@ using System.Text;
 
 namespace Purity.Compiler.Exceptions
 {
-    public class CompilerException : Exception
+    public class ModuleImportException : Exception
     {
-        public CompilerException()
+        public ModuleImportException()
             : base()
         {
         }
 
-        public CompilerException(string message)
+        public ModuleImportException(string message)
             : base(message)
         {
         }
 
-        public CompilerException(string message, Exception innerException)
+        public ModuleImportException(string message, Exception innerException)
             : base(message, innerException)
         {
         }

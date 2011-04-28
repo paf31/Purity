@@ -9,6 +9,7 @@ namespace Purity.Compiler.Modules
     {
         Functor,
         Type,
-        Data
+        Data,
+        Import
     }
 }

@@ -7,6 +7,7 @@ using System.Reflection.Emit;
 using Purity.Compiler.Interfaces;
 using System.Reflection;
 using Purity.Core;
+using Purity.Core.Attributes;
 
 namespace Purity.Compiler.Helpers
 {
@@ -19,13 +20,15 @@ namespace Purity.Compiler.Helpers
             boxedTypeInfo.Type = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Sealed);
 
-            var genericParameters = typeParameters.Any() ? boxedTypeInfo.Type.DefineGenericParameters(typeParameters) : Type.EmptyTypes;
+            ((TypeBuilder)boxedTypeInfo.Type).SetCustomAttribute(new CustomAttributeBuilder(typeof(ExportAttribute).GetConstructors()[0], new object[0]));
+
+            var genericParameters = typeParameters.Any() ? ((TypeBuilder)boxedTypeInfo.Type).DefineGenericParameters(typeParameters) : Type.EmptyTypes;
 
             var containedType = new TypeConverter(genericParameters).Convert(type);
 
-            boxedTypeInfo.Field = boxedTypeInfo.Type.DefineField(Constants.BoxedTypeValueFieldName, containedType, FieldAttributes.Public);
+            boxedTypeInfo.Field = ((TypeBuilder)boxedTypeInfo.Type).DefineField(Constants.BoxedTypeValueFieldName, containedType, FieldAttributes.Public);
 
-            boxedTypeInfo.Constructor = boxedTypeInfo.Type.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { containedType });
+            boxedTypeInfo.Constructor = ((TypeBuilder)boxedTypeInfo.Type).DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { containedType });
 
             var cataCtorBody = boxedTypeInfo.Constructor.GetILGenerator();
             cataCtorBody.Emit(OpCodes.Ldarg_0);

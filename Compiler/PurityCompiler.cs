@@ -17,20 +17,19 @@ using Purity.Compiler.Types;
 using Purity.Compiler.Typechecker.Helpers;
 using Purity.Compiler.Typechecker.Interfaces;
 using Purity.Compiler.Typechecker.Utilities;
+using Purity.Compiler.Utilities;
 
 namespace Purity.Compiler
 {
     public class PurityCompiler
     {
-        private readonly ModuleBuilder module;
-        private readonly TypeBuilder dataClass;
-        private readonly string moduleName;
+        private ModuleBuilder module;
+        private TypeBuilder dataClass;
 
-        public PurityCompiler(string moduleName, ModuleBuilder module, TypeBuilder dataClass)
+        public PurityCompiler(ModuleBuilder module, TypeBuilder dataClass)
         {
             this.module = module;
             this.dataClass = dataClass;
-            this.moduleName = moduleName;
         }
 
         public void CloseTypes()
@@ -41,56 +40,64 @@ namespace Purity.Compiler
             }
         }
 
-        public void Compile(string program)
-        {
-            var parseResult = ModuleParser.ParseModule(program);
-
-            if (parseResult == null)
-            {
-                throw new CompilerException(ErrorMessages.UnableToParse);
-            }
-
-            Compile(parseResult.Output);
-        }
-
         public void Compile(Modules.Module moduleDefinition)
         {
             foreach (var element in moduleDefinition.Elements)
             {
-                string declarationName = null;
+                Compile(element, moduleDefinition.Name);
+            }
+        }
 
-                try
+        public void Compile(ProgramElement element, string moduleDefinitionName)
+        {
+            string declarationName = null;
+
+            try
+            {
+                switch (element.ElementType)
                 {
-                    switch (element.ElementType)
-                    {
-                        case ProgramElementType.Functor:
+                    case ProgramElementType.Functor:
+                        {
+                            declarationName = element.Functor.Name;
+                            var functor = element.Functor.Value;
+                            Container.Add(declarationName, functor);
+                            break;
+                        }
+                    case ProgramElementType.Type:
+                        {
+                            declarationName = element.Type.Name;
+                            var type = element.Type.Value;
+                            TypeCompiler.Compile(type, dataClass, module, moduleDefinitionName, declarationName);
+                            Container.Add(declarationName, type);
+                            break;
+                        }
+                    case ProgramElementType.Data:
+                        {
+                            declarationName = element.Data.Name;
+                            var data = element.Data.Value;
+                            Compile(declarationName, data);
+                            break;
+                        }
+                    case ProgramElementType.Import:
+                        {
+                            string moduleName = element.Import.ModuleName;
+
+                            try
                             {
-                                declarationName = element.Functor.Name;
-                                var functor = element.Functor.Value;
-                                Container.Add(declarationName, functor);
-                                break;
+                                System.Reflection.Module module = ModuleImporter.Import(moduleName);
+
                             }
-                        case ProgramElementType.Type:
+                            catch (ModuleImportException ex)
                             {
-                                declarationName = element.Type.Name;
-                                var type = element.Type.Value;
-                                TypeCompiler.Compile(type, dataClass, module, moduleName, declarationName);
-                                Container.Add(declarationName, type);
-                              break;
+                                throw new CompilerException(ex.Message, ex);
                             }
-                        case ProgramElementType.Data:
-                            {
-                                declarationName = element.Data.Name;
-                                var data = element.Data.Value;
-                                Compile(declarationName, data);
-                                break;
-                            }
-                    }
+                            break;
+                        }
                 }
-                catch (CompilerException ex)
-                {
-                    throw new CompilerException(string.Format(ErrorMessages.ErrorInDeclaration, declarationName, ex.Message), ex);
-                }
+            }
+            catch (CompilerException ex)
+            {
+                throw new CompilerException(string.Format(ErrorMessages.ErrorInDeclaration, declarationName, ex.Message), ex);
             }
         }
 

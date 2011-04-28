@@ -9,6 +9,8 @@ namespace Purity.Compiler
     {
         public static readonly string[] KeywordList = new[] 
         {
+            Constants.ModuleKeyword,
+            Constants.ImportKeyword,
             Constants.DataKeyword,
             Constants.FunctorKeyword,
             Constants.TypeKeyword,

@@ -8,7 +8,7 @@ namespace Purity.Compiler.Data
 {
     public class GFixTypeInfo : IFixPointInfo
     {
-        public TypeBuilder Type
+        public Type Type
         {
             get;
             set;
