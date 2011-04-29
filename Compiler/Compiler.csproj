@@ -41,15 +41,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataContainer.cs" />
-    <Compile Include="Data\BoxedTypeInfo.cs" />
-    <Compile Include="Data\ITypeInfo.cs" />
-    <Compile Include="Data\DataInfo.cs" />
-    <Compile Include="Data\GFixTypeInfo.cs" />
-    <Compile Include="Data\IFixPointInfo.cs" />
-    <Compile Include="Data\LFixTypeInfo.cs" />
     <Compile Include="Extensions\FunctorExtensions.cs" />
     <Compile Include="Helpers\AbstractionElimination.cs" />
-    <Compile Include="Helpers\BoxedTypeCreator.cs" />
+    <Compile Include="Helpers\BoxedTypeCompiler.cs" />
     <Compile Include="Helpers\FunctorApplication.cs" />
     <Compile Include="Helpers\ConstantExpressions.cs" />
     <Compile Include="Helpers\MethodCompiler.cs" />
@@ -87,6 +81,9 @@
       <Project>{A27F6155-A97B-496C-BDCB-9C65247D42A5}</Project>
       <Name>Typechecker</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

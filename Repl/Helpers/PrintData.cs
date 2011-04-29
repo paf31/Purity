@@ -11,6 +11,7 @@ using System.Reflection;
 using Purity.Compiler.Helpers;
 using Purity.Compiler.TypeDeclarations;
 using Purity.Compiler.Exceptions;
+using Purity.Compiler.Types;
 
 namespace Repl.Helpers
 {
@@ -34,7 +35,7 @@ namespace Repl.Helpers
         {
             return "?";
         }
-
+        
         public string VisitSynonym(Purity.Compiler.Types.TypeSynonym t)
         {
             var typeInfo = TypeContainer.ResolveType(t.Identifier);
@@ -43,39 +44,11 @@ namespace Repl.Helpers
             if (maxDepth <= 0)
             {
                 return "...";
-            }
-            else if (typeInfo is BoxedTypeInfo)
+            } 
+            else 
             {
-                dynamic unboxFunction = Activator.CreateInstance((typeInfo as BoxedTypeInfo).UnboxFunction);
-                dynamic unboxed = unboxFunction.Call(data);
-
-                var type = (declaration as BoxedTypeDeclaration).Type;
-
-                return string.Format("{0} ({1})", (declaration as BoxedTypeDeclaration).ConstructorFunctionName,
-                    Print(unboxed, type, maxDepth));
+                return declaration.AcceptVisitor(new PrintSynonymVisitor(t, data, typeInfo, maxDepth));
             }
-            else if (typeInfo is LFixTypeInfo)
-            {
-                dynamic inFunction = Activator.CreateInstance((typeInfo as LFixTypeInfo).InFunction);
-                dynamic unpacked = inFunction.Call(data);
-
-                var functor = (declaration as LFixTypeDeclaration).Functor;
-                var flfix = FunctorApplication.Map(functor, t);
-                return string.Format("{0} ({1})", (declaration as LFixTypeDeclaration).ConstructorFunctionName,
-                    Print(unpacked, flfix, maxDepth - 1));
-            }
-            else if (typeInfo is GFixTypeInfo)
-            {
-                dynamic inFunction = Activator.CreateInstance((typeInfo as GFixTypeInfo).InFunction);
-                dynamic unpacked = inFunction.Call(data);
-
-                var functor = (declaration as GFixTypeDeclaration).Functor;
-                var flfix = FunctorApplication.Map(functor, t);
-                return string.Format("{0} ({1})", (declaration as GFixTypeDeclaration).ConstructorFunctionName, 
-                    Print(unpacked, flfix, maxDepth - 1));
-            }
-
-            throw new CompilerException("Unknown type declaration.");
         }
 
         public string VisitProduct(Purity.Compiler.Types.ProductType t)
@@ -93,6 +66,57 @@ namespace Repl.Helpers
         public string VisitParameter(Purity.Compiler.Types.TypeParameter t)
         {
             throw new NotSupportedException();
+        }
+
+        private class PrintSynonymVisitor : ITypeDeclarationVisitor<string>
+        {
+            private readonly Type type;
+            private readonly int maxDepth;
+            private readonly dynamic data;
+            private readonly TypeSynonym synonym;
+
+            public PrintSynonymVisitor(TypeSynonym synonym, dynamic data, Type type, int maxDepth)
+            {
+                this.synonym = synonym;
+                this.data = data;
+                this.type = type;
+                this.maxDepth = maxDepth;
+            }
+
+            public string VisitBox(BoxedTypeDeclaration t)
+            {
+                Type destructor = DataContainer.ResolveDestructor(synonym.Identifier);
+
+                dynamic destructorDelegate = Activator.CreateInstance(destructor);
+                dynamic unboxed = destructorDelegate.Call(data);
+
+                return string.Format("{0} ({1})", t.ConstructorFunctionName ?? "_",
+                    PrintData.Print(unboxed, t.Type, maxDepth));
+            }
+
+            public string VisitLFix(LFixTypeDeclaration t)
+            {
+                Type destructor = DataContainer.ResolveDestructor(synonym.Identifier);
+
+                dynamic destructorDelegate = Activator.CreateInstance(destructor);
+                dynamic unboxed = destructorDelegate.Call(data);
+
+                var flfix = FunctorApplication.Map(t.Functor, synonym);
+                return string.Format("{0} ({1})", t.ConstructorFunctionName ?? "_",
+                    PrintData.Print(unboxed, flfix, maxDepth - 1));
+            }
+
+            public string VisitGFix(GFixTypeDeclaration t)
+            {
+                Type destructor = DataContainer.ResolveDestructor(synonym.Identifier);
+
+                dynamic destructorDelegate = Activator.CreateInstance(destructor);
+                dynamic unboxed = destructorDelegate.Call(data);
+
+                var flfix = FunctorApplication.Map(t.Functor, synonym);
+                return string.Format("{0} ({1})", t.ConstructorFunctionName ?? "_",
+                    PrintData.Print(unboxed, flfix, maxDepth - 1));
+            }
         }
     }
 }

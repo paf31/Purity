@@ -43,7 +43,7 @@ namespace Purity.Compiler.Utilities
                 if (type.GetCustomAttributes(typeof(ExportAttribute), false).Any())
                 {
                     Container.Add(type.Name, new MockTypeDeclaration(type.GetGenericArguments().Select(p => p.Name).ToArray()));
-                    TypeContainer.Add(type.Name, new MockTypeInfo(type));
+                    TypeContainer.Add(type.Name, type);
                 }
             }
 
@@ -70,10 +70,7 @@ namespace Purity.Compiler.Utilities
                         DataDeclaration declaration = new DataDeclaration(type, null);
                         declaration.TypeParameters = method.GetGenericArguments().Select(p => p.Name).ToArray();
 
-                        DataInfo dataInfo = new DataInfo();
-                        dataInfo.Method = method;
-
-                        DataContainer.Add(method.Name, dataInfo);
+                        DataContainer.Add(method.Name, method);
                         Container.Add(method.Name, declaration);
                     }
                 }
@@ -112,20 +109,6 @@ namespace Purity.Compiler.Utilities
             {
                 Container.ResolveType(type.Name);
                 return new Types.TypeSynonym(type.Name, type.GetGenericArguments().Select(InferType).ToArray());
-            }
-        }
-
-        private class MockTypeInfo : ITypeInfo
-        {
-            public MockTypeInfo(Type type)
-            {
-                Type = type;
-            }
-
-            public Type Type
-            {
-                get;
-                set;
             }
         }
 

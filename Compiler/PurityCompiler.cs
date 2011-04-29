@@ -101,7 +101,7 @@ namespace Purity.Compiler
             }
         }
 
-        public DataInfo Compile(string declarationName, string data)
+        public void Compile(string declarationName, string data)
         {
             var parseResult = DataParser.ParseData(data);
 
@@ -110,10 +110,10 @@ namespace Purity.Compiler
                 throw new CompilerException(ErrorMessages.UnableToParse);
             }
 
-            return Compile(declarationName, new DataDeclaration(parseResult.Output));
+            Compile(declarationName, new DataDeclaration(parseResult.Output));
         }
 
-        public DataInfo Compile(string declarationName, DataDeclaration data)
+        public void Compile(string declarationName, DataDeclaration data)
         {
             var result = TypeChecker.CreateTypedExpression(data);
 
@@ -126,7 +126,7 @@ namespace Purity.Compiler
             data.Type.AcceptVisitor(collector);
             data.TypeParameters = collector.Parameters.ToArray();
 
-            return MethodCompiler.Compile(declarationName, dataClass, typedExpression, data);
+            MethodCompiler.Compile(declarationName, dataClass, typedExpression, data);
         }
     }
 }

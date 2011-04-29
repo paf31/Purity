@@ -14,7 +14,7 @@ namespace Purity.Compiler.Helpers
 {
     public static class MethodCompiler
     {
-        public static DataInfo Compile(string name, TypeBuilder dataClass, ITypedExpression typedExpression,
+        public static void Compile(string name, TypeBuilder dataClass, ITypedExpression typedExpression,
             DataDeclaration data)
         {
             var method = dataClass.DefineMethod(name,
@@ -34,14 +34,9 @@ namespace Purity.Compiler.Helpers
             body.Emit(OpCodes.Ret);
 
             Container.Add(name, data);
-
-            var dataInfo = new DataInfo();
-            dataInfo.Method = method;
-            DataContainer.Add(name, dataInfo);
+            DataContainer.Add(name, method);
 
             RemoveFirstParameter(name, dataClass, method, new IType[0], data.Type, data.TypeParameters);
-
-            return dataInfo;
         }
 
         public static void Compile(string name, TypeBuilder dataClass, ConstructorInfo ctor, IType type, string[] typeParameters)
@@ -71,9 +66,7 @@ namespace Purity.Compiler.Helpers
 
             body.Emit(OpCodes.Ret);
 
-            var dataInfo = new DataInfo();
-            dataInfo.Method = method;
-            DataContainer.Add(name, dataInfo);
+            DataContainer.Add(name, method);
 
             var dataDecl = new DataDeclaration(type, null);
             dataDecl.TypeParameters = typeParameters;

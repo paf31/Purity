@@ -12,7 +12,7 @@ using Purity.Compiler.Exceptions;
 
 namespace Purity.Compiler.Helpers
 {
-    public class TypeCompiler : ITypeDeclarationVisitor<ITypeInfo>
+    public class TypeCompiler : ITypeDeclarationVisitor<Type>
     {
         private readonly ModuleBuilder module;
         private readonly TypeBuilder dataClass;
@@ -27,16 +27,16 @@ namespace Purity.Compiler.Helpers
             this.name = name;
         }
 
-        public static ITypeInfo Compile(ITypeDeclaration typeDeclaration, TypeBuilder dataClass, ModuleBuilder module, string moduleName, string declarationName)
+        public static Type Compile(ITypeDeclaration typeDeclaration, TypeBuilder dataClass, ModuleBuilder module, string moduleName, string declarationName)
         {
             return typeDeclaration.AcceptVisitor(new TypeCompiler(module, dataClass, moduleName, declarationName));
         }
 
-        public ITypeInfo VisitBox(TypeDeclarations.BoxedTypeDeclaration t)
+        public Type VisitBox(TypeDeclarations.BoxedTypeDeclaration t)
         {
-            var typeInfo = BoxedTypeCreator.CreateBoxedType(t.Type, module, moduleName, name, t.TypeParameters);
+            var compiler = new BoxedTypeCreator(module, moduleName, t.Type, name, t.TypeParameters);
 
-            TypeContainer.Add(name, typeInfo);
+            TypeContainer.Add(name, compiler.Compile());
 
             var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
 
@@ -45,19 +45,22 @@ namespace Purity.Compiler.Helpers
 
             if (t.ConstructorFunctionName != null)
             {
-                MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.BoxFunctionConstructor,
+                MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, compiler.BoxFunctionConstructor,
                     boxType, t.TypeParameters);
             }
 
             if (t.DestructorFunctionName != null)
             {
-                MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.UnboxFunctionConstructor,
+                MethodCompiler.Compile(t.DestructorFunctionName, dataClass, compiler.UnboxFunctionConstructor,
                     unboxType, t.TypeParameters);
             }
-            return typeInfo;
+
+            DataContainer.AddDestructor(name, compiler.UnboxFunction);
+
+            return compiler.TypeBuilder;
         }
 
-        public ITypeInfo VisitLFix(TypeDeclarations.LFixTypeDeclaration t)
+        public Type VisitLFix(TypeDeclarations.LFixTypeDeclaration t)
         {
             var functorClass = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
@@ -68,9 +71,7 @@ namespace Purity.Compiler.Helpers
 
             compiler.Compile();
 
-            var typeInfo = compiler.TypeInfo;
-
-            TypeContainer.Add(name, typeInfo);
+            TypeContainer.Add(name, compiler.TypeBuilder);
 
             var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
 
@@ -84,26 +85,28 @@ namespace Purity.Compiler.Helpers
             
             if (t.ConstructorFunctionName != null)
             {
-                MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.OutFunctionConstructor,
+                MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, compiler.OutFunctionConstructor,
                     constructorType, t.TypeParameters);
             }
 
             if (t.DestructorFunctionName != null)
             {
-                MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.InFunctionConstructor,
+                MethodCompiler.Compile(t.DestructorFunctionName, dataClass, compiler.InFunctionConstructor,
                     destructorType, t.TypeParameters);
             }
 
             if (t.CataFunctionName != null)
             {
-                MethodCompiler.Compile(t.CataFunctionName, dataClass, typeInfo.CataFunction1Constructor,
+                MethodCompiler.Compile(t.CataFunctionName, dataClass, compiler.CataFunction1Constructor,
                     cataType, new[] { Constants.CataFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray());
             }
 
-            return typeInfo;
+            DataContainer.AddDestructor(name, compiler.InFunction);
+
+            return compiler.TypeBuilder;
         }
 
-        public ITypeInfo VisitGFix(TypeDeclarations.GFixTypeDeclaration t)
+        public Type VisitGFix(TypeDeclarations.GFixTypeDeclaration t)
         {
             var functorClass = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
@@ -114,9 +117,7 @@ namespace Purity.Compiler.Helpers
 
             compiler.Compile();
 
-            var typeInfo = compiler.TypeInfo;
-
-            TypeContainer.Add(name, typeInfo);
+            TypeContainer.Add(name, compiler.TypeBuilder);
 
             var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
 
@@ -130,23 +131,25 @@ namespace Purity.Compiler.Helpers
 
             if (t.ConstructorFunctionName != null)
             {
-                MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, typeInfo.OutFunctionConstructor,
+                MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, compiler.OutFunctionConstructor,
                    constructorType, t.TypeParameters);
             }
 
             if (t.DestructorFunctionName != null)
             {
-                MethodCompiler.Compile(t.DestructorFunctionName, dataClass, typeInfo.InFunctionConstructor,
+                MethodCompiler.Compile(t.DestructorFunctionName, dataClass, compiler.InFunctionConstructor,
                     destructorType, t.TypeParameters);
             }
 
             if (t.AnaFunctionName != null)
             {
-                MethodCompiler.Compile(t.AnaFunctionName, dataClass, typeInfo.AnaFunction1Constructor,
+                MethodCompiler.Compile(t.AnaFunctionName, dataClass, compiler.AnaFunction1Constructor,
                     anaType, new[] { Constants.AnaFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray());
             }
 
-            return typeInfo;
+            DataContainer.AddDestructor(name, compiler.InFunction);
+
+            return compiler.TypeBuilder;
         }
     }
 }

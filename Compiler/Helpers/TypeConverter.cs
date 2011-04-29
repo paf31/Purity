@@ -44,7 +44,7 @@ namespace Purity.Compiler.Helpers
 
         public Type VisitSynonym(Types.TypeSynonym t)
         {
-            var type = TypeContainer.ResolveType(t.Identifier).Type;
+            var type = TypeContainer.ResolveType(t.Identifier);
             return t.TypeParameters.Any() ? type.MakeGenericType(t.TypeParameters.Select(Convert).ToArray()) : type;
         }
 

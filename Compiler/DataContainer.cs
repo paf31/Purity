@@ -11,10 +11,12 @@ namespace Purity.Compiler
 {
     public static class DataContainer
     {
-        private static IDictionary<string, DataInfo> data =
-            new Dictionary<string, DataInfo>();
+        private static IDictionary<string, MethodInfo> data =
+            new Dictionary<string, MethodInfo>();
+        private static IDictionary<string, Type> destructors =
+            new Dictionary<string, Type>();
 
-        public static DataInfo Resolve(string name)
+        public static MethodInfo Resolve(string name)
         {
             if (!data.ContainsKey(name))
             {
@@ -24,7 +26,17 @@ namespace Purity.Compiler
             return data[name];
         }
 
-        public static void Add(string name, DataInfo value)
+        public static Type ResolveDestructor(string name)
+        {
+            if (!destructors.ContainsKey(name))
+            {
+                throw new CompilerException(string.Format(ErrorMessages.UnableToResolveData, name.ToString()));
+            }
+
+            return destructors[name];
+        }
+
+        public static void Add(string name, MethodInfo value)
         {
             if (data.ContainsKey(name))
             {
@@ -32,6 +44,16 @@ namespace Purity.Compiler
             }
 
             data[name] = value;
+        }
+
+        public static void AddDestructor(string name, Type value)
+        {
+            if (destructors.ContainsKey(name))
+            {
+                throw new CompilerException(string.Format(ErrorMessages.NameConflict, name));
+            }
+
+            destructors[name] = value;
         }
 
         public static void Clear()

@@ -11,57 +11,27 @@ namespace Purity.Compiler
 {
     public static class TypeContainer
     {
-        private static IDictionary<string, ITypeInfo> types =
-            new Dictionary<string, ITypeInfo>();
+        private static IDictionary<string, Type> types =
+            new Dictionary<string, Type>();
 
-        public static LFixTypeInfo ResolveLFixType(string name)
-        {
-            if (!types.ContainsKey(name))
-            {
-                throw new CompilerException(string.Format(ErrorMessages.UnableToResolveLFix, name.ToString()));
-            }
-
-            return (LFixTypeInfo) types[name];
-        }
-
-        public static GFixTypeInfo ResolveGFixType(string name)
-        {
-            if (!types.ContainsKey(name))
-            {
-                throw new CompilerException(string.Format(ErrorMessages.UnableToResolveGFix, name.ToString()));
-            }
-
-            return (GFixTypeInfo) types[name];
-        }
-
-        public static IFixPointInfo ResolveFixPointType(string name)
-        {
-            if (!types.ContainsKey(name))
-            {
-                throw new CompilerException(string.Format(ErrorMessages.UnableToResolveFix, name.ToString()));
-            }
-
-            return (IFixPointInfo) types[name];
-        }
-
-        public static ITypeInfo ResolveType(string name)
+        public static Type ResolveType(string name)
         {
             if (!types.ContainsKey(name))
             {
                 throw new CompilerException(string.Format(ErrorMessages.UnableToResolveType, name.ToString()));
             }
 
-            return (ITypeInfo) types[name];
+            return types[name];
         }
 
-        public static void Add(string name, ITypeInfo value)
+        public static void Add(string name, Type type)
         {
             if (types.ContainsKey(name))
             {
                 throw new CompilerException(string.Format(ErrorMessages.NameConflict, name));
             }
 
-            types[name] = value;
+            types[name] = type;
         }
 
         public static void Clear()

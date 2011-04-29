@@ -181,7 +181,7 @@ namespace Purity.Compiler.Helpers
 
         public void VisitSynonym(TypedExpressions.DataSynonym d)
         {
-            var method = DataContainer.Resolve(d.Identifier).Method;
+            var method = DataContainer.Resolve(d.Identifier);
 
             if (d.TypeParameters.Any())
             {
