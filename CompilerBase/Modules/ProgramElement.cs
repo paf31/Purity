@@ -14,12 +14,6 @@ namespace Purity.Compiler.Modules
             set;
         }
 
-        public Named<FunctorDeclaration> Functor
-        {
-            get;
-            set;
-        }
-
         public Named<ITypeDeclaration> Type
         {
             get;
@@ -36,12 +30,6 @@ namespace Purity.Compiler.Modules
         {
             get;
             set;
-        }
-
-        public ProgramElement(Named<FunctorDeclaration> functor)
-        {
-            ElementType = ProgramElementType.Functor;
-            Functor = functor;
         }
 
         public ProgramElement(Named<ITypeDeclaration> type)

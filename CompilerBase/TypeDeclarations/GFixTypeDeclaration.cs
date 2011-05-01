@@ -8,10 +8,11 @@ namespace Purity.Compiler.TypeDeclarations
 {
     public class GFixTypeDeclaration : ITypeDeclaration
     {
-        public GFixTypeDeclaration(IFunctor functor, string[] typeParameters,
+        public GFixTypeDeclaration(IType type, string variableName, string[] typeParameters,
             string constructorFunctionName, string destructorFunctionName, string anaFunctionName)
         {
-            Functor = functor;
+            Type = type;
+            VariableName = variableName;
             TypeParameters = typeParameters;
             ConstructorFunctionName = constructorFunctionName;
             DestructorFunctionName = destructorFunctionName;
@@ -42,7 +43,13 @@ namespace Purity.Compiler.TypeDeclarations
             set;
         }
 
-        public IFunctor Functor
+        public IType Type
+        {
+            get;
+            set;
+        }
+
+        public string VariableName
         {
             get;
             set;

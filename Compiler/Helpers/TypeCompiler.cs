@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Purity.Compiler.Interfaces;
-using Purity.Compiler.Extensions;
 using System.Reflection.Emit;
 using System.Reflection;
 using Purity.Compiler.Modules;
 using Purity.Compiler.Data;
 using Purity.Compiler.Exceptions;
+using Purity.Compiler.Utilities;
 
 namespace Purity.Compiler.Helpers
 {
@@ -65,7 +65,7 @@ namespace Purity.Compiler.Helpers
             var functorClass = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
 
-            var fmap = t.Functor.Compile(functorClass, t.TypeParameters);
+            var fmap = FunctorMethods.Compile(t.Type, t.VariableName, functorClass, t.TypeParameters);
             var compiler = new LFixCompiler(name, t, module, functorClass, fmap, moduleName);
 
             compiler.Compile();
@@ -74,12 +74,12 @@ namespace Purity.Compiler.Helpers
 
             var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
 
-            var fSynonym = FunctorApplication.Map(t.Functor, synonym);
+            var fSynonym = FunctorApplication.Map(t.VariableName, t.Type, synonym);
             var constructorType = new Types.ArrowType(fSynonym, synonym);
             var destructorType = new Types.ArrowType(synonym, fSynonym);
 
             var cataParameter = new Types.TypeParameter(Constants.CataFunction1ClassGenericParameterName);
-            var fCataParameter = FunctorApplication.Map(t.Functor, cataParameter);
+            var fCataParameter = FunctorApplication.Map(t.VariableName, t.Type, cataParameter);
             var cataType = new Types.ArrowType(new Types.ArrowType(fCataParameter, cataParameter), new Types.ArrowType(synonym, cataParameter));
             
             if (t.ConstructorFunctionName != null)
@@ -110,7 +110,7 @@ namespace Purity.Compiler.Helpers
             var functorClass = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
 
-            var fmap = t.Functor.Compile(functorClass, t.TypeParameters);
+            var fmap = FunctorMethods.Compile(t.Type, t.VariableName, functorClass, t.TypeParameters);
             var compiler = new GFixCompiler(name, t, module, functorClass, fmap, moduleName);
 
             compiler.Compile();
@@ -119,12 +119,12 @@ namespace Purity.Compiler.Helpers
 
             var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
 
-            var fSynonym = FunctorApplication.Map(t.Functor, synonym);
+            var fSynonym = FunctorApplication.Map(t.VariableName, t.Type, synonym);
             var constructorType = new Types.ArrowType(fSynonym, synonym);
             var destructorType = new Types.ArrowType(synonym, fSynonym);
 
             var anaParameter = new Types.TypeParameter(Constants.AnaFunction1ClassGenericParameterName);
-            var fAnaParameter = FunctorApplication.Map(t.Functor, anaParameter);
+            var fAnaParameter = FunctorApplication.Map(t.VariableName, t.Type, anaParameter);
             var anaType = new Types.ArrowType(new Types.ArrowType(anaParameter, fAnaParameter), new Types.ArrowType(anaParameter, synonym));
 
             if (t.ConstructorFunctionName != null)

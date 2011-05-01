@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Purity.Compiler.Functors;
 using Purity.Compiler.Interfaces;
 using Purity.Compiler.Typechecker.Interfaces;
 

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Purity.Compiler.Functors;
 using Purity.Compiler.Modules;
 using Purity.Compiler.Types;
 using Purity.Compiler.Data;
@@ -17,23 +16,6 @@ namespace Purity.Compiler.Parser
             from ident in Parsers.Identifier
             from indicator in Parsers.Match(Constants.TypeParameterIndicator)
             select ident;
-
-        static Parser<string, Named<FunctorDeclaration>> ParseNamedFunctor =
-            from decl in Parsers.Match(Constants.FunctorKeyword)
-            from ws1 in Parsers.WSChar.Rep1()
-            from ident in Parsers.Identifier
-            from typeParameters in
-                (
-                    from ws in Parsers.WSChar.Rep1()
-                    from typeParameter in ParseTypeParameter
-                    select typeParameter
-                ).Rep()
-            from ws2 in Parsers.Whitespace
-            from eq in Parsers.Match(Constants.EqualsSymbol)
-            from ws3 in Parsers.Whitespace
-            from functor in FunctorParser.ParseFunctor
-            select new Named<FunctorDeclaration>(ident,
-                new FunctorDeclaration(functor, typeParameters.ToArray()));
 
         static Parser<string, Named<DataDeclaration>> ParseNamedUntypedData =
             from decl in Parsers.Match(Constants.DataKeyword)
@@ -62,9 +44,7 @@ namespace Purity.Compiler.Parser
             select new ImportStatement(moduleName);
 
         public static Parser<string, ProgramElement> ParseProgramElement =
-            (from functor in ParseNamedFunctor
-             select new ProgramElement(functor)).Or(
-             from type in TypeDeclarationParser.ParseTypeDeclaration
+            (from type in TypeDeclarationParser.ParseTypeDeclaration
              select new ProgramElement(type)).Or(
              from data in ParseNamedUntypedData
              select new ProgramElement(data)).Or(

@@ -6,7 +6,7 @@ using Purity.Compiler.Interfaces;
 
 namespace Purity.Compiler.Helpers
 {
-    public class TypeParameterCollector : ITypeVisitor, IFunctorVisitor
+    public class TypeParameterCollector : ITypeVisitor
     {
         public IList<string> Parameters
         {
@@ -51,41 +51,6 @@ namespace Purity.Compiler.Helpers
             {
                 Parameters.Add(t.Identifier);
             }
-        }
-
-        public void VisitArrow(Functors.ArrowFunctor f)
-        {
-            f.Left.AcceptVisitor(this);
-            f.Right.AcceptVisitor(this);
-        }
-
-        public void VisitConstant(Functors.ConstantFunctor f)
-        {
-            f.Value.AcceptVisitor(this);
-        }
-
-        public void VisitSynonym(Functors.FunctorSynonym f)
-        {
-            foreach (var typeParameter in f.TypeParameters)
-            {
-                typeParameter.AcceptVisitor(this);
-            }
-        }
-
-        public void VisitIdentity(Functors.IdentityFunctor f)
-        {
-        }
-
-        public void VisitProduct(Functors.ProductFunctor f)
-        {
-            f.Left.AcceptVisitor(this);
-            f.Right.AcceptVisitor(this);
-        }
-
-        public void VisitSum(Functors.SumFunctor f)
-        {
-            f.Left.AcceptVisitor(this);
-            f.Right.AcceptVisitor(this);
         }
     }
 }

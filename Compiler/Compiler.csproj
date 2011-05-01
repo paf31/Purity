@@ -41,7 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataContainer.cs" />
-    <Compile Include="Extensions\FunctorExtensions.cs" />
+    <Compile Include="Utilities\FunctorMethods.cs" />
     <Compile Include="Helpers\AbstractionElimination.cs" />
     <Compile Include="Helpers\BoxedTypeCompiler.cs" />
     <Compile Include="Helpers\FunctorApplication.cs" />

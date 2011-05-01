@@ -3,143 +3,153 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Purity.Compiler.Interfaces;
-using Purity.Compiler.Extensions;
 using System.Reflection.Emit;
 using Purity.Core;
 using Purity.Core.Functions;
 
 namespace Purity.Compiler.Helpers
 {
-    public class FmapCompiler : IFunctorVisitor
+    public class FmapCompiler : ITypeVisitor
     {
         private readonly ILGenerator body;
+        private readonly string variableName;
         private readonly Type[] genericParameters;
 
-        public FmapCompiler(ILGenerator body, Type[] genericParameters)
+        public FmapCompiler(ILGenerator body, string variableName, Type[] genericParameters)
         {
             this.body = body;
+            this.variableName = variableName;
             this.genericParameters = genericParameters;
         }
 
-        public void VisitArrow(Functors.ArrowFunctor f)
+        private void EmitConstant(IType type)
         {
-            f.Right.AcceptVisitor(this);
-
-            body.Emit(OpCodes.Newobj,
-                TypeBuilder.GetConstructor(
-                typeof(ArrowFunctorAction<,,>).MakeGenericType(
-                    new TypeConverter(genericParameters.Skip(2).ToArray()).Convert(f.Left),
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Right),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Right)),
-                typeof(ArrowFunctorAction<,,>).GetConstructors()[0]));
-        }
-
-        public void VisitConstant(Functors.ConstantFunctor f)
-        {
-            var genericParameter = new TypeConverter(genericParameters.Skip(2).ToArray()).Convert(f.Value);
+            var genericParameter = new TypeConverter(genericParameters.Skip(2).ToArray()).Convert(type);
             body.Emit(OpCodes.Newobj, TypeBuilder.GetConstructor(
                 typeof(IdentityFunction<>).MakeGenericType(genericParameter),
                 typeof(IdentityFunction<>).GetConstructors()[0]));
         }
 
-        public void VisitSynonym(Functors.FunctorSynonym f)
+        public void VisitArrow(Types.ArrowType t)
         {
-            Container.ResolveFunctor(f.Identifier).Functor.AcceptVisitor(this);
+            t.Right.AcceptVisitor(this);
+
+            body.Emit(OpCodes.Newobj,
+                TypeBuilder.GetConstructor(
+                typeof(ArrowFunctorAction<,,>).MakeGenericType(
+                    new TypeConverter(genericParameters.Skip(2).ToArray()).Convert(t.Left),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters)),
+                typeof(ArrowFunctorAction<,,>).GetConstructors()[0]));
         }
 
-        public void VisitIdentity(Functors.IdentityFunctor f)
+        public void VisitSynonym(Types.TypeSynonym t)
         {
-            body.Emit(OpCodes.Ldarg_0);
+            // TODO: throw if the type parameters mention the variable name
+
+            EmitConstant(t);
         }
 
-        public void VisitProduct(Functors.ProductFunctor f)
+        public void VisitProduct(Types.ProductType t)
         {
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(OutlFunction<,>).MakeGenericType(
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Left),
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Right)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters)),
                 typeof(OutlFunction<,>).GetConstructors()[0]));
 
-            f.Left.AcceptVisitor(this);
+            t.Left.AcceptVisitor(this);
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(CompositeFunction<,,>).MakeGenericType(
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f),
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Left),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Left)),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters)),
                 typeof(CompositeFunction<,,>).GetConstructors()[0]));
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(OutrFunction<,>).MakeGenericType(
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Left),
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Right)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters)),
                 typeof(OutrFunction<,>).GetConstructors()[0]));
 
-            f.Right.AcceptVisitor(this);
+            t.Right.AcceptVisitor(this);
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(CompositeFunction<,,>).MakeGenericType(
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f),
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Right),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Right)),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters)),
                 typeof(CompositeFunction<,,>).GetConstructors()[0]));
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(SplitFunction<,,>).MakeGenericType(
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Left),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Right)),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters)),
                 typeof(SplitFunction<,,>).GetConstructors()[0]));
         }
 
-        public void VisitSum(Functors.SumFunctor f)
+        public void VisitSum(Types.SumType t)
         {
-            f.Left.AcceptVisitor(this);
+            t.Left.AcceptVisitor(this);
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(InlFunction<,>).MakeGenericType(
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Left),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Right)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters)),
                 typeof(InlFunction<,>).GetConstructors()[0]));
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(CompositeFunction<,,>).MakeGenericType(
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Left),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Left),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[1], genericParameters)),
                 typeof(CompositeFunction<,,>).GetConstructors()[0]));
 
-            f.Right.AcceptVisitor(this);
+            t.Right.AcceptVisitor(this);
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(InrFunction<,>).MakeGenericType(
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Left),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Right)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters)),
                 typeof(InrFunction<,>).GetConstructors()[0]));
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(CompositeFunction<,,>).MakeGenericType(
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Right),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f.Right),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f)),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[1], genericParameters)),
                 typeof(CompositeFunction<,,>).GetConstructors()[0]));
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(CaseFunction<,,>).MakeGenericType(
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Left),
-                    new FunctorTypeMapper(genericParameters[0], genericParameters).Map(f.Right),
-                    new FunctorTypeMapper(genericParameters[1], genericParameters).Map(f)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[1], genericParameters)),
                 typeof(CaseFunction<,,>).GetConstructors()[0]));
+        }
+
+        public void VisitParameter(Types.TypeParameter t)
+        {
+            if (t.Identifier.Equals(variableName))
+            {
+                body.Emit(OpCodes.Ldarg_0);
+            }
+            else 
+            {
+                EmitConstant(t);
+            }
         }
     }
 }

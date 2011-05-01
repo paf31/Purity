@@ -5,7 +5,6 @@ using System.Text;
 using Purity.Core;
 using Purity.Compiler.Types;
 using Purity.Compiler.Interfaces;
-using Purity.Compiler.Functors;
 
 namespace Purity.Compiler.Parser
 {

@@ -15,9 +15,6 @@ namespace Purity.Compiler
         private static IDictionary<string, ITypeDeclaration> types =
             new Dictionary<string, ITypeDeclaration>();
 
-        private static IDictionary<string, FunctorDeclaration> functors =
-            new Dictionary<string, FunctorDeclaration>();
-
         private static IDictionary<string, DataDeclaration> data =
             new Dictionary<string, DataDeclaration>();
 
@@ -29,16 +26,6 @@ namespace Purity.Compiler
             }
 
             return types[identifier];
-        }
-
-        public static FunctorDeclaration ResolveFunctor(string identifier)
-        {
-            if (!functors.ContainsKey(identifier))
-            {
-                throw new CompilerException(string.Format(ErrorMessages.UnableToResolveFunctor, identifier));
-            }
-
-            return functors[identifier];
         }
 
         public static DataDeclaration ResolveValue(string identifier)
@@ -61,11 +48,6 @@ namespace Purity.Compiler
             types[identifier] = value;
         }
 
-        public static void Add(string identifier, FunctorDeclaration value)
-        {
-            functors[identifier] = value;
-        }
-
         public static void Add(string identifier, DataDeclaration value)
         {
             data[identifier] = value;
@@ -75,7 +57,6 @@ namespace Purity.Compiler
         {
             data.Clear();
             types.Clear();
-            functors.Clear();
         }
     }
 }

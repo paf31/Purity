@@ -42,7 +42,6 @@
   <ItemGroup>
     <Compile Include="Parser\TypeDeclarationParser.cs" />
     <Compile Include="Parser\DataParser.cs" />
-    <Compile Include="Parser\FunctorParser.cs" />
     <Compile Include="Parser\ModuleParser.cs" />
     <Compile Include="Parser\Parser.cs" />
     <Compile Include="Parser\Parsers.cs" />

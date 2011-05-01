@@ -50,10 +50,8 @@
     <Compile Include="Exceptions\ModuleImportException.cs" />
     <Compile Include="Interfaces\ITypeDeclarationVisitor.cs" />
     <Compile Include="Interfaces\ITypeDeclaration.cs" />
-    <Compile Include="Interfaces\IFixedPointType.cs" />
     <Compile Include="Interfaces\ITypedExpressionVisitor.cs" />
     <Compile Include="Interfaces\ITypedExpression.cs" />
-    <Compile Include="Modules\FunctorDeclaration.cs" />
     <Compile Include="Modules\ImportStatement.cs" />
     <Compile Include="Modules\ProgramElement.cs" />
     <Compile Include="Modules\ProgramElementType.cs" />
@@ -75,16 +73,8 @@
     <Compile Include="TypedExpressions\Split.cs" />
     <Compile Include="Modules\DataDeclaration.cs" />
     <Compile Include="Exceptions\CompilerException.cs" />
-    <Compile Include="Functors\ArrowFunctor.cs" />
-    <Compile Include="Functors\ConstantFunctor.cs" />
-    <Compile Include="Functors\FunctorSynonym.cs" />
-    <Compile Include="Functors\IdentityFunctor.cs" />
-    <Compile Include="Functors\ProductFunctor.cs" />
-    <Compile Include="Functors\SumFunctor.cs" />
     <Compile Include="Interfaces\IData.cs" />
     <Compile Include="Interfaces\IDataVisitor.cs" />
-    <Compile Include="Interfaces\IFunctor.cs" />
-    <Compile Include="Interfaces\IFunctorVisitor.cs" />
     <Compile Include="Interfaces\IType.cs" />
     <Compile Include="Interfaces\ITypeVisitor.cs" />
     <Compile Include="Keywords.cs" />

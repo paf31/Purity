@@ -46,10 +46,10 @@ namespace Purity.Compiler.Utilities
                 if (type.GetCustomAttributes(typeof(FiniteAttribute), false).Any())
                 {
                     var cataMethod = type.GetMethod(Constants.CataMethodName);
-                    var functor = ReflectionUtilities.InferFunctorFromFiniteType(cataMethod);
+                    var functor = ReflectionUtilities.InferFunctorFromFiniteType(cataMethod, "_T");
 
                     FiniteAttribute finiteAttribute = (FiniteAttribute) type.GetCustomAttributes(typeof(FiniteAttribute), false).Single();
-                    Container.Add(type.Name, new LFixTypeDeclaration(functor, typeParameters, 
+                    Container.Add(type.Name, new LFixTypeDeclaration(functor, "_T", typeParameters, 
                         finiteAttribute.ConstructorName, 
                         finiteAttribute.DestructorName, 
                         finiteAttribute.FoldName));
@@ -60,10 +60,10 @@ namespace Purity.Compiler.Utilities
                 if (type.GetCustomAttributes(typeof(InfiniteAttribute), false).Any())
                 {
                     var applyMethod = type.GetMethod(Constants.ApplyMethodName);
-                    var functor = ReflectionUtilities.InferFunctorFromInfiniteType(applyMethod);
+                    var functor = ReflectionUtilities.InferFunctorFromInfiniteType(applyMethod, "_T");
 
                     InfiniteAttribute infiniteAttribute = (InfiniteAttribute) type.GetCustomAttributes(typeof(InfiniteAttribute), false).Single();
-                    Container.Add(type.Name, new GFixTypeDeclaration(functor, typeParameters,
+                    Container.Add(type.Name, new GFixTypeDeclaration(functor, "_T", typeParameters,
                         infiniteAttribute.ConstructorName,
                         infiniteAttribute.DestructorName,
                         infiniteAttribute.UnfoldName));

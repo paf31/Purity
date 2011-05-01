@@ -9,9 +9,7 @@ using Purity.Core;
 using Purity.Compiler.Data;
 using Purity.Compiler.Exceptions;
 using Purity.Compiler.Modules;
-using Purity.Compiler.Extensions;
 using Purity.Compiler.Helpers;
-using Purity.Compiler.Functors;
 using Purity.Compiler.Interfaces;
 using Purity.Compiler.Types;
 using Purity.Compiler.Typechecker.Helpers;
@@ -56,13 +54,6 @@ namespace Purity.Compiler
             {
                 switch (element.ElementType)
                 {
-                    case ProgramElementType.Functor:
-                        {
-                            declarationName = element.Functor.Name;
-                            var functor = element.Functor.Value;
-                            Container.Add(declarationName, functor);
-                            break;
-                        }
                     case ProgramElementType.Type:
                         {
                             declarationName = element.Type.Name;

@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Purity.Compiler.Extensions;
 using Purity.Compiler.Interfaces;
 using Purity.Core;
 using System.Reflection.Emit;
-using Purity.Compiler.Functors;
 using Purity.Compiler.Data;
 using Purity.Core.Types;
 using Purity.Compiler.Exceptions;

@@ -111,7 +111,7 @@ namespace Repl.Helpers
                     .Select((s, i) => new KeyValuePair<string, IType>(s, synonym.TypeParameters[i]))
                     .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-                var flfix = FunctorApplication.Map(ReplaceTypeParameters.Replace(t.Functor, typeParameters), synonym);
+                var flfix = ReplaceTypeParameters.Replace(FunctorApplication.Map(t.VariableName, t.Type, synonym), typeParameters);
                 return string.Format("{0} {1}", t.ConstructorFunctionName ?? "_",
                     PrintData.Print(unboxed, flfix, maxDepth - 1));
             }
@@ -122,7 +122,7 @@ namespace Repl.Helpers
                     .Select((s, i) => new KeyValuePair<string, IType>(s, synonym.TypeParameters[i]))
                     .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-                var flfix = FunctorApplication.Map(ReplaceTypeParameters.Replace(t.Functor, typeParameters), synonym);
+                var flfix = ReplaceTypeParameters.Replace(FunctorApplication.Map(t.VariableName, t.Type, synonym), typeParameters);
                 return string.Format("{0} {1}", t.ConstructorFunctionName ?? "_",
                     PrintData.Print(unboxed, flfix, maxDepth - 1));
             }

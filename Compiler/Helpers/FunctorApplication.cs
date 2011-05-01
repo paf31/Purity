@@ -3,55 +3,57 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Purity.Compiler.Interfaces;
-using Purity.Compiler.Extensions;
-using Purity.Core;
 using Purity.Core.Types;
 
 namespace Purity.Compiler.Helpers
 {
-    public class FunctorApplication : IFunctorVisitor<IType>
+    public class FunctorApplication : ITypeVisitor<IType>
     {
-        private readonly IType t;
+        private readonly IType type;
+        private string variableName;
 
-        public FunctorApplication(IType t)
+        public FunctorApplication(string variableName, IType type)
         {
-            this.t = t;
+            this.type = type;
+            this.variableName = variableName;
         }
 
-        public static IType Map(IFunctor f, IType t)
+        public static IType Map(string variableName, IType functorType, IType type)
         {
-            var visitor = new FunctorApplication(t);
-            return f.AcceptVisitor(visitor);
+            var visitor = new FunctorApplication(variableName, type);
+            return functorType.AcceptVisitor(visitor);
         }
 
-        public IType VisitArrow(Functors.ArrowFunctor f)
+        public IType VisitArrow(Types.ArrowType t)
         {
-            return new Types.ArrowType(f.Left, Map(f.Right, t));
+            return new Types.ArrowType(t.Left.AcceptVisitor(this), t.Right.AcceptVisitor(this));
         }
 
-        public IType VisitConstant(Functors.ConstantFunctor f)
-        {
-            return f.Value;
-        }
-
-        public IType VisitSynonym(Functors.FunctorSynonym f)
-        {
-            return Map(Container.ResolveFunctor(f.Identifier).Functor, t);
-        }
-
-        public IType VisitIdentity(Functors.IdentityFunctor f)
+        public IType VisitSynonym(Types.TypeSynonym t)
         {
             return t;
         }
 
-        public IType VisitProduct(Functors.ProductFunctor f)
+        public IType VisitProduct(Types.ProductType t)
         {
-            return new Types.ProductType(Map(f.Left, t), Map(f.Right, t));
+            return new Types.ProductType(t.Left.AcceptVisitor(this), t.Right.AcceptVisitor(this));
         }
 
-        public IType VisitSum(Functors.SumFunctor f)
+        public IType VisitSum(Types.SumType t)
         {
-            return new Types.SumType(Map(f.Left, t), Map(f.Right, t));
+            return new Types.SumType(t.Left.AcceptVisitor(this), t.Right.AcceptVisitor(this));
+        }
+
+        public IType VisitParameter(Types.TypeParameter t)
+        {
+            if (t.Identifier.Equals(variableName))
+            {
+                return type;
+            }
+            else 
+            {
+                return t; 
+            }
         }
     }
 }

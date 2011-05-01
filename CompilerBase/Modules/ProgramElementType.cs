@@ -7,7 +7,6 @@ namespace Purity.Compiler.Modules
 {
     public enum ProgramElementType
     {
-        Functor,
         Type,
         Data,
         Import

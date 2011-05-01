@@ -44,25 +44,25 @@ namespace Purity.Compiler.Utilities
             }
         }
 
-        public static IFunctor InferFunctorFromFiniteType(MethodInfo cataMethod)
+        public static IType InferFunctorFromFiniteType(MethodInfo cataMethod, string variableName)
         {
             var algebraType = cataMethod.GetParameters()[0].ParameterType;
             var fCarrierType = algebraType.GetGenericArguments()[0];
 
-            return InferFunctor(fCarrierType, Constants.CataMethodGenericParameterName);
+            return InferFunctor(fCarrierType, variableName, Constants.CataMethodGenericParameterName);
         }
 
-        public static IFunctor InferFunctorFromInfiniteType(MethodInfo applyMethod)
+        public static IType InferFunctorFromInfiniteType(MethodInfo applyMethod, string variableName)
         {
             var functionType = applyMethod.GetParameters()[0];
             var functionTypeApplyMethod = functionType.ParameterType.GetMethod(Constants.ApplyMethodName);
             var generator = functionTypeApplyMethod.GetParameters()[1];
             var fCarrierType = generator.ParameterType.GetGenericArguments()[1];
 
-            return InferFunctor(fCarrierType, Constants.ApplyMethodGenericParameterName);
+            return InferFunctor(fCarrierType, variableName, Constants.ApplyMethodGenericParameterName);
         }
 
-        public static IFunctor InferFunctor(Type type, string genericParameterName)
+        public static IType InferFunctor(Type type, string variableName, string genericParameterName)
         {
             Type genericTypeDefinition = type.GetGenericArguments().Any() ? type.GetGenericTypeDefinition() : type;
 
@@ -70,35 +70,37 @@ namespace Purity.Compiler.Utilities
             {
                 if (genericTypeDefinition.Name.Equals(genericParameterName))
                 {
-                    return new Functors.IdentityFunctor();
+                    return new Types.TypeParameter(variableName);
                 }
                 else
                 {
-                    return new Functors.ConstantFunctor(new Types.TypeParameter(type.Name));
+                    return new Types.TypeParameter(type.Name);
                 }
             }
             else if (typeof(IFunction<,>).IsAssignableFrom(genericTypeDefinition))
             {
                 Type left = type.GetGenericArguments()[0];
                 Type right = type.GetGenericArguments()[1];
-                return new Functors.ArrowFunctor(InferType(left), InferFunctor(right, genericParameterName));
+                return new Types.ArrowType(InferType(left), InferFunctor(right, variableName, genericParameterName));
             }
             else if (typeof(Either<,>).IsAssignableFrom(genericTypeDefinition))
             {
                 Type left = type.GetGenericArguments()[0];
                 Type right = type.GetGenericArguments()[1];
-                return new Functors.SumFunctor(InferFunctor(left, genericParameterName), InferFunctor(right, genericParameterName));
+                return new Types.SumType(InferFunctor(left, variableName, genericParameterName), 
+                    InferFunctor(right, variableName, genericParameterName));
             }
             else if (typeof(Tuple<,>).IsAssignableFrom(genericTypeDefinition))
             {
                 Type left = type.GetGenericArguments()[0];
                 Type right = type.GetGenericArguments()[1];
-                return new Functors.ProductFunctor(InferFunctor(left, genericParameterName), InferFunctor(right, genericParameterName));
-            } 
+                return new Types.ProductType(InferFunctor(left, variableName, genericParameterName), 
+                    InferFunctor(right, variableName, genericParameterName));
+            }
             else
             {
                 Container.ResolveType(type.Name);
-                return new Functors.ConstantFunctor(new Types.TypeSynonym(type.Name, type.GetGenericArguments().Select(InferType).ToArray()));
+                return new Types.TypeSynonym(type.Name, type.GetGenericArguments().Select(InferType).ToArray());
             }
         }
     }

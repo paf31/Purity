@@ -5,7 +5,6 @@ using System.Text;
 using Purity.Core;
 using Purity.Compiler.Types;
 using Purity.Compiler.Interfaces;
-using Purity.Compiler.Functors;
 using Purity.Compiler.Modules;
 using Purity.Compiler.TypeDeclarations;
 
@@ -66,9 +65,13 @@ namespace Purity.Compiler.Parser
             from ws4 in Parsers.Whitespace
             from lfix in Parsers.Match(Constants.Lfix)
             from ws5 in Parsers.WSChar.Rep1()
-            from functor in FunctorParser.ParseFunctor
+            from variableName in Parsers.Identifier
+            from ws6 in Parsers.Whitespace
+            from dot in Parsers.Match('.')
+            from ws7 in Parsers.Whitespace
+            from type in TypeParser.ParseType
             select new Named<ITypeDeclaration>(ident,
-                new LFixTypeDeclaration(functor, typeParameters.ToArray(), boxFunctionName, unboxFunctionName, cataFunctionName));
+                new LFixTypeDeclaration(type, variableName, typeParameters.ToArray(), boxFunctionName, unboxFunctionName, cataFunctionName));
 
         static Parser<string, Named<ITypeDeclaration>> ParseGFix =
             from decl in Parsers.Match(Constants.TypeKeyword)
@@ -94,9 +97,13 @@ namespace Purity.Compiler.Parser
             from ws4 in Parsers.Whitespace
             from lfix in Parsers.Match(Constants.Gfix)
             from ws5 in Parsers.WSChar.Rep1()
-            from functor in FunctorParser.ParseFunctor
+            from variableName in Parsers.Identifier
+            from ws6 in Parsers.Whitespace
+            from dot in Parsers.Match('.')
+            from ws7 in Parsers.Whitespace
+            from type in TypeParser.ParseType
             select new Named<ITypeDeclaration>(ident,
-                new GFixTypeDeclaration(functor, typeParameters.ToArray(), boxFunctionName, unboxFunctionName, anaFunctionName));
+                new GFixTypeDeclaration(type, variableName, typeParameters.ToArray(), boxFunctionName, unboxFunctionName, anaFunctionName));
 
         public static Parser<string, Named<ITypeDeclaration>> ParseTypeDeclaration =
             ParseBox

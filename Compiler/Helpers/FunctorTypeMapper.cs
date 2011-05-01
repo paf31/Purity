@@ -3,57 +3,63 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Purity.Compiler.Interfaces;
-using Purity.Compiler.Extensions;
 using Purity.Core;
 using Purity.Core.Types;
 
 namespace Purity.Compiler.Helpers
 {
-    public class FunctorTypeMapper : IFunctorVisitor<Type>
+    public class FunctorTypeMapper : ITypeVisitor<Type>
     {
-        private readonly Type t;
+        private readonly Type type;
         private readonly Type[] genericParameters;
+        private readonly string variableName;
 
-        public FunctorTypeMapper(Type t, Type[] genericParameters)
+        public FunctorTypeMapper(string variableName, Type type, Type[] genericParameters)
         {
-            this.t = t;
+            this.type = type;
+            this.variableName = variableName;
             this.genericParameters = genericParameters;
         }
 
-        public Type Map(IFunctor f)
+        public static Type Map(IType functorType, string variableName, Type type, Type[] genericParameters)
         {
-            return f.AcceptVisitor(this);
+            var visitor = new FunctorTypeMapper(variableName, type, genericParameters);
+            return functorType.AcceptVisitor(visitor);
         }
 
-        public Type VisitArrow(Functors.ArrowFunctor f)
+        public Type VisitArrow(Types.ArrowType t)
         {
-            var left = new TypeConverter(genericParameters).Convert(f.Left);
-            return typeof(IFunction<,>).MakeGenericType(left, Map(f.Right));
+            return typeof(IFunction<,>).MakeGenericType(t.Left.AcceptVisitor(this),
+                t.Right.AcceptVisitor(this));
         }
 
-        public Type VisitConstant(Functors.ConstantFunctor f)
+        public Type VisitSynonym(Types.TypeSynonym t)
         {
-            return new TypeConverter(genericParameters).Convert(f.Value);
+            return new TypeConverter(genericParameters).Convert(t);
         }
 
-        public Type VisitSynonym(Functors.FunctorSynonym f)
+        public Type VisitProduct(Types.ProductType t)
         {
-            return Map(Container.ResolveFunctor(f.Identifier).Functor);
+            return typeof(Tuple<,>).MakeGenericType(t.Left.AcceptVisitor(this),
+                t.Right.AcceptVisitor(this));
         }
 
-        public Type VisitIdentity(Functors.IdentityFunctor f)
+        public Type VisitSum(Types.SumType t)
         {
-            return t;
+            return typeof(Either<,>).MakeGenericType(t.Left.AcceptVisitor(this),
+                t.Right.AcceptVisitor(this));
         }
 
-        public Type VisitProduct(Functors.ProductFunctor f)
+        public Type VisitParameter(Types.TypeParameter t)
         {
-            return typeof(Tuple<,>).MakeGenericType(Map(f.Left), Map(f.Right));
-        }
-
-        public Type VisitSum(Functors.SumFunctor f)
-        {
-            return typeof(Either<,>).MakeGenericType(Map(f.Left), Map(f.Right));
+            if (t.Identifier.Equals(variableName))
+            {
+                return type;
+            }
+            else 
+            {
+                return new TypeConverter(genericParameters).Convert(t);
+            }
         }
     }
 }
