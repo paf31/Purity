@@ -59,6 +59,7 @@ namespace Purity.Compiler
         public static void Clear()
         {
             data.Clear();
+            destructors.Clear();
         }
     }
 }

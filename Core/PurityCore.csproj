@@ -36,7 +36,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\ExportAttribute.cs" />
+    <Compile Include="Attributes\InfiniteAttribute.cs" />
+    <Compile Include="Attributes\FiniteAttribute.cs" />
+    <Compile Include="Attributes\SynonymAttribute.cs" />
     <Compile Include="Functions\ArrowFunctorAction.cs" />
     <Compile Include="Functions\CompositeFunction.cs" />
     <Compile Include="Functions\ConstantFunction.cs" />

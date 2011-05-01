@@ -62,6 +62,7 @@
     <Compile Include="PurityCompiler.cs" />
     <Compile Include="TypeContainer.cs" />
     <Compile Include="Utilities\ModuleImporter.cs" />
+    <Compile Include="Utilities\ReflectionUtilities.cs" />
     <Compile Include="Utilities\TypedExpressionUtilities.cs" />
   </ItemGroup>
   <ItemGroup>

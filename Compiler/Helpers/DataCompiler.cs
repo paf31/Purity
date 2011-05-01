@@ -88,7 +88,7 @@ namespace Purity.Compiler.Helpers
 
             var defCtor = typeof(IdentityFunction<>).GetConstructors()[0];
             var ctor = TypeBuilder.GetConstructor(typeof(IdentityFunction<>).MakeGenericType(type), defCtor);
-
+            
             body.Emit(OpCodes.Newobj, ctor);
         }
 

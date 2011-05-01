@@ -34,7 +34,7 @@ namespace Purity.Compiler.Helpers
 
         public Type VisitBox(TypeDeclarations.BoxedTypeDeclaration t)
         {
-            var compiler = new BoxedTypeCreator(module, moduleName, t.Type, name, t.TypeParameters);
+            var compiler = new BoxedTypeCompiler(name, t, module, moduleName);
 
             TypeContainer.Add(name, compiler.Compile());
 
@@ -66,8 +66,7 @@ namespace Purity.Compiler.Helpers
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
 
             var fmap = t.Functor.Compile(functorClass, t.TypeParameters);
-            var named = new Named<IFunctor>(name, t.Functor);
-            var compiler = new LFixCompiler(named, module, functorClass, fmap, moduleName, t.TypeParameters);
+            var compiler = new LFixCompiler(name, t, module, functorClass, fmap, moduleName);
 
             compiler.Compile();
 
@@ -112,8 +111,7 @@ namespace Purity.Compiler.Helpers
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
 
             var fmap = t.Functor.Compile(functorClass, t.TypeParameters);
-            var named = new Named<IFunctor>(name, t.Functor);
-            var compiler = new GFixCompiler(named, module, functorClass, fmap, moduleName, t.TypeParameters);
+            var compiler = new GFixCompiler(name, t, module, functorClass, fmap, moduleName);
 
             compiler.Compile();
 

@@ -12,6 +12,7 @@ using Purity.Compiler.Interfaces;
 using Purity.Core;
 using System.Reflection.Emit;
 using Purity.Core.Types;
+using Purity.Compiler.TypeDeclarations;
 
 namespace Purity.Compiler.Utilities
 {
@@ -40,10 +41,47 @@ namespace Purity.Compiler.Utilities
 
             foreach (var type in module.Assembly.GetTypes())
             {
-                if (type.GetCustomAttributes(typeof(ExportAttribute), false).Any())
+                var typeParameters = type.GetGenericArguments().Select(p => p.Name).ToArray();
+
+                if (type.GetCustomAttributes(typeof(FiniteAttribute), false).Any())
                 {
-                    Container.Add(type.Name, new MockTypeDeclaration(type.GetGenericArguments().Select(p => p.Name).ToArray()));
+                    var cataMethod = type.GetMethod(Constants.CataMethodName);
+                    var functor = ReflectionUtilities.InferFunctorFromFiniteType(cataMethod);
+
+                    FiniteAttribute finiteAttribute = (FiniteAttribute) type.GetCustomAttributes(typeof(FiniteAttribute), false).Single();
+                    Container.Add(type.Name, new LFixTypeDeclaration(functor, typeParameters, 
+                        finiteAttribute.ConstructorName, 
+                        finiteAttribute.DestructorName, 
+                        finiteAttribute.FoldName));
                     TypeContainer.Add(type.Name, type);
+                    DataContainer.AddDestructor(type.Name, finiteAttribute.DestructorClass);
+                }
+
+                if (type.GetCustomAttributes(typeof(InfiniteAttribute), false).Any())
+                {
+                    var applyMethod = type.GetMethod(Constants.ApplyMethodName);
+                    var functor = ReflectionUtilities.InferFunctorFromInfiniteType(applyMethod);
+
+                    InfiniteAttribute infiniteAttribute = (InfiniteAttribute) type.GetCustomAttributes(typeof(InfiniteAttribute), false).Single();
+                    Container.Add(type.Name, new GFixTypeDeclaration(functor, typeParameters,
+                        infiniteAttribute.ConstructorName,
+                        infiniteAttribute.DestructorName,
+                        infiniteAttribute.UnfoldName));
+                    TypeContainer.Add(type.Name, type);
+                    DataContainer.AddDestructor(type.Name, infiniteAttribute.DestructorClass);
+                }
+
+                if (type.GetCustomAttributes(typeof(SynonymAttribute), false).Any())
+                {
+                    var field = type.GetField(Constants.BoxedTypeValueFieldName);
+                    var innerType = ReflectionUtilities.InferType(field.FieldType);
+
+                    SynonymAttribute synonymAttribute = (SynonymAttribute) type.GetCustomAttributes(typeof(SynonymAttribute), false).Single();
+                    Container.Add(type.Name, new BoxedTypeDeclaration(innerType, typeParameters,
+                        synonymAttribute.ConstructorName,
+                        synonymAttribute.DestructorName));
+                    TypeContainer.Add(type.Name, type);
+                    DataContainer.AddDestructor(type.Name, synonymAttribute.DestructorClass);
                 }
             }
 
@@ -59,7 +97,7 @@ namespace Purity.Compiler.Utilities
 
                     try 
                     {
-                        type = InferType(returnType); 
+                        type = ReflectionUtilities.InferType(returnType); 
                     }
                     catch (CompilerException) 
                     {
@@ -77,63 +115,6 @@ namespace Purity.Compiler.Utilities
             }
 
             return module;
-        }
-
-        private static IType InferType(Type type)
-        {
-            Type genericTypeDefinition = type.GetGenericArguments().Any() ? type.GetGenericTypeDefinition() : type;
-
-            if (typeof(IFunction<,>).IsAssignableFrom(genericTypeDefinition))
-            {
-                Type left = type.GetGenericArguments()[0];
-                Type right = type.GetGenericArguments()[1];
-                return new Types.ArrowType(InferType(left), InferType(right));
-            }
-            else if (typeof(Either<,>).IsAssignableFrom(genericTypeDefinition))
-            {
-                Type left = type.GetGenericArguments()[0];
-                Type right = type.GetGenericArguments()[1];
-                return new Types.SumType(InferType(left), InferType(right));
-            }
-            else if (typeof(Tuple<,>).IsAssignableFrom(genericTypeDefinition))
-            {
-                Type left = type.GetGenericArguments()[0];
-                Type right = type.GetGenericArguments()[1];
-                return new Types.ProductType(InferType(left), InferType(right));
-            }
-            else if (type.IsGenericParameter)
-            {
-                return new Types.TypeParameter(type.Name);
-            }
-            else
-            {
-                Container.ResolveType(type.Name);
-                return new Types.TypeSynonym(type.Name, type.GetGenericArguments().Select(InferType).ToArray());
-            }
-        }
-
-        private class MockTypeDeclaration : ITypeDeclaration
-        {
-            public MockTypeDeclaration(string[] typeParameters)
-            {
-                TypeParameters = typeParameters;
-            }
-
-            public string[] TypeParameters
-            {
-                get;
-                set;
-            }
-
-            public void AcceptVisitor(ITypeDeclarationVisitor visitor)
-            {
-                throw new NotSupportedException();
-            }
-
-            public R AcceptVisitor<R>(ITypeDeclarationVisitor<R> visitor)
-            {
-                throw new NotSupportedException();
-            }
         }
     }
 }

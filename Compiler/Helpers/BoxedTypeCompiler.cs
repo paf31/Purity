@@ -8,20 +8,26 @@ using Purity.Compiler.Interfaces;
 using System.Reflection;
 using Purity.Core;
 using Purity.Core.Attributes;
+using Purity.Compiler.TypeDeclarations;
 
 namespace Purity.Compiler.Helpers
 {
-    public class BoxedTypeCreator
+    public class BoxedTypeCompiler
     {
+        private readonly string name;
+        private readonly BoxedTypeDeclaration declaration;
         private readonly ModuleBuilder module;
         private readonly string moduleName;
-        private readonly IType type;
-        private readonly string name;
-        private readonly string[] typeParameters;
         private FieldBuilder field;
         private ConstructorBuilder constructor;
 
         public TypeBuilder TypeBuilder
+        {
+            get;
+            set;
+        }
+
+        public TypeBuilder MethodsType
         {
             get;
             set;
@@ -51,13 +57,12 @@ namespace Purity.Compiler.Helpers
             set;
         }
 
-        public BoxedTypeCreator(ModuleBuilder module, string moduleName, IType type, string name, string[] typeParameters)
+        public BoxedTypeCompiler(string name, BoxedTypeDeclaration declaration, ModuleBuilder module, string moduleName)
         {
+            this.name = name;
+            this.declaration = declaration;
             this.module = module;
             this.moduleName = moduleName;
-            this.type = type;
-            this.name = name;
-            this.typeParameters = typeParameters;
         }
 
         public Type Compile()
@@ -65,11 +70,9 @@ namespace Purity.Compiler.Helpers
             TypeBuilder = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Sealed);
 
-            TypeBuilder.SetCustomAttribute(new CustomAttributeBuilder(typeof(ExportAttribute).GetConstructors()[0], new object[0]));
+            var genericParameters = declaration.TypeParameters.Any() ? TypeBuilder.DefineGenericParameters(declaration.TypeParameters) : Type.EmptyTypes;
 
-            var genericParameters = typeParameters.Any() ? TypeBuilder.DefineGenericParameters(typeParameters) : Type.EmptyTypes;
-
-            var containedType = new TypeConverter(genericParameters).Convert(type);
+            var containedType = new TypeConverter(genericParameters).Convert(declaration.Type);
 
             field = TypeBuilder.DefineField(Constants.BoxedTypeValueFieldName, containedType, FieldAttributes.Public);
 
@@ -83,26 +86,34 @@ namespace Purity.Compiler.Helpers
             cataCtorBody.Emit(OpCodes.Stfld, field);
             cataCtorBody.Emit(OpCodes.Ret);
 
-            var methodsType = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
+            MethodsType = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Sealed | TypeAttributes.Abstract);
 
-            CompileBoxFunction(type, TypeBuilder, methodsType, moduleName, name, typeParameters);
-            CompileUnboxFunction(type, TypeBuilder, methodsType, moduleName, name, typeParameters);
+            CompileBoxFunction();
+            CompileUnboxFunction();
+
+            TypeBuilder.SetCustomAttribute(new CustomAttributeBuilder(typeof(SynonymAttribute).GetConstructors()[0],
+                new object[] 
+                {
+                    declaration.ConstructorFunctionName,
+                    declaration.DestructorFunctionName,
+                    UnboxFunction
+                }));
 
             return TypeBuilder;
         }
 
-        private void CompileBoxFunction(IType type, TypeBuilder typeBuilder, TypeBuilder methodsType, string moduleName, string name, string[] typeParameters)
+        private void CompileBoxFunction()
         {
-            BoxFunction = methodsType.DefineNestedType(Constants.BoxFunctionClassName,
+            BoxFunction = MethodsType.DefineNestedType(Constants.BoxFunctionClassName,
                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.Class,
                null, Type.EmptyTypes);
 
-            var genericParameters = typeParameters.Any() ? BoxFunction.DefineGenericParameters(typeParameters) : Type.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? BoxFunction.DefineGenericParameters(declaration.TypeParameters) : Type.EmptyTypes;
 
-            var containedType = new TypeConverter(genericParameters).Convert(type);
+            var containedType = new TypeConverter(genericParameters).Convert(declaration.Type);
 
-            BoxFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(containedType, typeBuilder));
+            BoxFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(containedType, TypeBuilder));
 
             BoxFunctionConstructor = BoxFunction.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
             var ctorBody = BoxFunctionConstructor.GetILGenerator();
@@ -111,27 +122,27 @@ namespace Purity.Compiler.Helpers
             ctorBody.Emit(OpCodes.Ret);
 
             var call = BoxFunction.DefineMethod(Constants.CallMethodName, MethodAttributes.Public | MethodAttributes.Virtual,
-                typeBuilder, new Type[] { containedType });
+                TypeBuilder, new Type[] { containedType });
 
             var callBody = call.GetILGenerator();
             callBody.Emit(OpCodes.Ldarg_1);
-            callBody.Emit(OpCodes.Newobj, typeParameters.Any()
-                ? TypeBuilder.GetConstructor(typeBuilder.MakeGenericType(genericParameters), constructor)
+            callBody.Emit(OpCodes.Newobj, declaration.TypeParameters.Any()
+                ? TypeBuilder.GetConstructor(TypeBuilder.MakeGenericType(genericParameters), constructor)
                 : constructor);
             callBody.Emit(OpCodes.Ret);
         }
 
-        private void CompileUnboxFunction(IType type, TypeBuilder typeBuilder, TypeBuilder methodsType, string moduleName, string name, string[] typeParameters)
+        private void CompileUnboxFunction()
         {
-            UnboxFunction = methodsType.DefineNestedType(Constants.UnboxFunctionClassName,
+            UnboxFunction = MethodsType.DefineNestedType(Constants.UnboxFunctionClassName,
                TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.Class,
                null, Type.EmptyTypes);
 
-            var genericParameters = typeParameters.Any() ? UnboxFunction.DefineGenericParameters(typeParameters) : Type.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? UnboxFunction.DefineGenericParameters(declaration.TypeParameters) : Type.EmptyTypes;
 
-            var containedType = new TypeConverter(genericParameters).Convert(type);
+            var containedType = new TypeConverter(genericParameters).Convert(declaration.Type);
 
-            UnboxFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(typeBuilder, containedType));
+            UnboxFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(TypeBuilder, containedType));
 
             UnboxFunctionConstructor = UnboxFunction.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, Type.EmptyTypes);
             var ctorBody = UnboxFunctionConstructor.GetILGenerator();
@@ -140,12 +151,12 @@ namespace Purity.Compiler.Helpers
             ctorBody.Emit(OpCodes.Ret);
 
             var call = UnboxFunction.DefineMethod(Constants.CallMethodName, MethodAttributes.Public | MethodAttributes.Virtual,
-                containedType, new Type[] { typeBuilder });
+                containedType, new Type[] { TypeBuilder });
 
             var callBody = call.GetILGenerator();
             callBody.Emit(OpCodes.Ldarg_1);
-            callBody.Emit(OpCodes.Ldfld, typeParameters.Any()
-                ? TypeBuilder.GetField(typeBuilder.MakeGenericType(genericParameters), field)
+            callBody.Emit(OpCodes.Ldfld, declaration.TypeParameters.Any()
+                ? TypeBuilder.GetField(TypeBuilder.MakeGenericType(genericParameters), field)
                 : field);
             callBody.Emit(OpCodes.Ret);
         }

@@ -11,17 +11,18 @@ using Purity.Compiler.Modules;
 using Purity.Compiler.Data;
 using System.Runtime.CompilerServices;
 using Purity.Core.Attributes;
+using Purity.Compiler.TypeDeclarations;
 
 namespace Purity.Compiler.Helpers
 {
     public class LFixCompiler
     {
-        private readonly Named<IFunctor> functor;
+        private readonly string name;
+        private readonly LFixTypeDeclaration declaration;
         private readonly ModuleBuilder module;
         private readonly TypeBuilder utilityClass;
         private readonly MethodBuilder fmap;
         private readonly string moduleName;
-        private readonly string[] typeParameters;
         private MethodBuilder Cata;
         private MethodBuilder In;
         private MethodBuilder Out;
@@ -62,31 +63,29 @@ namespace Purity.Compiler.Helpers
             set;
         }
 
-        public LFixCompiler(Named<IFunctor> functor, ModuleBuilder module, TypeBuilder utilityClass, MethodBuilder fmap, string moduleName, string[] typeParameters)
+        public LFixCompiler(string name, LFixTypeDeclaration declaration, ModuleBuilder module, TypeBuilder utilityClass, MethodBuilder fmap, string moduleName)
         {
-            this.functor = functor;
+            this.name = name;
+            this.declaration = declaration;
             this.module = module;
             this.utilityClass = utilityClass;
             this.fmap = fmap;
             this.moduleName = moduleName;
-            this.typeParameters = typeParameters;
         }
 
         public void Compile()
         {
-            TypeBuilder = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + functor.Name,
+            TypeBuilder = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name,
                 TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
 
-            ((TypeBuilder)TypeBuilder).SetCustomAttribute(new CustomAttributeBuilder(typeof(ExportAttribute).GetConstructors()[0], new object[0]));
-
-            var genericParameters = typeParameters.Any() ? ((TypeBuilder)TypeBuilder).DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? ((TypeBuilder)TypeBuilder).DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
             Cata = ((TypeBuilder)TypeBuilder).DefineMethod(Constants.CataMethodName,
                 MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.Virtual);
 
             var cataReturnType = Cata.DefineGenericParameters(Constants.CataMethodGenericParameterName)[0];
 
-            var functorClass = new FunctorTypeMapper(cataReturnType, genericParameters).Map(functor.Value);
+            var functorClass = new FunctorTypeMapper(cataReturnType, genericParameters).Map(declaration.Functor);
 
             Cata.SetParameters(typeof(IFunction<,>).MakeGenericType(functorClass, cataReturnType));
             Cata.SetReturnType(cataReturnType);
@@ -104,17 +103,26 @@ namespace Purity.Compiler.Helpers
             CompileIn();
 
             CompileInFunction();
+
+            TypeBuilder.SetCustomAttribute(new CustomAttributeBuilder(typeof(FiniteAttribute).GetConstructors()[0],
+                new object[] 
+                {
+                    declaration.ConstructorFunctionName,
+                    declaration.DestructorFunctionName,
+                    declaration.CataFunctionName,
+                    InFunction
+                }));
         }
 
         private void CompileOut()
         {
             Out = utilityClass.DefineMethod(Constants.OutMethodName, MethodAttributes.Public | MethodAttributes.Static);
 
-            var genericParameters = typeParameters.Any() ? Out.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? Out.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
-            var returnType = typeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.ToArray()) : TypeBuilder;
+            var returnType = declaration.TypeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.ToArray()) : TypeBuilder;
 
-            var fLeastFixedPoint = new FunctorTypeMapper(returnType, genericParameters).Map(functor.Value);
+            var fLeastFixedPoint = new FunctorTypeMapper(returnType, genericParameters).Map(declaration.Functor);
 
             Out.SetParameters(fLeastFixedPoint);
 
@@ -138,9 +146,9 @@ namespace Purity.Compiler.Helpers
                TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic,
                null, new[] { TypeBuilder });
 
-            var genericParameters = typeParameters.Any() ? OutClass.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? OutClass.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
-            var fLeastFixedPoint = new FunctorTypeMapper(TypeBuilder, genericParameters).Map(functor.Value);
+            var fLeastFixedPoint = new FunctorTypeMapper(TypeBuilder, genericParameters).Map(declaration.Functor);
 
             var predField = OutClass.DefineField(Constants.OutClassPredFieldName, fLeastFixedPoint, FieldAttributes.Private);
 
@@ -158,7 +166,7 @@ namespace Purity.Compiler.Helpers
 
             var genericParameter = cata.DefineGenericParameters(Constants.CataMethodGenericParameterName)[0];
 
-            var fGenericParameter = new FunctorTypeMapper(genericParameter, genericParameters).Map(functor.Value);
+            var fGenericParameter = new FunctorTypeMapper(genericParameter, genericParameters).Map(declaration.Functor);
 
             cata.SetParameters(typeof(IFunction<,>).MakeGenericType(fGenericParameter, genericParameter));
             cata.SetReturnType(genericParameter);
@@ -186,11 +194,11 @@ namespace Purity.Compiler.Helpers
                            TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic,
                            null, TypeBuilder.EmptyTypes);
 
-            var genericParameters = CataFunction1.DefineGenericParameters(new[] { Constants.CataFunction1ClassGenericParameterName }.Concat(typeParameters).ToArray());
+            var genericParameters = CataFunction1.DefineGenericParameters(new[] { Constants.CataFunction1ClassGenericParameterName }.Concat(declaration.TypeParameters).ToArray());
 
-            var fCataClassGenericParameter = new FunctorTypeMapper(genericParameters[0], genericParameters.Skip(1).ToArray()).Map(functor.Value);
+            var fCataClassGenericParameter = new FunctorTypeMapper(genericParameters[0], genericParameters.Skip(1).ToArray()).Map(declaration.Functor);
 
-            var inputParameter = typeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.Skip(1).ToArray()) : TypeBuilder;
+            var inputParameter = declaration.TypeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.Skip(1).ToArray()) : TypeBuilder;
 
             var algebraType = typeof(IFunction<,>).MakeGenericType(fCataClassGenericParameter, genericParameters[0]);
             var initialMorphismType = typeof(IFunction<,>).MakeGenericType(inputParameter, genericParameters[0]);
@@ -224,13 +232,13 @@ namespace Purity.Compiler.Helpers
                            TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic,
                            null, TypeBuilder.EmptyTypes);
 
-            var genericParameters = CataFunction.DefineGenericParameters(new[] { Constants.CataFunctionClassGenericParameterName }.Concat(typeParameters).ToArray());
+            var genericParameters = CataFunction.DefineGenericParameters(new[] { Constants.CataFunctionClassGenericParameterName }.Concat(declaration.TypeParameters).ToArray());
 
-            var inputParameter = typeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.Skip(1).ToArray()) : TypeBuilder;
+            var inputParameter = declaration.TypeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.Skip(1).ToArray()) : TypeBuilder;
 
             CataFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(inputParameter, genericParameters[0]));
 
-            var fSeedType = new FunctorTypeMapper(genericParameters[0], genericParameters).Map(functor.Value);
+            var fSeedType = new FunctorTypeMapper(genericParameters[0], genericParameters).Map(declaration.Functor);
 
             var algebra = typeof(IFunction<,>).MakeGenericType(fSeedType, genericParameters[0]);
 
@@ -266,11 +274,11 @@ namespace Purity.Compiler.Helpers
         {
             In = utilityClass.DefineMethod(Constants.InMethodName, MethodAttributes.Public | MethodAttributes.Static);
 
-            var genericParameters = typeParameters.Any() ? In.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? In.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
-            var inputParameter = typeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.ToArray()) : TypeBuilder;
+            var inputParameter = declaration.TypeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.ToArray()) : TypeBuilder;
 
-            In.SetReturnType(new FunctorTypeMapper(inputParameter, genericParameters).Map(functor.Value));
+            In.SetReturnType(new FunctorTypeMapper(inputParameter, genericParameters).Map(declaration.Functor));
 
             In.SetParameters(inputParameter);
 
@@ -278,16 +286,16 @@ namespace Purity.Compiler.Helpers
 
             var inBody = In.GetILGenerator();
 
-            var fLeastFixedPoint = new FunctorTypeMapper(inputParameter, genericParameters).Map(functor.Value);
+            var fLeastFixedPoint = new FunctorTypeMapper(inputParameter, genericParameters).Map(declaration.Functor);
 
             inBody.Emit(OpCodes.Ldarg_0);
-            inBody.Emit(OpCodes.Newobj, typeParameters.Any()
+            inBody.Emit(OpCodes.Newobj, declaration.TypeParameters.Any()
                 ? TypeBuilder.GetConstructor(
                     OutFunction.MakeGenericType(genericParameters),
                     OutFunctionConstructor)
                 : OutFunctionConstructor);
             inBody.Emit(OpCodes.Call, fmap.MakeGenericMethod(new Type[] { fLeastFixedPoint, inputParameter }.Concat(genericParameters).ToArray()));
-            inBody.Emit(OpCodes.Callvirt, typeParameters.Any()
+            inBody.Emit(OpCodes.Callvirt, declaration.TypeParameters.Any()
                 ? TypeBuilder.GetMethod(inputParameter, Cata).MakeGenericMethod(fLeastFixedPoint)
                 : Cata.MakeGenericMethod(fLeastFixedPoint));
             inBody.Emit(OpCodes.Ret);
@@ -298,11 +306,11 @@ namespace Purity.Compiler.Helpers
             OutFunction = utilityClass.DefineNestedType(Constants.OutFunctionClassName,
                TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic);
 
-            var genericParameters = typeParameters.Any() ? OutFunction.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? OutFunction.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
-            var returnType = typeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.ToArray()) : TypeBuilder;
+            var returnType = declaration.TypeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.ToArray()) : TypeBuilder;
 
-            var fLeastFixedPoint = new FunctorTypeMapper(returnType, genericParameters).Map(functor.Value);
+            var fLeastFixedPoint = new FunctorTypeMapper(returnType, genericParameters).Map(declaration.Functor);
 
             OutFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(fLeastFixedPoint, returnType));
 
@@ -317,7 +325,7 @@ namespace Purity.Compiler.Helpers
 
             var callBody = call.GetILGenerator();
             callBody.Emit(OpCodes.Ldarg_1);
-            callBody.Emit(OpCodes.Call, typeParameters.Any() ? Out.MakeGenericMethod(genericParameters) : Out);
+            callBody.Emit(OpCodes.Call, declaration.TypeParameters.Any() ? Out.MakeGenericMethod(genericParameters) : Out);
             callBody.Emit(OpCodes.Ret);
         }
 
@@ -326,11 +334,11 @@ namespace Purity.Compiler.Helpers
             InFunction = utilityClass.DefineNestedType(Constants.InFunctionClassName,
                TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic);
 
-            var genericParameters = typeParameters.Any() ? InFunction.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? InFunction.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
-            var inputParameter = typeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.ToArray()) : TypeBuilder;
+            var inputParameter = declaration.TypeParameters.Any() ? TypeBuilder.MakeGenericType(genericParameters.ToArray()) : TypeBuilder;
 
-            var fLeastFixedPoint = new FunctorTypeMapper(inputParameter, genericParameters).Map(functor.Value);
+            var fLeastFixedPoint = new FunctorTypeMapper(inputParameter, genericParameters).Map(declaration.Functor);
 
             InFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(inputParameter, fLeastFixedPoint));
 
@@ -345,7 +353,7 @@ namespace Purity.Compiler.Helpers
 
             var callBody = call.GetILGenerator();
             callBody.Emit(OpCodes.Ldarg_1);
-            callBody.Emit(OpCodes.Call, typeParameters.Any() ? In.MakeGenericMethod(genericParameters) : In);
+            callBody.Emit(OpCodes.Call, declaration.TypeParameters.Any() ? In.MakeGenericMethod(genericParameters) : In);
             callBody.Emit(OpCodes.Ret);
         }
     }

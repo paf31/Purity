@@ -11,17 +11,18 @@ using Purity.Compiler.Modules;
 using Purity.Compiler.Data;
 using System.Runtime.CompilerServices;
 using Purity.Core.Attributes;
+using Purity.Compiler.TypeDeclarations;
 
 namespace Purity.Compiler.Helpers
 {
     public class GFixCompiler
     {
-        private readonly Named<IFunctor> functor;
+        private readonly string name;
+        private readonly GFixTypeDeclaration declaration;
         private readonly ModuleBuilder module;
         private readonly TypeBuilder utilityClass;
         private readonly string moduleName;
         private readonly MethodBuilder fmap;
-        private readonly string[] typeParameters;
         private TypeBuilder GreatestFixedPointFunction;
         private MethodBuilder GreatestFixedPointFunctionApplyMethod;
         private MethodBuilder Ana;
@@ -67,39 +68,37 @@ namespace Purity.Compiler.Helpers
             set;
         }
 
-        public GFixCompiler(Named<IFunctor> functor, ModuleBuilder module, TypeBuilder utilityClass, MethodBuilder fmap, string moduleName, string[] typeParameters)
+        public GFixCompiler(string name, GFixTypeDeclaration declaration, ModuleBuilder module, TypeBuilder utilityClass, MethodBuilder fmap, string moduleName)
         {
-            this.functor = functor;
+            this.name = name;
+            this.declaration = declaration;
             this.module = module;
             this.utilityClass = utilityClass;
             this.fmap = fmap;
             this.moduleName = moduleName;
-            this.typeParameters = typeParameters;
         }
 
         public void Compile()
         {
-            GreatestFixedPointFunction = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + functor.Name + Constants.FunctionSuffix,
+            GreatestFixedPointFunction = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.FunctionSuffix,
                  TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
 
-            var functionClassGenericParameters = GreatestFixedPointFunction.DefineGenericParameters(new[] { Constants.GFixFunctionClassGenericParameterName }.Concat(typeParameters).ToArray());
+            var functionClassGenericParameters = GreatestFixedPointFunction.DefineGenericParameters(new[] { Constants.GFixFunctionClassGenericParameterName }.Concat(declaration.TypeParameters).ToArray());
 
             GreatestFixedPointFunctionApplyMethod = GreatestFixedPointFunction.DefineMethod(Constants.ApplyMethodName,
                  MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.Virtual);
 
             var underlyingType = GreatestFixedPointFunctionApplyMethod.DefineGenericParameters(Constants.ApplyMethodGenericParameterName)[0];
 
-            var functorClass = new FunctorTypeMapper(underlyingType, functionClassGenericParameters.Skip(1).ToArray()).Map(functor.Value);
+            var functorClass = new FunctorTypeMapper(underlyingType, functionClassGenericParameters.Skip(1).ToArray()).Map(declaration.Functor);
 
             GreatestFixedPointFunctionApplyMethod.SetParameters(underlyingType, typeof(IFunction<,>).MakeGenericType(underlyingType, functorClass));
             GreatestFixedPointFunctionApplyMethod.SetReturnType(functionClassGenericParameters[0]);
 
-            TypeBuilder = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + functor.Name,
+            TypeBuilder = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name,
                  TypeAttributes.Public | TypeAttributes.Interface | TypeAttributes.Abstract);
 
-            TypeBuilder.SetCustomAttribute(new CustomAttributeBuilder(typeof(ExportAttribute).GetConstructors()[0], new object[0]));
-
-            var typeGenericParameters = typeParameters.Any() ? TypeBuilder.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var typeGenericParameters = declaration.TypeParameters.Any() ? TypeBuilder.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
             GreatestFixedPointApplyMethod = TypeBuilder.DefineMethod(Constants.ApplyMethodName,
                  MethodAttributes.Public | MethodAttributes.Abstract | MethodAttributes.Virtual);
@@ -124,19 +123,29 @@ namespace Purity.Compiler.Helpers
             CompileOut();
 
             CompileOutFunction();
+
+            TypeBuilder.SetCustomAttribute(new CustomAttributeBuilder(
+                typeof(InfiniteAttribute).GetConstructors()[0],
+                new object[] 
+                {
+                    declaration.ConstructorFunctionName, 
+                    declaration.DestructorFunctionName, 
+                    declaration.AnaFunctionName,
+                    InFunction
+                }));
         }
 
         private void CompileAna()
         {
             Ana = utilityClass.DefineMethod(Constants.AnaMethodName, MethodAttributes.Public | MethodAttributes.Static);
 
-            var anaGenericParameters = Ana.DefineGenericParameters(new[] { Constants.AnaMethodGenericParameterName }.Concat(typeParameters).ToArray());
+            var anaGenericParameters = Ana.DefineGenericParameters(new[] { Constants.AnaMethodGenericParameterName }.Concat(declaration.TypeParameters).ToArray());
 
-            Ana.SetReturnType(typeParameters.Any()
+            Ana.SetReturnType(declaration.TypeParameters.Any()
                  ? TypeBuilder.MakeGenericType(anaGenericParameters.Skip(1).ToArray())
                  : TypeBuilder);
 
-            var functorClass = new FunctorTypeMapper(anaGenericParameters[0], anaGenericParameters.Skip(1).ToArray()).Map(functor.Value);
+            var functorClass = new FunctorTypeMapper(anaGenericParameters[0], anaGenericParameters.Skip(1).ToArray()).Map(declaration.Functor);
 
             var generatorType = typeof(IFunction<,>).MakeGenericType(anaGenericParameters[0], functorClass);
 
@@ -155,9 +164,9 @@ namespace Purity.Compiler.Helpers
                             TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic,
                             null, TypeBuilder.EmptyTypes);
 
-            var anaClassGenericParameters = AnaClass.DefineGenericParameters(new[] { Constants.AnaClassGenericParameterName }.Concat(typeParameters).ToArray());
+            var anaClassGenericParameters = AnaClass.DefineGenericParameters(new[] { Constants.AnaClassGenericParameterName }.Concat(declaration.TypeParameters).ToArray());
 
-            if (typeParameters.Any())
+            if (declaration.TypeParameters.Any())
             {
                 AnaClass.AddInterfaceImplementation(TypeBuilder.MakeGenericType(anaClassGenericParameters.Skip(1).ToArray()));
             }
@@ -167,7 +176,7 @@ namespace Purity.Compiler.Helpers
             }
 
             var anaClassGeneratorType = typeof(IFunction<,>).MakeGenericType(anaClassGenericParameters[0],
-                new FunctorTypeMapper(anaClassGenericParameters[0], anaClassGenericParameters.Skip(1).ToArray()).Map(functor.Value));
+                new FunctorTypeMapper(anaClassGenericParameters[0], anaClassGenericParameters.Skip(1).ToArray()).Map(declaration.Functor));
 
             var seedField = AnaClass.DefineField(Constants.AnaClassSeedFieldName, anaClassGenericParameters[0], FieldAttributes.Private);
             var generatorField = AnaClass.DefineField(Constants.AnaClassGeneratorFieldName, anaClassGeneratorType, FieldAttributes.Private);
@@ -214,21 +223,21 @@ namespace Purity.Compiler.Helpers
 
             In = utilityClass.DefineMethod(Constants.InMethodName, MethodAttributes.Public | MethodAttributes.Static);
 
-            var genericParameters = typeParameters.Any() ? In.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? In.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
-            var resultType = typeParameters.Any()
+            var resultType = declaration.TypeParameters.Any()
                 ? TypeBuilder.MakeGenericType(genericParameters.ToArray())
                 : TypeBuilder;
 
-            In.SetReturnType(new FunctorTypeMapper(resultType, genericParameters).Map(functor.Value));
+            In.SetReturnType(new FunctorTypeMapper(resultType, genericParameters).Map(declaration.Functor));
 
             In.SetParameters(resultType);
 
             In.SetCustomAttribute(new CustomAttributeBuilder(typeof(ExtensionAttribute).GetConstructors()[0], new object[0]));
 
-            var fGreatestFixedPoint = new FunctorTypeMapper(resultType, genericParameters).Map(functor.Value);
+            var fGreatestFixedPoint = new FunctorTypeMapper(resultType, genericParameters).Map(declaration.Functor);
 
-            var applyMethodGenericClass = typeParameters.Any()
+            var applyMethodGenericClass = declaration.TypeParameters.Any()
                 ? TypeBuilder.GetMethod(
                    TypeBuilder.MakeGenericType(genericParameters),
                    GreatestFixedPointApplyMethod)
@@ -237,7 +246,7 @@ namespace Purity.Compiler.Helpers
 
             var inBody = In.GetILGenerator();
             inBody.Emit(OpCodes.Ldarg_0);
-            inBody.Emit(OpCodes.Newobj, typeParameters.Any()
+            inBody.Emit(OpCodes.Newobj, declaration.TypeParameters.Any()
                 ? TypeBuilder.GetConstructor(
                    InClass.MakeGenericType(genericParameters),
                    InGeneratingFunctionConstructor)
@@ -251,13 +260,13 @@ namespace Purity.Compiler.Helpers
             InClass = utilityClass.DefineNestedType(Constants.InGeneratingFunctionClassName,
                 TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic);
 
-            var genericParameters = typeParameters.Any() ? InClass.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? InClass.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
-            var greatestFixedPoint = typeParameters.Any()
+            var greatestFixedPoint = declaration.TypeParameters.Any()
                 ? TypeBuilder.MakeGenericType(genericParameters)
                 : TypeBuilder;
 
-            var fGreatestFixedPoint = new FunctorTypeMapper(greatestFixedPoint, genericParameters).Map(functor.Value);
+            var fGreatestFixedPoint = new FunctorTypeMapper(greatestFixedPoint, genericParameters).Map(declaration.Functor);
 
             InClass.AddInterfaceImplementation(GreatestFixedPointFunction.MakeGenericType(new[] { fGreatestFixedPoint }.Concat(genericParameters).ToArray()));
 
@@ -272,7 +281,7 @@ namespace Purity.Compiler.Helpers
 
             var genericParameter = apply.DefineGenericParameters(Constants.ApplyMethodGenericParameterName)[0];
 
-            var fGenericParameter = new FunctorTypeMapper(genericParameter, genericParameters).Map(functor.Value);
+            var fGenericParameter = new FunctorTypeMapper(genericParameter, genericParameters).Map(declaration.Functor);
 
             apply.SetParameters(genericParameter, typeof(IFunction<,>).MakeGenericType(genericParameter, fGenericParameter));
 
@@ -299,9 +308,9 @@ namespace Purity.Compiler.Helpers
                            TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic,
                            null, TypeBuilder.EmptyTypes);
 
-            var anaClassGenericParameters = AnaFunction.DefineGenericParameters(new[] { Constants.AnaFunctionClassGenericParameterName }.Concat(typeParameters).ToArray());
+            var anaClassGenericParameters = AnaFunction.DefineGenericParameters(new[] { Constants.AnaFunctionClassGenericParameterName }.Concat(declaration.TypeParameters).ToArray());
 
-            var resultType = typeParameters.Any()
+            var resultType = declaration.TypeParameters.Any()
                 ? TypeBuilder.MakeGenericType(anaClassGenericParameters.Skip(1).ToArray())
                 : TypeBuilder;
 
@@ -309,7 +318,7 @@ namespace Purity.Compiler.Helpers
                  resultType));
 
             var seedType = typeof(IFunction<,>).MakeGenericType(anaClassGenericParameters[0],
-                new FunctorTypeMapper(anaClassGenericParameters[0], anaClassGenericParameters.Skip(1).ToArray()).Map(functor.Value));
+                new FunctorTypeMapper(anaClassGenericParameters[0], anaClassGenericParameters.Skip(1).ToArray()).Map(declaration.Functor));
 
             var seedField = AnaFunction.DefineField(Constants.AnaFunctionClassSeedFieldName, seedType, FieldAttributes.Private);
 
@@ -340,13 +349,13 @@ namespace Purity.Compiler.Helpers
                            TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic,
                            null, TypeBuilder.EmptyTypes);
 
-            var anaClassGenericParameters = AnaFunction1.DefineGenericParameters(new[] { Constants.AnaFunction1ClassGenericParameterName }.Concat(typeParameters).ToArray());
+            var anaClassGenericParameters = AnaFunction1.DefineGenericParameters(new[] { Constants.AnaFunction1ClassGenericParameterName }.Concat(declaration.TypeParameters).ToArray());
 
-            var resultType = typeParameters.Any()
+            var resultType = declaration.TypeParameters.Any()
                 ? TypeBuilder.MakeGenericType(anaClassGenericParameters.Skip(1).ToArray())
                 : TypeBuilder;
 
-            var fAnaClassGenericParameter = new FunctorTypeMapper(anaClassGenericParameters[0], anaClassGenericParameters.Skip(1).ToArray()).Map(functor.Value);
+            var fAnaClassGenericParameter = new FunctorTypeMapper(anaClassGenericParameters[0], anaClassGenericParameters.Skip(1).ToArray()).Map(declaration.Functor);
 
             var coalgebraType = typeof(IFunction<,>).MakeGenericType(anaClassGenericParameters[0], fAnaClassGenericParameter);
             var terminalMorphismType = typeof(IFunction<,>).MakeGenericType(anaClassGenericParameters[0], resultType);
@@ -377,13 +386,13 @@ namespace Purity.Compiler.Helpers
         {
             Out = utilityClass.DefineMethod(Constants.OutMethodName, MethodAttributes.Public | MethodAttributes.Static);
 
-            var genericParameters = typeParameters.Any() ? Out.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? Out.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
-            var returnType = typeParameters.Any()
+            var returnType = declaration.TypeParameters.Any()
                 ? TypeBuilder.MakeGenericType(genericParameters)
                 : TypeBuilder;
 
-            var fGreatestFixedPoint = new FunctorTypeMapper(returnType, genericParameters).Map(functor.Value);
+            var fGreatestFixedPoint = new FunctorTypeMapper(returnType, genericParameters).Map(declaration.Functor);
 
             Out.SetParameters(fGreatestFixedPoint);
 
@@ -393,7 +402,7 @@ namespace Purity.Compiler.Helpers
 
             var outBody = Out.GetILGenerator();
             outBody.Emit(OpCodes.Ldarg_0);
-            outBody.Emit(OpCodes.Newobj, typeParameters.Any()
+            outBody.Emit(OpCodes.Newobj, declaration.TypeParameters.Any()
                 ? TypeBuilder.GetConstructor(
                    InFunction.MakeGenericType(genericParameters),
                    InFunctionConstructor)
@@ -408,9 +417,9 @@ namespace Purity.Compiler.Helpers
             InFunction = utilityClass.DefineNestedType(Constants.InFunctionClassName,
                 TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic);
 
-            var genericParameters = typeParameters.Any() ? InFunction.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? InFunction.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
-            var fGreatestFixedPoint = new FunctorTypeMapper(TypeBuilder, genericParameters).Map(functor.Value);
+            var fGreatestFixedPoint = new FunctorTypeMapper(TypeBuilder, genericParameters).Map(declaration.Functor);
 
             InFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(TypeBuilder, fGreatestFixedPoint));
 
@@ -425,7 +434,7 @@ namespace Purity.Compiler.Helpers
 
             var callBody = call.GetILGenerator();
             callBody.Emit(OpCodes.Ldarg_1);
-            callBody.Emit(OpCodes.Call, typeParameters.Any()
+            callBody.Emit(OpCodes.Call, declaration.TypeParameters.Any()
                 ? In.MakeGenericMethod(genericParameters)
                 : In);
             callBody.Emit(OpCodes.Ret);
@@ -436,9 +445,9 @@ namespace Purity.Compiler.Helpers
             OutFunction = utilityClass.DefineNestedType(Constants.OutFunctionClassName,
                 TypeAttributes.Sealed | TypeAttributes.Class | TypeAttributes.NestedPublic);
 
-            var genericParameters = typeParameters.Any() ? OutFunction.DefineGenericParameters(typeParameters) : TypeBuilder.EmptyTypes;
+            var genericParameters = declaration.TypeParameters.Any() ? OutFunction.DefineGenericParameters(declaration.TypeParameters) : TypeBuilder.EmptyTypes;
 
-            var fGreatestFixedPoint = new FunctorTypeMapper(TypeBuilder, genericParameters).Map(functor.Value);
+            var fGreatestFixedPoint = new FunctorTypeMapper(TypeBuilder, genericParameters).Map(declaration.Functor);
 
             OutFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(fGreatestFixedPoint, TypeBuilder));
 
@@ -453,7 +462,7 @@ namespace Purity.Compiler.Helpers
 
             var callBody = call.GetILGenerator();
             callBody.Emit(OpCodes.Ldarg_1);
-            callBody.Emit(OpCodes.Call, typeParameters.Any()
+            callBody.Emit(OpCodes.Call, declaration.TypeParameters.Any()
                 ? Out.MakeGenericMethod(genericParameters)
                 : Out);
             callBody.Emit(OpCodes.Ret);

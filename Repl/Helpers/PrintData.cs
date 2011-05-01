@@ -35,32 +35,50 @@ namespace Repl.Helpers
         {
             return "?";
         }
-        
+
         public string VisitSynonym(Purity.Compiler.Types.TypeSynonym t)
         {
-            var typeInfo = TypeContainer.ResolveType(t.Identifier);
+            var type = TypeContainer.ResolveType(t.Identifier);
             var declaration = Container.ResolveType(t.Identifier);
 
             if (maxDepth <= 0)
             {
                 return "...";
-            } 
-            else 
+            }
+            else
             {
-                return declaration.AcceptVisitor(new PrintSynonymVisitor(t, data, typeInfo, maxDepth));
+                Type destructor = DataContainer.ResolveDestructor(t.Identifier);
+
+                if (destructor is TypeBuilder)
+                {
+                    destructor = ((TypeBuilder) destructor).CreateType();
+                }
+
+                if (destructor.GetGenericArguments().Any())
+                {
+                    Type dataType = data.GetType();
+                    Type interfaceType = dataType.GetInterface(type.Name);
+
+                    destructor = destructor.MakeGenericType(interfaceType.GetGenericArguments());
+                }
+
+                dynamic destructorInstance = Activator.CreateInstance(destructor);
+                dynamic unboxed = destructorInstance.Call(data);
+
+                return declaration.AcceptVisitor(new PrintSynonymVisitor(unboxed, maxDepth, t));
             }
         }
 
         public string VisitProduct(Purity.Compiler.Types.ProductType t)
         {
-            return string.Format("({0},{1})", Print(data.Item1, t.Left, maxDepth), Print(data.Item2, t.Right, maxDepth));
+            return string.Format("({0}, {1})", Print(data.Item1, t.Left, maxDepth), Print(data.Item2, t.Right, maxDepth));
         }
 
         public string VisitSum(Purity.Compiler.Types.SumType t)
         {
             return data.Case(
-                (Func<dynamic, string>)(l => string.Format("(inl {0})", Print(l, t.Left, maxDepth))),
-                (Func<dynamic, string>)(r => string.Format("(inr {0})", Print(r, t.Right, maxDepth))));
+                (Func<dynamic, string>)(l => string.Format("inl {0}", Print(l, t.Left, maxDepth))),
+                (Func<dynamic, string>)(r => string.Format("inr {0}", Print(r, t.Right, maxDepth))));
         }
 
         public string VisitParameter(Purity.Compiler.Types.TypeParameter t)
@@ -70,51 +88,42 @@ namespace Repl.Helpers
 
         private class PrintSynonymVisitor : ITypeDeclarationVisitor<string>
         {
-            private readonly Type type;
+            private readonly dynamic unboxed;
             private readonly int maxDepth;
-            private readonly dynamic data;
             private readonly TypeSynonym synonym;
 
-            public PrintSynonymVisitor(TypeSynonym synonym, dynamic data, Type type, int maxDepth)
+            public PrintSynonymVisitor(dynamic unboxed, int maxDepth, TypeSynonym synonym)
             {
-                this.synonym = synonym;
-                this.data = data;
-                this.type = type;
+                this.unboxed = unboxed;
                 this.maxDepth = maxDepth;
+                this.synonym = synonym;
             }
 
             public string VisitBox(BoxedTypeDeclaration t)
             {
-                Type destructor = DataContainer.ResolveDestructor(synonym.Identifier);
-
-                dynamic destructorDelegate = Activator.CreateInstance(destructor);
-                dynamic unboxed = destructorDelegate.Call(data);
-
-                return string.Format("{0} ({1})", t.ConstructorFunctionName ?? "_",
+                return string.Format("{0} {1}", t.ConstructorFunctionName ?? "_",
                     PrintData.Print(unboxed, t.Type, maxDepth));
             }
 
             public string VisitLFix(LFixTypeDeclaration t)
             {
-                Type destructor = DataContainer.ResolveDestructor(synonym.Identifier);
+                var typeParameters = t.TypeParameters
+                    .Select((s, i) => new KeyValuePair<string, IType>(s, synonym.TypeParameters[i]))
+                    .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-                dynamic destructorDelegate = Activator.CreateInstance(destructor);
-                dynamic unboxed = destructorDelegate.Call(data);
-
-                var flfix = FunctorApplication.Map(t.Functor, synonym);
-                return string.Format("{0} ({1})", t.ConstructorFunctionName ?? "_",
+                var flfix = FunctorApplication.Map(ReplaceTypeParameters.Replace(t.Functor, typeParameters), synonym);
+                return string.Format("{0} {1}", t.ConstructorFunctionName ?? "_",
                     PrintData.Print(unboxed, flfix, maxDepth - 1));
             }
 
             public string VisitGFix(GFixTypeDeclaration t)
-            {
-                Type destructor = DataContainer.ResolveDestructor(synonym.Identifier);
+            {               
+                var typeParameters = t.TypeParameters
+                    .Select((s, i) => new KeyValuePair<string, IType>(s, synonym.TypeParameters[i]))
+                    .ToDictionary(pair => pair.Key, pair => pair.Value);
 
-                dynamic destructorDelegate = Activator.CreateInstance(destructor);
-                dynamic unboxed = destructorDelegate.Call(data);
-
-                var flfix = FunctorApplication.Map(t.Functor, synonym);
-                return string.Format("{0} ({1})", t.ConstructorFunctionName ?? "_",
+                var flfix = FunctorApplication.Map(ReplaceTypeParameters.Replace(t.Functor, typeParameters), synonym);
+                return string.Format("{0} {1}", t.ConstructorFunctionName ?? "_",
                     PrintData.Print(unboxed, flfix, maxDepth - 1));
             }
         }

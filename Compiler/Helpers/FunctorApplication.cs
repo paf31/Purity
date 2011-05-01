@@ -26,7 +26,7 @@ namespace Purity.Compiler.Helpers
 
         public IType VisitArrow(Functors.ArrowFunctor f)
         {
-            return new Types.ArrowType(f.Left, Map(f, t));
+            return new Types.ArrowType(f.Left, Map(f.Right, t));
         }
 
         public IType VisitConstant(Functors.ConstantFunctor f)
