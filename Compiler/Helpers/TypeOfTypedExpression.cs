@@ -10,9 +10,16 @@ namespace Purity.Compiler.Helpers
 {
     public class TypeOfTypedExpression : ITypedExpressionVisitor<IType>
     {
-        public static IType TypeOf(ITypedExpression expression)
+        private readonly IMetadataContainer container;
+
+        public TypeOfTypedExpression(IMetadataContainer container)
         {
-            return expression.AcceptVisitor(new TypeOfTypedExpression());
+            this.container = container;
+        }
+
+        public static IType TypeOf(ITypedExpression expression, IMetadataContainer container)
+        {
+            return expression.AcceptVisitor(new TypeOfTypedExpression(container));
         }
 
         public IType VisitIdentity(TypedExpressions.Identity d)
@@ -42,7 +49,7 @@ namespace Purity.Compiler.Helpers
 
         public IType VisitSynonym(TypedExpressions.DataSynonym d)
         {
-            var resolved = Container.ResolveValue(d.Identifier);
+            var resolved = container.ResolveValue(d.Identifier);
             return ReplaceTypeParameters.Replace(resolved.Type, d.TypeParameters);
         }
 

@@ -21,13 +21,22 @@ namespace Purity.Compiler
 {
     public class PurityCompiler
     {
-        private ModuleBuilder module;
-        private TypeBuilder dataClass;
+        private readonly ModuleBuilder module;
+        private readonly TypeBuilder dataClass;
+        private readonly IMetadataContainer container;
+        private readonly IRuntimeContainer runtimeContainer;
+        private readonly TypeChecker typeChecker;
+        private readonly ModuleImporter moduleImporter;
 
-        public PurityCompiler(ModuleBuilder module, TypeBuilder dataClass)
+        public PurityCompiler(ModuleBuilder module, TypeBuilder dataClass, IMetadataContainer container,
+            IRuntimeContainer runtimeContainer)
         {
             this.module = module;
             this.dataClass = dataClass;
+            this.container = container;
+            this.runtimeContainer = runtimeContainer;
+            this.typeChecker = new TypeChecker(container);
+            this.moduleImporter = new ModuleImporter(container, runtimeContainer);
         }
 
         public void CloseTypes()
@@ -58,8 +67,9 @@ namespace Purity.Compiler
                         {
                             declarationName = element.Type.Name;
                             var type = element.Type.Value;
-                            TypeCompiler.Compile(type, dataClass, module, moduleDefinitionName, declarationName);
-                            Container.Add(declarationName, type);
+                            TypeCompiler.Compile(type, dataClass, module, moduleDefinitionName, 
+                                declarationName, container, runtimeContainer);
+                            container.Add(declarationName, type);
                             break;
                         }
                     case ProgramElementType.Data:
@@ -75,7 +85,7 @@ namespace Purity.Compiler
 
                             try
                             {
-                                System.Reflection.Module module = ModuleImporter.Import(moduleName);
+                                System.Reflection.Module module = moduleImporter.Import(moduleName);
 
                             }
                             catch (ModuleImportException ex)
@@ -106,18 +116,18 @@ namespace Purity.Compiler
 
         public void Compile(string declarationName, DataDeclaration data)
         {
-            var result = TypeChecker.CreateTypedExpression(data);
+            var result = typeChecker.CreateTypedExpression(data);
 
             data.Type = result.Item1;
 
             var typedExpression = result.Item2;
-            typedExpression.AcceptVisitor(new AbstractionElimination());
+            typedExpression.AcceptVisitor(new AbstractionElimination(container));
 
             var collector = new TypeParameterCollector();
             data.Type.AcceptVisitor(collector);
             data.TypeParameters = collector.Parameters.ToArray();
 
-            MethodCompiler.Compile(declarationName, dataClass, typedExpression, data);
+            MethodCompiler.Compile(declarationName, dataClass, typedExpression, data, container, runtimeContainer);
         }
     }
 }

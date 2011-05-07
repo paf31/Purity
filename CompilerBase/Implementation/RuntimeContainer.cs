@@ -7,16 +7,28 @@ using Purity.Compiler.Data;
 using System.Reflection;
 using Purity.Compiler.Exceptions;
 
-namespace Purity.Compiler
+namespace Purity.Compiler.Implementation
 {
-    public static class DataContainer
+    public class RuntimeContainer : IRuntimeContainer
     {
-        private static IDictionary<string, MethodInfo> data =
+        private readonly IDictionary<string, MethodInfo> data =
             new Dictionary<string, MethodInfo>();
-        private static IDictionary<string, Type> destructors =
+        private readonly IDictionary<string, Type> destructors =
+            new Dictionary<string, Type>();
+        private readonly IDictionary<string, Type> types =
             new Dictionary<string, Type>();
 
-        public static MethodInfo Resolve(string name)
+        public Type ResolveType(string name)
+        {
+            if (!types.ContainsKey(name))
+            {
+                throw new CompilerException(string.Format(ErrorMessages.UnableToResolveType, name.ToString()));
+            }
+
+            return types[name];
+        }
+
+        public MethodInfo Resolve(string name)
         {
             if (!data.ContainsKey(name))
             {
@@ -26,7 +38,7 @@ namespace Purity.Compiler
             return data[name];
         }
 
-        public static Type ResolveDestructor(string name)
+        public Type ResolveDestructor(string name)
         {
             if (!destructors.ContainsKey(name))
             {
@@ -36,7 +48,7 @@ namespace Purity.Compiler
             return destructors[name];
         }
 
-        public static void Add(string name, MethodInfo value)
+        public void Add(string name, MethodInfo value)
         {
             if (data.ContainsKey(name))
             {
@@ -46,7 +58,7 @@ namespace Purity.Compiler
             data[name] = value;
         }
 
-        public static void AddDestructor(string name, Type value)
+        public void AddDestructor(string name, Type value)
         {
             if (destructors.ContainsKey(name))
             {
@@ -56,9 +68,20 @@ namespace Purity.Compiler
             destructors[name] = value;
         }
 
-        public static void Clear()
+        public void Add(string name, Type type)
+        {
+            if (types.ContainsKey(name))
+            {
+                throw new CompilerException(string.Format(ErrorMessages.NameConflict, name));
+            }
+
+            types[name] = type;
+        }
+
+        public void Clear()
         {
             data.Clear();
+            types.Clear();
             destructors.Clear();
         }
     }

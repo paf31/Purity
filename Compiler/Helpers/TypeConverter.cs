@@ -13,10 +13,12 @@ namespace Purity.Compiler.Helpers
 {
     public class TypeConverter : ITypeVisitor<Type>
     {
+        private readonly IRuntimeContainer runtimeContainer;
         private readonly Type[] genericMethodParameters;
-       
-        public TypeConverter(Type[] genericMethodParameters)
+
+        public TypeConverter(IRuntimeContainer runtimeContainer, Type[] genericMethodParameters)
         {
+            this.runtimeContainer = runtimeContainer;
             this.genericMethodParameters = genericMethodParameters;
         }
 
@@ -42,7 +44,7 @@ namespace Purity.Compiler.Helpers
 
         public Type VisitSynonym(Types.TypeSynonym t)
         {
-            var type = TypeContainer.ResolveType(t.Identifier);
+            var type = runtimeContainer.ResolveType(t.Identifier);
             return t.TypeParameters.Any() ? type.MakeGenericType(t.TypeParameters.Select(Convert).ToArray()) : type;
         }
 

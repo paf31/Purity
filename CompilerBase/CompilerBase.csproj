@@ -41,13 +41,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
-    <Compile Include="Container.cs" />
+    <Compile Include="Implementation\MetadataContainer.cs" />
     <Compile Include="Data\Abstraction.cs" />
     <Compile Include="Data\Variable.cs" />
     <Compile Include="Data\Uncurried.cs" />
     <Compile Include="Data\Curried.cs" />
     <Compile Include="ErrorMessages.cs" />
     <Compile Include="Exceptions\ModuleImportException.cs" />
+    <Compile Include="Implementation\RuntimeContainer.cs" />
+    <Compile Include="Interfaces\IMetadataContainer.cs" />
+    <Compile Include="Interfaces\IRuntimeContainer.cs" />
     <Compile Include="Interfaces\ITypeDeclarationVisitor.cs" />
     <Compile Include="Interfaces\ITypeDeclaration.cs" />
     <Compile Include="Interfaces\ITypedExpressionVisitor.cs" />

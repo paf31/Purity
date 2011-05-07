@@ -19,16 +19,22 @@ namespace Repl.Helpers
     {
         private readonly dynamic data;
         private readonly int maxDepth;
+        private readonly IMetadataContainer container;
+        private readonly IRuntimeContainer runtimeContainer;
 
-        public PrintData(dynamic data, int maxDepth)
+        public PrintData(dynamic data, int maxDepth, IMetadataContainer container,
+            IRuntimeContainer runtimeContainer)
         {
             this.data = data;
             this.maxDepth = maxDepth;
+            this.container = container;
+            this.runtimeContainer = runtimeContainer;
         }
 
-        public static string Print(dynamic data, IType t, int maxDepth)
+        public static string Print(dynamic data, IType t, int maxDepth, IMetadataContainer container,
+            IRuntimeContainer runtimeContainer)
         {
-            return t.AcceptVisitor(new PrintData(data, maxDepth));
+            return t.AcceptVisitor(new PrintData(data, maxDepth, container, runtimeContainer));
         }
 
         public string VisitArrow(Purity.Compiler.Types.ArrowType t)
@@ -38,8 +44,8 @@ namespace Repl.Helpers
 
         public string VisitSynonym(Purity.Compiler.Types.TypeSynonym t)
         {
-            var type = TypeContainer.ResolveType(t.Identifier);
-            var declaration = Container.ResolveType(t.Identifier);
+            var type = runtimeContainer.ResolveType(t.Identifier);
+            var declaration = container.ResolveType(t.Identifier);
 
             if (maxDepth <= 0)
             {
@@ -47,11 +53,11 @@ namespace Repl.Helpers
             }
             else
             {
-                Type destructor = DataContainer.ResolveDestructor(t.Identifier);
+                Type destructor = runtimeContainer.ResolveDestructor(t.Identifier);
 
                 if (destructor is TypeBuilder)
                 {
-                    destructor = ((TypeBuilder) destructor).CreateType();
+                    destructor = ((TypeBuilder)destructor).CreateType();
                 }
 
                 if (destructor.GetGenericArguments().Any())
@@ -65,20 +71,24 @@ namespace Repl.Helpers
                 dynamic destructorInstance = Activator.CreateInstance(destructor);
                 dynamic unboxed = destructorInstance.Call(data);
 
-                return declaration.AcceptVisitor(new PrintSynonymVisitor(unboxed, maxDepth, t));
+                return declaration.AcceptVisitor(new PrintSynonymVisitor(unboxed, maxDepth, t, container, runtimeContainer));
             }
         }
 
         public string VisitProduct(Purity.Compiler.Types.ProductType t)
         {
-            return string.Format("({0}, {1})", Print(data.Item1, t.Left, maxDepth), Print(data.Item2, t.Right, maxDepth));
+            return string.Format("({0}, {1})",
+                Print(data.Item1, t.Left, maxDepth, container, runtimeContainer),
+                Print(data.Item2, t.Right, maxDepth, container, runtimeContainer));
         }
 
         public string VisitSum(Purity.Compiler.Types.SumType t)
         {
             return data.Case(
-                (Func<dynamic, string>)(l => string.Format("inl {0}", Print(l, t.Left, maxDepth))),
-                (Func<dynamic, string>)(r => string.Format("inr {0}", Print(r, t.Right, maxDepth))));
+                (Func<dynamic, string>)(l => string.Format("inl {0}",
+                    Print(l, t.Left, maxDepth, container, runtimeContainer))),
+                (Func<dynamic, string>)(r => string.Format("inr {0}",
+                    Print(r, t.Right, maxDepth, container, runtimeContainer))));
         }
 
         public string VisitParameter(Purity.Compiler.Types.TypeParameter t)
@@ -91,18 +101,23 @@ namespace Repl.Helpers
             private readonly dynamic unboxed;
             private readonly int maxDepth;
             private readonly TypeSynonym synonym;
+            private readonly IMetadataContainer container;
+            private readonly IRuntimeContainer runtimeContainer;
 
-            public PrintSynonymVisitor(dynamic unboxed, int maxDepth, TypeSynonym synonym)
+            public PrintSynonymVisitor(dynamic unboxed, int maxDepth, TypeSynonym synonym, IMetadataContainer container,
+                IRuntimeContainer runtimeContainer)
             {
                 this.unboxed = unboxed;
                 this.maxDepth = maxDepth;
                 this.synonym = synonym;
+                this.container = container;
+                this.runtimeContainer = runtimeContainer;
             }
 
             public string VisitBox(BoxedTypeDeclaration t)
             {
                 return string.Format("{0} {1}", t.ConstructorFunctionName ?? "_",
-                    PrintData.Print(unboxed, t.Type, maxDepth));
+                    PrintData.Print(unboxed, t.Type, maxDepth, container, runtimeContainer));
             }
 
             public string VisitLFix(LFixTypeDeclaration t)
@@ -113,18 +128,18 @@ namespace Repl.Helpers
 
                 var flfix = ReplaceTypeParameters.Replace(FunctorApplication.Map(t.VariableName, t.Type, synonym), typeParameters);
                 return string.Format("{0} {1}", t.ConstructorFunctionName ?? "_",
-                    PrintData.Print(unboxed, flfix, maxDepth - 1));
+                    PrintData.Print(unboxed, flfix, maxDepth - 1, container, runtimeContainer));
             }
 
             public string VisitGFix(GFixTypeDeclaration t)
-            {               
+            {
                 var typeParameters = t.TypeParameters
                     .Select((s, i) => new KeyValuePair<string, IType>(s, synonym.TypeParameters[i]))
                     .ToDictionary(pair => pair.Key, pair => pair.Value);
 
                 var flfix = ReplaceTypeParameters.Replace(FunctorApplication.Map(t.VariableName, t.Type, synonym), typeParameters);
                 return string.Format("{0} {1}", t.ConstructorFunctionName ?? "_",
-                    PrintData.Print(unboxed, flfix, maxDepth - 1));
+                    PrintData.Print(unboxed, flfix, maxDepth - 1, container, runtimeContainer));
             }
         }
     }

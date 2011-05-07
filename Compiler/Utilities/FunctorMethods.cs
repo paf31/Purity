@@ -14,7 +14,7 @@ namespace Purity.Compiler.Utilities
     public static class FunctorMethods
     {
         public static MethodBuilder Compile(IType functorType, string variableName, 
-            TypeBuilder utilityClass, string[] genericParameters)
+            TypeBuilder utilityClass, string[] genericParameters, IRuntimeContainer runtimeContainer)
         {
             var genericParameterNames = new[] 
             { 
@@ -25,13 +25,13 @@ namespace Purity.Compiler.Utilities
             var fmap = utilityClass.DefineMethod(Constants.FMapMethodName, MethodAttributes.Public | MethodAttributes.Static);
             var fmapParameters = fmap.DefineGenericParameters(genericParameterNames);
 
-            fmap.SetReturnType(typeof(IFunction<,>).MakeGenericType(fmapParameters.Take(2).Select(t => FunctorTypeMapper.Map(functorType, variableName, t, fmapParameters)).ToArray()));
+            fmap.SetReturnType(typeof(IFunction<,>).MakeGenericType(fmapParameters.Take(2).Select(t => FunctorTypeMapper.Map(functorType, variableName, t, fmapParameters, runtimeContainer)).ToArray()));
 
             fmap.SetParameters(typeof(IFunction<,>).MakeGenericType(fmapParameters.Take(2).ToArray()));
 
             var fmapBody = fmap.GetILGenerator();
 
-            functorType.AcceptVisitor(new FmapCompiler(fmapBody, variableName, fmapParameters));
+            functorType.AcceptVisitor(new FmapCompiler(fmapBody, variableName, fmapParameters, runtimeContainer));
 
             fmapBody.Emit(OpCodes.Ret);
 

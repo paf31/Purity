@@ -9,6 +9,13 @@ namespace Purity.Compiler.Helpers
 {
     public class AbstractionElimination : ITypedExpressionVisitor
     {
+        private IMetadataContainer container;
+
+        public AbstractionElimination(IMetadataContainer container) 
+        {
+            this.container = container;
+        }
+
         public void VisitApplication(TypedExpressions.Application d)
         {
             d.Left.AcceptVisitor(this);
@@ -75,7 +82,7 @@ namespace Purity.Compiler.Helpers
         public void VisitAbstraction(TypedExpressions.Abstraction d)
         {
             d.Body.AcceptVisitor(this);
-            d.PointFreeExpression = VariableElimination.Visit(d.Body, d.Variable, d.VariableType);
+            d.PointFreeExpression = VariableElimination.Visit(d.Body, d.Variable, d.VariableType, container);
         }
 
         public void VisitVariable(TypedExpressions.Variable d)

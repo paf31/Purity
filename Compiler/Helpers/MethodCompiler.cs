@@ -15,7 +15,7 @@ namespace Purity.Compiler.Helpers
     public static class MethodCompiler
     {
         public static void Compile(string name, TypeBuilder dataClass, ITypedExpression typedExpression,
-            DataDeclaration data)
+            DataDeclaration data, IMetadataContainer container, IRuntimeContainer runtimeContainer)
         {
             var method = dataClass.DefineMethod(name,
                 MethodAttributes.Public | MethodAttributes.Static, null, Type.EmptyTypes);
@@ -25,21 +25,22 @@ namespace Purity.Compiler.Helpers
                 method.DefineGenericParameters(data.TypeParameters.ToArray());
             }
 
-            var converter = new TypeConverter(method.GetGenericArguments());
+            var converter = new TypeConverter(runtimeContainer, method.GetGenericArguments());
             var converted = converter.Convert(data.Type);
             method.SetReturnType(converted);
 
             var body = method.GetILGenerator();
-            typedExpression.AcceptVisitor(new DataCompiler(body, method.GetGenericArguments()));
+            typedExpression.AcceptVisitor(new DataCompiler(body, method.GetGenericArguments(), runtimeContainer));
             body.Emit(OpCodes.Ret);
 
-            Container.Add(name, data);
-            DataContainer.Add(name, method);
+            container.Add(name, data);
+            runtimeContainer.Add(name, method);
 
-            RemoveFirstParameter(name, dataClass, method, new IType[0], data.Type, data.TypeParameters);
+            RemoveFirstParameter(name, dataClass, method, new IType[0], data.Type, data.TypeParameters, runtimeContainer);
         }
 
-        public static void Compile(string name, TypeBuilder dataClass, ConstructorInfo ctor, IType type, string[] typeParameters)
+        public static void Compile(string name, TypeBuilder dataClass, ConstructorInfo ctor, IType type, 
+            string[] typeParameters, IMetadataContainer container, IRuntimeContainer runtimeContainer)
         {
             var method = dataClass.DefineMethod(name,
                  MethodAttributes.Public | MethodAttributes.Static, null, Type.EmptyTypes);
@@ -49,7 +50,7 @@ namespace Purity.Compiler.Helpers
                 method.DefineGenericParameters(typeParameters.ToArray());
             }
 
-            var converter = new TypeConverter(method.GetGenericArguments());
+            var converter = new TypeConverter(runtimeContainer, method.GetGenericArguments());
             var converted = converter.Convert(type);
             method.SetReturnType(converted);
 
@@ -66,17 +67,18 @@ namespace Purity.Compiler.Helpers
 
             body.Emit(OpCodes.Ret);
 
-            DataContainer.Add(name, method);
+            runtimeContainer.Add(name, method);
 
             var dataDecl = new DataDeclaration(type, null);
             dataDecl.TypeParameters = typeParameters;
-            Container.Add(name, dataDecl);
+            container.Add(name, dataDecl);
 
-            RemoveFirstParameter(name, dataClass, method, new IType[0], type, typeParameters);
+            RemoveFirstParameter(name, dataClass, method, new IType[0], type, typeParameters, runtimeContainer);
         }
 
         private static void RemoveFirstParameter(string name, TypeBuilder dataClass,
-            MethodInfo method, IType[] arguments, IType returnType, string[] typeParameters)
+            MethodInfo method, IType[] arguments, IType returnType, string[] typeParameters,
+            IRuntimeContainer runtimeContainer)
         {
             var arrow = returnType as ArrowType;
 
@@ -94,7 +96,7 @@ namespace Purity.Compiler.Helpers
                     curried.DefineGenericParameters(typeParameters.ToArray());
                 }
 
-                var converter = new TypeConverter(method.GetGenericArguments());
+                var converter = new TypeConverter(runtimeContainer, method.GetGenericArguments());
                 var lastArgument = converter.Convert(arrow.Left);
                 var compiledReturnType = converter.Convert(newReturnType);
 
@@ -123,7 +125,7 @@ namespace Purity.Compiler.Helpers
                     typeof(IFunction<,>).GetMethod(Constants.CallMethodName)));
                 curriedBody.Emit(OpCodes.Ret);
 
-                RemoveFirstParameter(name, dataClass, curried, newArguments, newReturnType, typeParameters);
+                RemoveFirstParameter(name, dataClass, curried, newArguments, newReturnType, typeParameters, runtimeContainer);
             }
         }
     }

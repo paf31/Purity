@@ -13,17 +13,19 @@ namespace Purity.Compiler.Helpers
         private readonly Type type;
         private readonly Type[] genericParameters;
         private readonly string variableName;
+        private readonly IRuntimeContainer runtimeContainer;
 
-        public FunctorTypeMapper(string variableName, Type type, Type[] genericParameters)
+        public FunctorTypeMapper(string variableName, Type type, Type[] genericParameters, IRuntimeContainer runtimeContainer)
         {
             this.type = type;
             this.variableName = variableName;
             this.genericParameters = genericParameters;
+            this.runtimeContainer = runtimeContainer;
         }
 
-        public static Type Map(IType functorType, string variableName, Type type, Type[] genericParameters)
+        public static Type Map(IType functorType, string variableName, Type type, Type[] genericParameters, IRuntimeContainer runtimeContainer)
         {
-            var visitor = new FunctorTypeMapper(variableName, type, genericParameters);
+            var visitor = new FunctorTypeMapper(variableName, type, genericParameters, runtimeContainer);
             return functorType.AcceptVisitor(visitor);
         }
 
@@ -35,7 +37,7 @@ namespace Purity.Compiler.Helpers
 
         public Type VisitSynonym(Types.TypeSynonym t)
         {
-            return new TypeConverter(genericParameters).Convert(t);
+            return new TypeConverter(runtimeContainer, genericParameters).Convert(t);
         }
 
         public Type VisitProduct(Types.ProductType t)
@@ -58,7 +60,7 @@ namespace Purity.Compiler.Helpers
             }
             else 
             {
-                return new TypeConverter(genericParameters).Convert(t);
+                return new TypeConverter(runtimeContainer, genericParameters).Convert(t);
             }
         }
     }

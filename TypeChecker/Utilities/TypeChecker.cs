@@ -10,11 +10,18 @@ using Purity.Compiler.Typechecker.Interfaces;
 
 namespace Purity.Compiler.Typechecker.Utilities
 {
-    public static class TypeChecker
+    public class TypeChecker
     {
-        public static Tuple<IType, ITypedExpression> CreateTypedExpression(DataDeclaration decl)
+        private readonly IMetadataContainer container;
+
+        public TypeChecker(IMetadataContainer container) 
         {
-            TypeCheckingResult result = ConstraintCreator.W(decl.Data);
+            this.container = container;
+        }
+
+        public Tuple<IType, ITypedExpression> CreateTypedExpression(DataDeclaration decl)
+        {
+            TypeCheckingResult result = ConstraintCreator.W(decl.Data, container);
 
             IEnumerable<Constraint> constraints = result.Constraints;
 

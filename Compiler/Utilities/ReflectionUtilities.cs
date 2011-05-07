@@ -11,7 +11,7 @@ namespace Purity.Compiler.Utilities
 {
     public static class ReflectionUtilities
     {
-        public static IType InferType(Type type)
+        public static IType InferType(Type type, IMetadataContainer container)
         {
             Type genericTypeDefinition = type.GetGenericArguments().Any() ? type.GetGenericTypeDefinition() : type;
 
@@ -19,19 +19,19 @@ namespace Purity.Compiler.Utilities
             {
                 Type left = type.GetGenericArguments()[0];
                 Type right = type.GetGenericArguments()[1];
-                return new Types.ArrowType(InferType(left), InferType(right));
+                return new Types.ArrowType(InferType(left, container), InferType(right, container));
             }
             else if (typeof(Either<,>).IsAssignableFrom(genericTypeDefinition))
             {
                 Type left = type.GetGenericArguments()[0];
                 Type right = type.GetGenericArguments()[1];
-                return new Types.SumType(InferType(left), InferType(right));
+                return new Types.SumType(InferType(left, container), InferType(right, container));
             }
             else if (typeof(Tuple<,>).IsAssignableFrom(genericTypeDefinition))
             {
                 Type left = type.GetGenericArguments()[0];
                 Type right = type.GetGenericArguments()[1];
-                return new Types.ProductType(InferType(left), InferType(right));
+                return new Types.ProductType(InferType(left, container), InferType(right, container));
             }
             else if (type.IsGenericParameter)
             {
@@ -39,30 +39,31 @@ namespace Purity.Compiler.Utilities
             }
             else
             {
-                Container.ResolveType(type.Name);
-                return new Types.TypeSynonym(type.Name, type.GetGenericArguments().Select(InferType).ToArray());
+                container.ResolveType(type.Name);
+                var genericParameters = type.GetGenericArguments().Select(t => InferType(t, container)).ToArray();
+                return new Types.TypeSynonym(type.Name, genericParameters);
             }
         }
 
-        public static IType InferFunctorFromFiniteType(MethodInfo cataMethod, string variableName)
+        public static IType InferFunctorFromFiniteType(MethodInfo cataMethod, string variableName, IMetadataContainer container)
         {
             var algebraType = cataMethod.GetParameters()[0].ParameterType;
             var fCarrierType = algebraType.GetGenericArguments()[0];
 
-            return InferFunctor(fCarrierType, variableName, Constants.CataMethodGenericParameterName);
+            return InferFunctor(fCarrierType, variableName, Constants.CataMethodGenericParameterName, container);
         }
 
-        public static IType InferFunctorFromInfiniteType(MethodInfo applyMethod, string variableName)
+        public static IType InferFunctorFromInfiniteType(MethodInfo applyMethod, string variableName, IMetadataContainer container)
         {
             var functionType = applyMethod.GetParameters()[0];
             var functionTypeApplyMethod = functionType.ParameterType.GetMethod(Constants.ApplyMethodName);
             var generator = functionTypeApplyMethod.GetParameters()[1];
             var fCarrierType = generator.ParameterType.GetGenericArguments()[1];
 
-            return InferFunctor(fCarrierType, variableName, Constants.ApplyMethodGenericParameterName);
+            return InferFunctor(fCarrierType, variableName, Constants.ApplyMethodGenericParameterName, container);
         }
 
-        public static IType InferFunctor(Type type, string variableName, string genericParameterName)
+        public static IType InferFunctor(Type type, string variableName, string genericParameterName, IMetadataContainer container)
         {
             Type genericTypeDefinition = type.GetGenericArguments().Any() ? type.GetGenericTypeDefinition() : type;
 
@@ -81,26 +82,27 @@ namespace Purity.Compiler.Utilities
             {
                 Type left = type.GetGenericArguments()[0];
                 Type right = type.GetGenericArguments()[1];
-                return new Types.ArrowType(InferType(left), InferFunctor(right, variableName, genericParameterName));
+                return new Types.ArrowType(InferType(left, container), InferFunctor(right, variableName, genericParameterName, container));
             }
             else if (typeof(Either<,>).IsAssignableFrom(genericTypeDefinition))
             {
                 Type left = type.GetGenericArguments()[0];
                 Type right = type.GetGenericArguments()[1];
-                return new Types.SumType(InferFunctor(left, variableName, genericParameterName), 
-                    InferFunctor(right, variableName, genericParameterName));
+                return new Types.SumType(InferFunctor(left, variableName, genericParameterName, container),
+                    InferFunctor(right, variableName, genericParameterName, container));
             }
             else if (typeof(Tuple<,>).IsAssignableFrom(genericTypeDefinition))
             {
                 Type left = type.GetGenericArguments()[0];
                 Type right = type.GetGenericArguments()[1];
-                return new Types.ProductType(InferFunctor(left, variableName, genericParameterName), 
-                    InferFunctor(right, variableName, genericParameterName));
+                return new Types.ProductType(InferFunctor(left, variableName, genericParameterName, container),
+                    InferFunctor(right, variableName, genericParameterName, container));
             }
             else
             {
-                Container.ResolveType(type.Name);
-                return new Types.TypeSynonym(type.Name, type.GetGenericArguments().Select(InferType).ToArray());
+                container.ResolveType(type.Name);
+                var genericParameters = type.GetGenericArguments().Select(t => InferType(t, container)).ToArray();
+                return new Types.TypeSynonym(type.Name, genericParameters);
             }
         }
     }

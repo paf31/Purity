@@ -11,6 +11,9 @@ using Repl.Helpers;
 using Purity.Core.Types;
 using Purity.Compiler.Data;
 using Purity.Compiler.Parser;
+using Purity.Compiler.Interfaces;
+using Purity.Compiler.Implementation;
+using Purity.Compiler.Utilities;
 
 namespace Repl
 {
@@ -18,7 +21,6 @@ namespace Repl
     {
         private const string Prompt = "Purity> ";
         private const string AssemblyName = "Repl";
-        private const string EvalClassName = "Eval";
         private const char CommandIntroduction = ':';
         private const char ResetCommand = 'r';
         private const char ClearCommand = 'c';
@@ -26,16 +28,22 @@ namespace Repl
         private const char PrintTypeCommand = 't';
         private const char EvaluateCommand = 'e';
 
+        private static readonly IMetadataContainer container = new MetadataContainer();
+        private static readonly IRuntimeContainer runtimeContainer = new RuntimeContainer();
+
         public static void Main(string[] args)
         {
             int index = 0;
-            int evalIndex = 0;
             int assemblyIndex = 0;
 
             var name = new AssemblyName(AssemblyName + assemblyIndex++);
             AppDomain domain = AppDomain.CurrentDomain;
             var assembly = domain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
             var module = assembly.DefineDynamicModule(AssemblyName);
+
+            ModuleImporter moduleImporter = new ModuleImporter(container, runtimeContainer);
+
+            Evaluator evaluator = new Evaluator(module, container, runtimeContainer);
 
             Console.TreatControlCAsInput = false;
 
@@ -59,9 +67,8 @@ namespace Repl
                                     break;
                                 case ResetCommand:
                                     // Clear all data
-                                    Container.Clear();
-                                    DataContainer.Clear();
-                                    TypeContainer.Clear();
+                                    container.Clear();
+                                    runtimeContainer.Clear();
                                     name = new AssemblyName(AssemblyName + assemblyIndex++);
                                     assembly = domain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
                                     module = assembly.DefineDynamicModule(AssemblyName);
@@ -76,8 +83,7 @@ namespace Repl
                                     break;
                                 case EvaluateCommand:
                                     // Evaluate
-                                    string result = Evaluator.Evaluate(module, AssemblyName, 
-                                        line.Substring(2).Trim(), EvalClassName + evalIndex++);
+                                    string result = evaluator.Evaluate(line.Substring(2).Trim());
                                     PrintResult(result);
                                     break;
                                 default:
@@ -90,7 +96,7 @@ namespace Repl
                             var dataClass = module.DefineType(Constants.DataClassName + index++,
                                 TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract);
 
-                            var compiler = new PurityCompiler(module, dataClass);
+                            var compiler = new PurityCompiler(module, dataClass, container, runtimeContainer);
 
                             var parseResult = ModuleParser.ParseProgramElement(line);
 
@@ -133,13 +139,13 @@ namespace Repl
 
         private static void PrintType(string name)
         {
-            var decl = Container.ResolveValue(name);
+            var decl = container.ResolveValue(name);
             Console.WriteLine(Helpers.PrintType.Print(decl.Type));
         }
 
         private static void PrintDeclarations()
         {
-            foreach (var pair in Container.Values())
+            foreach (var pair in container.Values())
             {
                 Console.WriteLine(string.Format("{0} : {1}", pair.Key, Helpers.PrintType.Print(pair.Value.Type)));
             }

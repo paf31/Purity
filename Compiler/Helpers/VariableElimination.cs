@@ -12,16 +12,19 @@ namespace Purity.Compiler.Helpers
 {
     public class VariableElimination : ITypedExpressionVisitor<ITypedExpression>
     {
-        private IType variableType;
-        private string variableName;
+        private readonly IType variableType;
+        private readonly string variableName;
+        private readonly IMetadataContainer container;
 
-        private VariableElimination(string variableName, IType variableType)
+        private VariableElimination(string variableName, IType variableType, IMetadataContainer container)
         {
             this.variableName = variableName;
             this.variableType = variableType;
+            this.container = container;
         }
 
-        public static ITypedExpression Visit(ITypedExpression expression, string variableName, IType variableType)
+        public static ITypedExpression Visit(ITypedExpression expression, string variableName, 
+            IType variableType, IMetadataContainer container)
         {
             /**
              * TODO: In the worst case, we make this check for every structurally smaller 
@@ -30,25 +33,25 @@ namespace Purity.Compiler.Helpers
              */
             if (ConstantExpressions.IsConstantExpression(expression, variableName)) 
             {
-                return Constant(expression, variableType);
+                return Constant(expression, variableType, container);
             }
             else
             {
-                var visitor = new VariableElimination(variableName, variableType);
+                var visitor = new VariableElimination(variableName, variableType, container);
                 return expression.AcceptVisitor(visitor);
             }
         }
 
-        private static ITypedExpression Constant(ITypedExpression expression, IType variableType)
+        private static ITypedExpression Constant(ITypedExpression expression, IType variableType, IMetadataContainer container)
         {
-            var type = TypeOfTypedExpression.TypeOf(expression);
+            var type = TypeOfTypedExpression.TypeOf(expression, container);
             return new TypedExpressions.Const(expression, variableType, type);
         }
 
         public ITypedExpression VisitCase(TypedExpressions.Case d)
         {
-            var left = Visit(d.Left, variableName, variableType);
-            var right = Visit(d.Right, variableName, variableType);
+            var left = Visit(d.Left, variableName, variableType, container);
+            var right = Visit(d.Right, variableName, variableType, container);
 
             // [<f, g>] = curry (<uncurry [f], uncurry [g]> . distr)
 
@@ -89,8 +92,8 @@ namespace Purity.Compiler.Helpers
 
         public ITypedExpression VisitSplit(TypedExpressions.Split d)
         {
-            var left = Visit(d.Left, variableName, variableType);
-            var right = Visit(d.Right, variableName, variableType);
+            var left = Visit(d.Left, variableName, variableType, container);
+            var right = Visit(d.Right, variableName, variableType, container);
 
             // [(f, g)] = curry (uncurry [f], uncurry [g])
 
@@ -112,8 +115,8 @@ namespace Purity.Compiler.Helpers
 
         public ITypedExpression VisitApplication(TypedExpressions.Application d)
         {
-            var left = Visit(d.Left, variableName, variableType);
-            var right = Visit(d.Right, variableName, variableType);
+            var left = Visit(d.Left, variableName, variableType, container);
+            var right = Visit(d.Right, variableName, variableType, container);
 
             // [f x] = (uncurry [f]) . (id, [x])
 
@@ -139,8 +142,8 @@ namespace Purity.Compiler.Helpers
 
         public ITypedExpression VisitComposition(TypedExpressions.Composition d)
         {
-            var left = Visit(d.Left, variableName, variableType);
-            var right = Visit(d.Right, variableName, variableType);
+            var left = Visit(d.Left, variableName, variableType, container);
+            var right = Visit(d.Right, variableName, variableType, container);
 
             // [f . g] = curry ((uncurry [f]) . (outl, uncurry [g]))
 
@@ -169,7 +172,7 @@ namespace Purity.Compiler.Helpers
 
         public ITypedExpression VisitConst(TypedExpressions.Const d)
         {
-            var value = Visit(d.Value, variableName, variableType);
+            var value = Visit(d.Value, variableName, variableType, container);
 
             // [const x] = curry ([x] . outl)
 
@@ -191,7 +194,7 @@ namespace Purity.Compiler.Helpers
 
         public ITypedExpression VisitUncurry(TypedExpressions.Uncurried d)
         {
-            var function = Visit(d.Function, variableName, variableType);
+            var function = Visit(d.Function, variableName, variableType, container);
 
             // [curry f] = curry (uncurry uncurry [f] . assocl)
 
@@ -225,7 +228,7 @@ namespace Purity.Compiler.Helpers
 
         public ITypedExpression VisitCurry(TypedExpressions.Curried d)
         {
-            var function = Visit(d.Function, variableName, variableType);
+            var function = Visit(d.Function, variableName, variableType, container);
 
             // [curry f] = curry curry (uncurry [f] . assocr)
 
@@ -265,7 +268,7 @@ namespace Purity.Compiler.Helpers
             }
             else
             {
-                return Constant(d, variableType);
+                return Constant(d, variableType, container);
             }
         }
 
@@ -276,32 +279,32 @@ namespace Purity.Compiler.Helpers
 
         public ITypedExpression VisitIdentity(TypedExpressions.Identity d)
         {
-            return Constant(d, variableType);
+            return Constant(d, variableType, container);
         }
 
         public ITypedExpression VisitInl(TypedExpressions.Inl d)
         {
-            return Constant(d, variableType);
+            return Constant(d, variableType, container);
         }
 
         public ITypedExpression VisitInr(TypedExpressions.Inr d)
         {
-            return Constant(d, variableType);
+            return Constant(d, variableType, container);
         }
 
         public ITypedExpression VisitOutl(TypedExpressions.Outl d)
         {
-            return Constant(d, variableType);
+            return Constant(d, variableType, container);
         }
 
         public ITypedExpression VisitOutr(TypedExpressions.Outr d)
         {
-            return Constant(d, variableType);
+            return Constant(d, variableType, container);
         }
 
         public ITypedExpression VisitSynonym(TypedExpressions.DataSynonym d)
         {
-            return Constant(d, variableType);
+            return Constant(d, variableType, container);
         }
     }
 }

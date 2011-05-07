@@ -18,25 +18,32 @@ namespace Purity.Compiler.Helpers
         private readonly TypeBuilder dataClass;
         private readonly string moduleName;
         private readonly string name;
+        private readonly IMetadataContainer container;
+        private readonly IRuntimeContainer runtimeContainer;
 
-        public TypeCompiler(ModuleBuilder module, TypeBuilder dataClass, string moduleName, string name)
+        public TypeCompiler(ModuleBuilder module, TypeBuilder dataClass, string moduleName, string name,
+            IMetadataContainer container, IRuntimeContainer runtimeContainer)
         {
             this.module = module;
             this.dataClass = dataClass;
             this.moduleName = moduleName;
             this.name = name;
+            this.container = container;
+            this.runtimeContainer = runtimeContainer;
         }
 
-        public static Type Compile(ITypeDeclaration typeDeclaration, TypeBuilder dataClass, ModuleBuilder module, string moduleName, string declarationName)
+        public static Type Compile(ITypeDeclaration typeDeclaration, TypeBuilder dataClass, ModuleBuilder module,
+            string moduleName, string declarationName, IMetadataContainer container, IRuntimeContainer runtimeContainer)
         {
-            return typeDeclaration.AcceptVisitor(new TypeCompiler(module, dataClass, moduleName, declarationName));
+            return typeDeclaration.AcceptVisitor(new TypeCompiler(module, dataClass, moduleName,
+                declarationName, container, runtimeContainer));
         }
 
         public Type VisitBox(TypeDeclarations.BoxedTypeDeclaration t)
         {
-            var compiler = new BoxedTypeCompiler(name, t, module, moduleName);
+            var compiler = new BoxedTypeCompiler(name, t, module, moduleName, runtimeContainer);
 
-            TypeContainer.Add(name, compiler.Compile());
+            runtimeContainer.Add(name, compiler.Compile());
 
             var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
 
@@ -46,16 +53,16 @@ namespace Purity.Compiler.Helpers
             if (t.ConstructorFunctionName != null)
             {
                 MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, compiler.BoxFunctionConstructor,
-                    boxType, t.TypeParameters);
+                    boxType, t.TypeParameters, container, runtimeContainer);
             }
 
             if (t.DestructorFunctionName != null)
             {
                 MethodCompiler.Compile(t.DestructorFunctionName, dataClass, compiler.UnboxFunctionConstructor,
-                    unboxType, t.TypeParameters);
+                    unboxType, t.TypeParameters, container, runtimeContainer);
             }
 
-            DataContainer.AddDestructor(name, compiler.UnboxFunction);
+            runtimeContainer.AddDestructor(name, compiler.UnboxFunction);
 
             return compiler.TypeBuilder;
         }
@@ -65,12 +72,12 @@ namespace Purity.Compiler.Helpers
             var functorClass = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
 
-            var fmap = FunctorMethods.Compile(t.Type, t.VariableName, functorClass, t.TypeParameters);
-            var compiler = new LFixCompiler(name, t, module, functorClass, fmap, moduleName);
+            var fmap = FunctorMethods.Compile(t.Type, t.VariableName, functorClass, t.TypeParameters, runtimeContainer);
+            var compiler = new LFixCompiler(name, t, module, functorClass, fmap, moduleName, runtimeContainer);
 
             compiler.Compile();
 
-            TypeContainer.Add(name, compiler.TypeBuilder);
+            runtimeContainer.Add(name, compiler.TypeBuilder);
 
             var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
 
@@ -85,22 +92,23 @@ namespace Purity.Compiler.Helpers
             if (t.ConstructorFunctionName != null)
             {
                 MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, compiler.OutFunctionConstructor,
-                    constructorType, t.TypeParameters);
+                    constructorType, t.TypeParameters, container, runtimeContainer);
             }
 
             if (t.DestructorFunctionName != null)
             {
                 MethodCompiler.Compile(t.DestructorFunctionName, dataClass, compiler.InFunctionConstructor,
-                    destructorType, t.TypeParameters);
+                    destructorType, t.TypeParameters, container, runtimeContainer);
             }
 
             if (t.CataFunctionName != null)
             {
                 MethodCompiler.Compile(t.CataFunctionName, dataClass, compiler.CataFunction1Constructor,
-                    cataType, new[] { Constants.CataFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray());
+                    cataType, new[] { Constants.CataFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray(), 
+                    container, runtimeContainer);
             }
 
-            DataContainer.AddDestructor(name, compiler.InFunction);
+            runtimeContainer.AddDestructor(name, compiler.InFunction);
 
             return compiler.TypeBuilder;
         }
@@ -110,12 +118,12 @@ namespace Purity.Compiler.Helpers
             var functorClass = module.DefineType(moduleName + '.' + Constants.TypesNamespace + '.' + name + Constants.MethodsSuffix,
                 TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
 
-            var fmap = FunctorMethods.Compile(t.Type, t.VariableName, functorClass, t.TypeParameters);
-            var compiler = new GFixCompiler(name, t, module, functorClass, fmap, moduleName);
+            var fmap = FunctorMethods.Compile(t.Type, t.VariableName, functorClass, t.TypeParameters, runtimeContainer);
+            var compiler = new GFixCompiler(name, t, module, functorClass, fmap, moduleName, runtimeContainer);
 
             compiler.Compile();
 
-            TypeContainer.Add(name, compiler.TypeBuilder);
+            runtimeContainer.Add(name, compiler.TypeBuilder);
 
             var synonym = new Types.TypeSynonym(name, t.TypeParameters.Select(ident => new Types.TypeParameter(ident)).ToArray());
 
@@ -130,22 +138,23 @@ namespace Purity.Compiler.Helpers
             if (t.ConstructorFunctionName != null)
             {
                 MethodCompiler.Compile(t.ConstructorFunctionName, dataClass, compiler.OutFunctionConstructor,
-                   constructorType, t.TypeParameters);
+                   constructorType, t.TypeParameters, container, runtimeContainer);
             }
 
             if (t.DestructorFunctionName != null)
             {
                 MethodCompiler.Compile(t.DestructorFunctionName, dataClass, compiler.InFunctionConstructor,
-                    destructorType, t.TypeParameters);
+                    destructorType, t.TypeParameters, container, runtimeContainer);
             }
 
             if (t.AnaFunctionName != null)
             {
                 MethodCompiler.Compile(t.AnaFunctionName, dataClass, compiler.AnaFunction1Constructor,
-                    anaType, new[] { Constants.AnaFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray());
+                    anaType, new[] { Constants.AnaFunction1ClassGenericParameterName }.Concat(t.TypeParameters).ToArray(),
+                    container, runtimeContainer);
             }
 
-            DataContainer.AddDestructor(name, compiler.InFunction);
+            runtimeContainer.AddDestructor(name, compiler.InFunction);
 
             return compiler.TypeBuilder;
         }

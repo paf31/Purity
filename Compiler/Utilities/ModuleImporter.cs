@@ -16,9 +16,18 @@ using Purity.Compiler.TypeDeclarations;
 
 namespace Purity.Compiler.Utilities
 {
-    public static class ModuleImporter
+    public class ModuleImporter
     {
-        public static System.Reflection.Module Import(string moduleName)
+        private readonly IMetadataContainer container;
+        private readonly IRuntimeContainer runtimeContainer;
+
+        public ModuleImporter(IMetadataContainer container, IRuntimeContainer runtimeContainer)
+        {
+            this.container = container;
+            this.runtimeContainer = runtimeContainer;
+        }
+
+        public System.Reflection.Module Import(string moduleName)
         {
             var files = Directory.EnumerateFiles(Directory.GetCurrentDirectory(), "*.dll");
 
@@ -46,42 +55,42 @@ namespace Purity.Compiler.Utilities
                 if (type.GetCustomAttributes(typeof(FiniteAttribute), false).Any())
                 {
                     var cataMethod = type.GetMethod(Constants.CataMethodName);
-                    var functor = ReflectionUtilities.InferFunctorFromFiniteType(cataMethod, "_T");
+                    var functor = ReflectionUtilities.InferFunctorFromFiniteType(cataMethod, "_T", container);
 
                     FiniteAttribute finiteAttribute = (FiniteAttribute) type.GetCustomAttributes(typeof(FiniteAttribute), false).Single();
-                    Container.Add(type.Name, new LFixTypeDeclaration(functor, "_T", typeParameters, 
+                    container.Add(type.Name, new LFixTypeDeclaration(functor, "_T", typeParameters, 
                         finiteAttribute.ConstructorName, 
                         finiteAttribute.DestructorName, 
                         finiteAttribute.FoldName));
-                    TypeContainer.Add(type.Name, type);
-                    DataContainer.AddDestructor(type.Name, finiteAttribute.DestructorClass);
+                    runtimeContainer.Add(type.Name, type);
+                    runtimeContainer.AddDestructor(type.Name, finiteAttribute.DestructorClass);
                 }
 
                 if (type.GetCustomAttributes(typeof(InfiniteAttribute), false).Any())
                 {
                     var applyMethod = type.GetMethod(Constants.ApplyMethodName);
-                    var functor = ReflectionUtilities.InferFunctorFromInfiniteType(applyMethod, "_T");
+                    var functor = ReflectionUtilities.InferFunctorFromInfiniteType(applyMethod, "_T", container);
 
                     InfiniteAttribute infiniteAttribute = (InfiniteAttribute) type.GetCustomAttributes(typeof(InfiniteAttribute), false).Single();
-                    Container.Add(type.Name, new GFixTypeDeclaration(functor, "_T", typeParameters,
+                    container.Add(type.Name, new GFixTypeDeclaration(functor, "_T", typeParameters,
                         infiniteAttribute.ConstructorName,
                         infiniteAttribute.DestructorName,
                         infiniteAttribute.UnfoldName));
-                    TypeContainer.Add(type.Name, type);
-                    DataContainer.AddDestructor(type.Name, infiniteAttribute.DestructorClass);
+                    runtimeContainer.Add(type.Name, type);
+                    runtimeContainer.AddDestructor(type.Name, infiniteAttribute.DestructorClass);
                 }
 
                 if (type.GetCustomAttributes(typeof(SynonymAttribute), false).Any())
                 {
                     var field = type.GetField(Constants.BoxedTypeValueFieldName);
-                    var innerType = ReflectionUtilities.InferType(field.FieldType);
+                    var innerType = ReflectionUtilities.InferType(field.FieldType, container);
 
                     SynonymAttribute synonymAttribute = (SynonymAttribute) type.GetCustomAttributes(typeof(SynonymAttribute), false).Single();
-                    Container.Add(type.Name, new BoxedTypeDeclaration(innerType, typeParameters,
+                    container.Add(type.Name, new BoxedTypeDeclaration(innerType, typeParameters,
                         synonymAttribute.ConstructorName,
                         synonymAttribute.DestructorName));
-                    TypeContainer.Add(type.Name, type);
-                    DataContainer.AddDestructor(type.Name, synonymAttribute.DestructorClass);
+                    runtimeContainer.Add(type.Name, type);
+                    runtimeContainer.AddDestructor(type.Name, synonymAttribute.DestructorClass);
                 }
             }
 
@@ -97,7 +106,7 @@ namespace Purity.Compiler.Utilities
 
                     try 
                     {
-                        type = ReflectionUtilities.InferType(returnType); 
+                        type = ReflectionUtilities.InferType(returnType, container); 
                     }
                     catch (CompilerException) 
                     {
@@ -108,8 +117,8 @@ namespace Purity.Compiler.Utilities
                         DataDeclaration declaration = new DataDeclaration(type, null);
                         declaration.TypeParameters = method.GetGenericArguments().Select(p => p.Name).ToArray();
 
-                        DataContainer.Add(method.Name, method);
-                        Container.Add(method.Name, declaration);
+                        container.Add(method.Name, declaration);
+                        runtimeContainer.Add(method.Name, method);
                     }
                 }
             }

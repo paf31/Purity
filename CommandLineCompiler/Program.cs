@@ -8,6 +8,8 @@ using Purity.Compiler.Exceptions;
 using System.Reflection;
 using System.Reflection.Emit;
 using Purity.Compiler.Parser;
+using Purity.Compiler.Implementation;
+using Purity.Compiler.Interfaces;
 
 namespace CommandLineCompiler
 {
@@ -15,6 +17,9 @@ namespace CommandLineCompiler
     {
         static void Main(string[] args)
         {
+            IMetadataContainer container = new MetadataContainer();
+            IRuntimeContainer runtimeContainer = new RuntimeContainer();
+
             if (args.Length < 1)
             {
                 Console.WriteLine("Usage: compile.exe <input-file> [<output-file>]");
@@ -61,7 +66,7 @@ namespace CommandLineCompiler
                     var dataClass = module.DefineType(moduleDefinition.Name + '.' + Constants.DataClassName,
                         TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.Abstract);
 
-                    var compiler = new PurityCompiler(module, dataClass);
+                    var compiler = new PurityCompiler(module, dataClass, container, runtimeContainer);
 
                     compiler.Compile(moduleDefinition);
                     compiler.CloseTypes();

@@ -14,17 +14,19 @@ namespace Purity.Compiler.Helpers
         private readonly ILGenerator body;
         private readonly string variableName;
         private readonly Type[] genericParameters;
+        private readonly IRuntimeContainer runtimeContainer;
 
-        public FmapCompiler(ILGenerator body, string variableName, Type[] genericParameters)
+        public FmapCompiler(ILGenerator body, string variableName, Type[] genericParameters, IRuntimeContainer runtimeContainer)
         {
             this.body = body;
             this.variableName = variableName;
             this.genericParameters = genericParameters;
+            this.runtimeContainer = runtimeContainer;
         }
 
         private void EmitConstant(IType type)
         {
-            var genericParameter = new TypeConverter(genericParameters.Skip(2).ToArray()).Convert(type);
+            var genericParameter = new TypeConverter(runtimeContainer, genericParameters.Skip(2).ToArray()).Convert(type);
             body.Emit(OpCodes.Newobj, TypeBuilder.GetConstructor(
                 typeof(IdentityFunction<>).MakeGenericType(genericParameter),
                 typeof(IdentityFunction<>).GetConstructors()[0]));
@@ -37,9 +39,9 @@ namespace Purity.Compiler.Helpers
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(ArrowFunctorAction<,,>).MakeGenericType(
-                    new TypeConverter(genericParameters.Skip(2).ToArray()).Convert(t.Left),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters)),
+                    new TypeConverter(runtimeContainer, genericParameters.Skip(2).ToArray()).Convert(t.Left),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters, runtimeContainer)),
                 typeof(ArrowFunctorAction<,,>).GetConstructors()[0]));
         }
 
@@ -55,8 +57,8 @@ namespace Purity.Compiler.Helpers
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(OutlFunction<,>).MakeGenericType(
-                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters, runtimeContainer)),
                 typeof(OutlFunction<,>).GetConstructors()[0]));
 
             t.Left.AcceptVisitor(this);
@@ -64,16 +66,16 @@ namespace Purity.Compiler.Helpers
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(CompositeFunction<,,>).MakeGenericType(
-                    FunctorTypeMapper.Map(t, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters)),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters, runtimeContainer)),
                 typeof(CompositeFunction<,,>).GetConstructors()[0]));
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(OutrFunction<,>).MakeGenericType(
-                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters, runtimeContainer)),
                 typeof(OutrFunction<,>).GetConstructors()[0]));
 
             t.Right.AcceptVisitor(this);
@@ -81,17 +83,17 @@ namespace Purity.Compiler.Helpers
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(CompositeFunction<,,>).MakeGenericType(
-                    FunctorTypeMapper.Map(t, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters)),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters, runtimeContainer)),
                 typeof(CompositeFunction<,,>).GetConstructors()[0]));
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(SplitFunction<,,>).MakeGenericType(
-                    FunctorTypeMapper.Map(t, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters)),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters, runtimeContainer)),
                 typeof(SplitFunction<,,>).GetConstructors()[0]));
         }
 
@@ -102,16 +104,16 @@ namespace Purity.Compiler.Helpers
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(InlFunction<,>).MakeGenericType(
-                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters, runtimeContainer)),
                 typeof(InlFunction<,>).GetConstructors()[0]));
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(CompositeFunction<,,>).MakeGenericType(
-                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters),
-                    FunctorTypeMapper.Map(t, variableName, genericParameters[1], genericParameters)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[1], genericParameters, runtimeContainer)),
                 typeof(CompositeFunction<,,>).GetConstructors()[0]));
 
             t.Right.AcceptVisitor(this);
@@ -119,24 +121,24 @@ namespace Purity.Compiler.Helpers
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(InrFunction<,>).MakeGenericType(
-                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[1], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters, runtimeContainer)),
                 typeof(InrFunction<,>).GetConstructors()[0]));
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(CompositeFunction<,,>).MakeGenericType(
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters),
-                    FunctorTypeMapper.Map(t, variableName, genericParameters[1], genericParameters)),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[1], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[1], genericParameters, runtimeContainer)),
                 typeof(CompositeFunction<,,>).GetConstructors()[0]));
 
             body.Emit(OpCodes.Newobj,
                 TypeBuilder.GetConstructor(
                 typeof(CaseFunction<,,>).MakeGenericType(
-                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters),
-                    FunctorTypeMapper.Map(t, variableName, genericParameters[1], genericParameters)),
+                    FunctorTypeMapper.Map(t.Left, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t.Right, variableName, genericParameters[0], genericParameters, runtimeContainer),
+                    FunctorTypeMapper.Map(t, variableName, genericParameters[1], genericParameters, runtimeContainer)),
                 typeof(CaseFunction<,,>).GetConstructors()[0]));
         }
 

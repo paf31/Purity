@@ -13,29 +13,31 @@ namespace Purity.Compiler.Typechecker.Helpers
 {
     public class ConstraintCreator : IDataVisitor<TypeCheckingResult>
     {
-        private TypeCheckingContext context;
-        private TypeCheckingEnvironment environment;
+        private readonly TypeCheckingContext context;
+        private readonly TypeCheckingEnvironment environment;
+        private readonly IMetadataContainer container;
 
-        public ConstraintCreator(TypeCheckingEnvironment environment, TypeCheckingContext context)
+        public ConstraintCreator(TypeCheckingEnvironment environment, TypeCheckingContext context, IMetadataContainer container)
         {
             this.environment = environment;
             this.context = context;
+            this.container = container;
         }
 
-        public static TypeCheckingResult CreateConstraints(TypeCheckingEnvironment environment, TypeCheckingContext context, IData expression)
+        public static TypeCheckingResult CreateConstraints(TypeCheckingEnvironment environment, TypeCheckingContext context, IData expression, IMetadataContainer container)
         {
-            return expression.AcceptVisitor(new ConstraintCreator(environment, context));
+            return expression.AcceptVisitor(new ConstraintCreator(environment, context, container));
         }
 
-        public static TypeCheckingResult W(IData data)
+        public static TypeCheckingResult W(IData data, IMetadataContainer container)
         {
-            return CreateConstraints(Environments.Empty(), new TypeCheckingContext(), data);
+            return CreateConstraints(Environments.Empty(), new TypeCheckingContext(), data, container);
         }
 
         public TypeCheckingResult VisitApplication(Application d)
         {
-            var w1 = CreateConstraints(environment, context, d.Left);
-            var w2 = CreateConstraints(environment, context, d.Right);
+            var w1 = CreateConstraints(environment, context, d.Left, container);
+            var w2 = CreateConstraints(environment, context, d.Right, container);
 
             var resultType = context.NewType();
 
@@ -51,8 +53,8 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public TypeCheckingResult VisitCase(Case d)
         {
-            var w1 = CreateConstraints(environment, context, d.Left);
-            var w2 = CreateConstraints(environment, context, d.Right);
+            var w1 = CreateConstraints(environment, context, d.Left, container);
+            var w2 = CreateConstraints(environment, context, d.Right, container);
 
             var left = context.NewType();
             var right = context.NewType();
@@ -78,8 +80,8 @@ namespace Purity.Compiler.Typechecker.Helpers
 
             var composition = new Types.ArrowType(first, third);
 
-            var w1 = CreateConstraints(environment, context, d.Left);
-            var w2 = CreateConstraints(environment, context, d.Right);
+            var w1 = CreateConstraints(environment, context, d.Left, container);
+            var w2 = CreateConstraints(environment, context, d.Right, container);
 
             var s1 = Unification.Unify(w1.Type, new Types.ArrowType(second, third));
             var s2 = Unification.Unify(w2.Type, new Types.ArrowType(first, second));
@@ -91,7 +93,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public TypeCheckingResult VisitConst(Const d)
         {
-            var w = CreateConstraints(environment, context, d.Value);
+            var w = CreateConstraints(environment, context, d.Value, container);
 
             var inputType = context.NewType();
 
@@ -138,8 +140,8 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public TypeCheckingResult VisitSplit(Split d)
         {
-            var w1 = CreateConstraints(environment, context, d.Left);
-            var w2 = CreateConstraints(environment, context, d.Right);
+            var w1 = CreateConstraints(environment, context, d.Left, container);
+            var w2 = CreateConstraints(environment, context, d.Right, container);
 
             var inputType = context.NewType();
             var leftType = context.NewType();
@@ -159,7 +161,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public TypeCheckingResult VisitUncurry(Uncurried d)
         {
-            var w1 = CreateConstraints(environment, context, d.Function);
+            var w1 = CreateConstraints(environment, context, d.Function, container);
 
             var first = context.NewType();
             var second = context.NewType();
@@ -176,7 +178,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public TypeCheckingResult VisitCurry(Curried d)
         {
-            var w1 = CreateConstraints(environment, context, d.Function);
+            var w1 = CreateConstraints(environment, context, d.Function, container);
 
             var first = context.NewType();
             var second = context.NewType();
@@ -193,7 +195,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
         public TypeCheckingResult VisitSynonym(DataSynonym d)
         {
-            var declaration = Container.ResolveValue(d.Identifier);
+            var declaration = container.ResolveValue(d.Identifier);
 
             var typeParameters = new Dictionary<string, IPartialType>();
 
@@ -214,7 +216,7 @@ namespace Purity.Compiler.Typechecker.Helpers
             var variableType = context.NewType();
             var newEnv = environment.Replace(d.Variable, variableType);
 
-            var w1 = CreateConstraints(newEnv, context, d.Body);
+            var w1 = CreateConstraints(newEnv, context, d.Body, container);
 
             var arrowType = new Types.ArrowType(variableType, w1.Type);
 

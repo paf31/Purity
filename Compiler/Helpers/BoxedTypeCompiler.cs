@@ -20,6 +20,7 @@ namespace Purity.Compiler.Helpers
         private readonly string moduleName;
         private FieldBuilder field;
         private ConstructorBuilder constructor;
+        private readonly IRuntimeContainer runtimeContainer;
 
         public TypeBuilder TypeBuilder
         {
@@ -57,12 +58,14 @@ namespace Purity.Compiler.Helpers
             set;
         }
 
-        public BoxedTypeCompiler(string name, BoxedTypeDeclaration declaration, ModuleBuilder module, string moduleName)
+        public BoxedTypeCompiler(string name, BoxedTypeDeclaration declaration, ModuleBuilder module, 
+            string moduleName, IRuntimeContainer runtimeContainer)
         {
             this.name = name;
             this.declaration = declaration;
             this.module = module;
             this.moduleName = moduleName;
+            this.runtimeContainer = runtimeContainer;
         }
 
         public Type Compile()
@@ -72,7 +75,7 @@ namespace Purity.Compiler.Helpers
 
             var genericParameters = declaration.TypeParameters.Any() ? TypeBuilder.DefineGenericParameters(declaration.TypeParameters) : Type.EmptyTypes;
 
-            var containedType = new TypeConverter(genericParameters).Convert(declaration.Type);
+            var containedType = new TypeConverter(runtimeContainer, genericParameters).Convert(declaration.Type);
 
             field = TypeBuilder.DefineField(Constants.BoxedTypeValueFieldName, containedType, FieldAttributes.Public);
 
@@ -111,7 +114,7 @@ namespace Purity.Compiler.Helpers
 
             var genericParameters = declaration.TypeParameters.Any() ? BoxFunction.DefineGenericParameters(declaration.TypeParameters) : Type.EmptyTypes;
 
-            var containedType = new TypeConverter(genericParameters).Convert(declaration.Type);
+            var containedType = new TypeConverter(runtimeContainer, genericParameters).Convert(declaration.Type);
 
             BoxFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(containedType, TypeBuilder));
 
@@ -140,7 +143,7 @@ namespace Purity.Compiler.Helpers
 
             var genericParameters = declaration.TypeParameters.Any() ? UnboxFunction.DefineGenericParameters(declaration.TypeParameters) : Type.EmptyTypes;
 
-            var containedType = new TypeConverter(genericParameters).Convert(declaration.Type);
+            var containedType = new TypeConverter(runtimeContainer, genericParameters).Convert(declaration.Type);
 
             UnboxFunction.AddInterfaceImplementation(typeof(IFunction<,>).MakeGenericType(TypeBuilder, containedType));
 

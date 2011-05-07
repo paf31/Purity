@@ -8,17 +8,17 @@ using Purity.Compiler.TypedExpressions;
 using Purity.Compiler.Modules;
 using Purity.Compiler.Exceptions;
 
-namespace Purity.Compiler
+namespace Purity.Compiler.Implementation
 {
-    public static class Container
+    public class MetadataContainer : IMetadataContainer
     {
-        private static IDictionary<string, ITypeDeclaration> types =
+        private readonly IDictionary<string, ITypeDeclaration> types =
             new Dictionary<string, ITypeDeclaration>();
 
-        private static IDictionary<string, DataDeclaration> data =
+        private readonly IDictionary<string, DataDeclaration> data =
             new Dictionary<string, DataDeclaration>();
 
-        public static ITypeDeclaration ResolveType(string identifier)
+        public ITypeDeclaration ResolveType(string identifier)
         {
             if (!types.ContainsKey(identifier))
             {
@@ -28,7 +28,7 @@ namespace Purity.Compiler
             return types[identifier];
         }
 
-        public static DataDeclaration ResolveValue(string identifier)
+        public DataDeclaration ResolveValue(string identifier)
         {
             if (!data.ContainsKey(identifier))
             {
@@ -38,22 +38,22 @@ namespace Purity.Compiler
             return data[identifier];
         }
 
-        public static IEnumerable<KeyValuePair<string, DataDeclaration>> Values()
+        public IEnumerable<KeyValuePair<string, DataDeclaration>> Values()
         {
             return data;
         }
 
-        public static void Add(string identifier, ITypeDeclaration value)
+        public void Add(string identifier, ITypeDeclaration value)
         {
             types[identifier] = value;
         }
 
-        public static void Add(string identifier, DataDeclaration value)
+        public void Add(string identifier, DataDeclaration value)
         {
             data[identifier] = value;
         }
 
-        public static void Clear()
+        public void Clear()
         {
             data.Clear();
             types.Clear();
