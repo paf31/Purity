@@ -95,7 +95,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
             public IEnumerable<Constraint> VisitSynonym(Types.TypeSynonym t)
             {
-                throw new CompilerException("Expected arrow type, found arrow " + t.Identifier);
+                throw new CompilerException("Expected arrow type, found " + t.Identifier);
             }
 
             public IEnumerable<Constraint> VisitProduct(Types.ProductType t)
@@ -131,7 +131,7 @@ namespace Purity.Compiler.Typechecker.Helpers
 
             public IEnumerable<Constraint> VisitArrow(Types.ArrowType t)
             {
-                throw new CompilerException();
+                throw new CompilerException("Expected " + t1.Identifier + " type, found arrow type.");
             }
 
             public IEnumerable<Constraint> VisitSynonym(Types.TypeSynonym t)
